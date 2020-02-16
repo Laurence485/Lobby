@@ -55,9 +55,9 @@ def main():
 		win.blit(bg,(0,0)) #put picutre on screen (background)
 
 		# draw grid
-		for x in range(0,window_width,grid_spacing): #col
-			for y in range(0,window_height,grid_spacing): #row
-				pygame.draw.rect(win, (125,125,125), (x,y,grid_spacing,grid_spacing),1)
+		# for x in range(0,window_width,grid_spacing): #col
+		# 	for y in range(0,window_height,grid_spacing): #row
+		# 		pygame.draw.rect(win, (125,125,125), (x,y,grid_spacing,grid_spacing),1)
 
 		Map.draw(win)
 
