@@ -44,6 +44,7 @@ def main():
 	mushroom = Mushroom()
 	bike.new_location(choice(tuple(Map.movement_cost_area)))
 	mushroom.new_location(choice(tuple(Map.movement_cost_area)))
+	
 	# target_sound = pygame.mixer.Sound('sounds/objective.wav') #run with target_sound.play()
 	# music = pygame.mixer.music.load('sounds/music.mp3')
 	# pygame.mixer.music.play(-1)
