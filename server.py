@@ -1,22 +1,10 @@
 #use socket and threading to handle connections
 import socket
 from _thread import *
-import sys
 import pickle
 
-server = "192.168.1.147"
-port = 5555
-
-s  = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #IPV4 adress, TCP
-
-#bind server and port to socket
-try:
-	s.bind((server, port))
-except socket.error as e:
-	str(e)
-
-s.listen(2) #listen for connections - 2 connections to server only for now
-print("Server started, waiting for connection...")
+HOST = "192.168.1.147"
+PORT = 5555
 
 attributes = {
 'x':0,
@@ -27,40 +15,58 @@ attributes = {
 'D':True,
 'standing':True,
 'walk count':0,
+'inventory': [],
+'bike': False,
+'mushroom': False,
+'stats': {
+	'kills':0,
+	'deaths':0,
+	'K/D': 0
+	},
+'killed': None,
+'dead': False,
+'ID':None
 }
 players = [attributes, attributes]
 
 def client(conn, player):
-	conn.send(pickle.dumps(players[player]))
-	reply = ""
-	while True: #continously run whilst client still connected
-		try:
-			data = pickle.loads(conn.recv(1024)) #bits to receive
-			players[player] = data
+	with conn:
+		conn.send(pickle.dumps(player)) #send player ID
+		# reply = ""
+		while True: #continously run whilst client still connected
+			try:
+				data = pickle.loads(conn.recv(2048)) #bits to receive
+				players[player] = data
 
-			if not data:
-				print('Disconnected from server.')
-				break
-			else:
-				if player == 1:
-					reply = players[0]
+				if not data:
+					print('Disconnected from server.')
+					break
 				else:
-					reply = players[1]
+					if player == 1:
+						reply = players[0]
+					else:
+						reply = players[1]
 
-				print("Received: ", data)
-				print("Sending: ", reply)
+					# print("Received: ", data)
+					# print("Sending: ", reply)
+				conn.sendall(pickle.dumps(reply)) 
+			except:
+				break
 
-			conn.sendall(pickle.dumps(reply)) 
-		except:
-			break
+		print('connection dropped.')
 
-	print('connection dropped.')
-	conn.close()
 
-player = 0 #increment when we make a new conn
-while True: #continuously look for connections, if found, start new thread
-	conn, addr = s.accept()
-	print("Connected to:", addr)
+player = 0 #player ID
+num_players = 0
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s: #IPV4 adress, TCP
 
-	start_new_thread(client, (conn, player))
-	player += 1
+	s.bind((HOST, PORT))
+	s.listen(10) #listen for up to 10 connections
+	print("Server started, waiting for connection...")
+
+	while True: #continuously look for connections, if found, start new thread
+		conn, addr = s.accept()
+		print("Connected by:", addr)
+
+		start_new_thread(client, (conn, player))
+		player += 1

@@ -4,6 +4,7 @@ import config
 from map_generation import Map
 from random import choice
 from weapons import Bike, Pokeball
+# from network import Network
 import config
 
 class Character:
@@ -29,6 +30,9 @@ class Character:
 		'deaths':0,
 		'K/D': 0
 		}
+		self.ID = None
+		self.killed = None
+		self.dead = False
 
 	def walk_animation(self, direction, win):
 		if not self.hit_slow:
@@ -99,7 +103,14 @@ class Player(Character):
 		'U':self.up,
 		'D':self.down,
 		'standing':self.standing,
-		'wc':self.walk_count,
+		'walk count':self.walk_count,
+		'inventory': [(bullet.x, bullet.y) for bullet in self.inventory],
+		'bike': self.bike,
+		'mushroom': self.mushroom,
+		'stats': self.stats,
+		'killed': self.killed,
+		'dead':self.dead,
+		'ID':self.ID,
 		}
 		return attrs
 
@@ -262,7 +273,7 @@ class Player(Character):
 			self.inventory.pop(self.inventory.index(bullet))
 
 	def check_kill(self, bullet, enemy):
-		'''check kill - whether by pokeball or trampling'''
+		'''check kill by pokeball'''
 		sq = config.grid_spacing
 		#adding 1 square padding to enemy bounds lets us attack when we are 1sq away
 		if bullet.x + bullet.width >= -sq + enemy.x and bullet.x <= enemy.x + enemy.width + sq:
@@ -271,10 +282,11 @@ class Player(Character):
 					self.inventory.pop(self.inventory.index(bullet))
 					if not enemy.mushroom:
 						print('killed an enemy!')
-						enemy.die()
+						self.killed = enemy.ID
 						self.kill()
 				except: 
 					pass
+
 
 	def check_trample(self, enemy):
 		'''check if we've trampled someone with double size'''
@@ -283,20 +295,21 @@ class Player(Character):
 				if enemy.y + enemy.height >= self.y and enemy.y <= self.y + self.height:
 					if not enemy.mushroom:
 						print('trampled an enemy!')
-						enemy.die()
 						self.kill()
+						
 
 	def kill(self):
 		'''update kill stats with +1'''
 		self.stats['kills'] += 1
-		self.stats['K/D'] = self.stats['kills'] / self.stats['deaths'] if self.stats['deaths'] > 0 else 'infinity'
-	
+		self.stats['K/D'] = self.KD_ratio()
+
 	def die(self):
 		'''update death stats with +1 and reset player attributes'''
 		self.stats['deaths'] += 1
-		self.stats['K/D'] = self.stats['kills'] / self.stats['deaths'] if self.stats['deaths'] > 0 else 'infinity'
+		self.stats['K/D'] = self.KD_ratio()
 		respawn = choice(tuple(Map.nodes))
-		self.x,self.y = respawn[0], respawn[1]
+		print(f"we died...respawning at {respawn}")
+		self.x,self.y = respawn
 		self.left = False
 		self.right = False
 		self.up = False
@@ -305,10 +318,13 @@ class Player(Character):
 		self.inventory = []
 		self.bullet_interval = 0
 		self.space_up = False
-		self.direction = 'D' #use to track bullet shooting direction
+		self.direction = 'D'
 		self.walk_count = 0
 		self.vel = 10
 		self.hit_slow = False
+
+	def KD_ratio(self):
+		return round(self.stats['kills'] / self.stats['deaths'], 2) if self.stats['deaths'] > 0 else 'infinity'
 
 	def snap(self):
 		'''snap player x,y to grid'''

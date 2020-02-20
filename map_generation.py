@@ -57,7 +57,7 @@ class Map:
 			#2) choose xy from available nodes such that obj doesnt touch any other object
 			available_nodes = not_oob - self.objs_area
 			rand_xy = choice(tuple(available_nodes))
-			rand_x, rand_y = rand_xy[0], rand_xy[1]
+			rand_x, rand_y = rand_xy
 
 			colliding = True
 			if len(obj_features):
@@ -76,7 +76,7 @@ class Map:
 							available_nodes.remove(rand_xy)
 							if not(len(available_nodes)): break
 							rand_xy = choice(tuple(available_nodes))
-							rand_x, rand_y = rand_xy[0], rand_xy[1]
+							rand_x, rand_y = rand_xy
 							break	
 
 					colliding = False if not failed else True
@@ -111,5 +111,5 @@ class Map:
 	def draw(cls, win):
 		for obj in cls.objects:
 			item = obj[0]
-			x,y = obj[1][0], obj[1][1]
+			x,y = obj[1]
 			win.blit(item, (x,y))

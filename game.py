@@ -15,8 +15,6 @@ def main():
 	running = True
 	menu = False
 
-	# net = Network()
-
 	# window for drawing on
 	window_width = config.window_width
 	window_height = config.window_height
@@ -34,11 +32,10 @@ def main():
 	clock = pygame.time.Clock()
 
 	ash = Player(choice(tuple(new_map.nodes)))
-	p2 = Player((400,400))
-	# ash = net.get_position()
+	p2 = Player((100,100))
+
 	npc = Npc(150,170,400)
 	bot = Player((290,90))
-
 
 	bike = Bike()
 	mushroom = Mushroom()
@@ -51,13 +48,17 @@ def main():
 
 	font = pygame.font.SysFont('verdana',10,False,True)
 
+	net = Network()
+
+	ash.ID = net.playerID
+
 	def redraw_gamewindow():
 		win.blit(bg,(0,0)) #put picutre on screen (background)
 
 		# draw grid
-		# for x in range(0,window_width,grid_spacing): #col
-		# 	for y in range(0,window_height,grid_spacing): #row
-		# 		pygame.draw.rect(win, (125,125,125), (x,y,grid_spacing,grid_spacing),1)
+		for x in range(0,window_width,grid_spacing): #col
+			for y in range(0,window_height,grid_spacing): #row
+				pygame.draw.rect(win, (125,125,125), (x,y,grid_spacing,grid_spacing),1)
 
 		Map.draw(win)
 
@@ -73,13 +74,17 @@ def main():
 			ash.draw_bullet(win,bullet)
 			ash.check_kill(bullet, p2)
 
+		for xy in p2.inventory:
+			bullet = pygame.image.load('sprites/objects/pokeball.png').convert_alpha()
+			win.blit(bullet, xy)
+
 		ash.check_trample(p2)
 
 		time = font.render(f'Time: {round(pygame.time.get_ticks()/1000,2)}',1,(0,0,0))
 		win.blit(time, (390, 10))
 
 		if menu:
-			Menu(win, ash.stats)
+			Menu(win, ash.stats, p2.stats)
 
 		pygame.display.update()
 
@@ -99,10 +104,30 @@ def main():
 	while running:
 		clock.tick(9) #9 FPS
 
-		# p2_attrs = net.send(ash.attributes())
-		# p2.x, p2.y = p2_attrs['x'], p2_attrs['y']
-		# p2.left, p2.right, p2.up, p2.down = p2_attrs['L'], p2_attrs['R'], p2_attrs['U'], p2_attrs['D']
-		# p2.standing, p2.walk_count = p2_attrs['standing'], p2_attrs['walk count']
+		p2_attrs = net.send(ash.attributes()) #return attributes of other players
+		p2.x, p2.y = p2_attrs['x'], p2_attrs['y']
+		p2.left, p2.right, p2.up, p2.down = p2_attrs['L'], p2_attrs['R'], p2_attrs['U'], p2_attrs['D']
+		p2.standing, p2.walk_count = p2_attrs['standing'], p2_attrs['walk count']
+		p2.bike, p2.mushroom = p2_attrs['bike'], p2_attrs['mushroom']
+		p2.inventory = p2_attrs['inventory']
+		p2.stats = p2_attrs['stats']
+		p2.killed = p2_attrs['killed']
+		p2.dead = p2_attrs['dead']
+		p2.ID = p2_attrs['ID']
+
+		#another played killed us
+		if p2.killed == ash.ID and not ash.dead:
+			ash.die()
+			ash.dead = True
+
+		#we've killed another player and they are dead so reset killed
+		elif ash.killed == p2.ID and p2.dead:
+			print('yes')
+			ash.killed = None
+
+		#we are dead and they havn't killed us so reset dead
+		elif ash.dead and p2.killed != ash.ID:
+			ash.dead = False
 
 		# if p2.x + p2.width >= ash.x and p2.x <= (ash.x + ash.width) and p2.y + p2.height >= ash.y and p2.y <= (ash.y + ash.height):
 		# 	print(f'touching! p2:{(p2.x,p2.y)} p1:{(ash.x,ash.y)}')
