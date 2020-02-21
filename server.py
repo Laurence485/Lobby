@@ -5,6 +5,7 @@ import pickle
 
 HOST = "192.168.1.147"
 PORT = 5555
+buffer_size = 2048
 
 attributes = {
 'x':0,
@@ -15,6 +16,7 @@ attributes = {
 'D':True,
 'standing':True,
 'walk count':0,
+'hit slow': False,
 'inventory': [],
 'bike': False,
 'mushroom': False,
@@ -27,37 +29,39 @@ attributes = {
 'dead': False,
 'ID':None
 }
-players = [attributes, attributes]
+players = [attributes]*3
 
 def client(conn, player):
 	with conn:
 		conn.send(pickle.dumps(player)) #send player ID
-		# reply = ""
 		while True: #continously run whilst client still connected
 			try:
-				data = pickle.loads(conn.recv(2048)) #bits to receive
+				data = pickle.loads(conn.recv(buffer_size)) #received player attrs
 				players[player] = data
 
 				if not data:
 					print('Disconnected from server.')
 					break
 				else:
-					if player == 1:
-						reply = players[0]
-					else:
-						reply = players[1]
+					#slice out this player and return other players only
+					reply = (players[:player]+players[player+1:])[0]
+					# if player == 1:
+					# 	reply = players[0]
+					# else:
+					# 	reply = players[1]
 
-					# print("Received: ", data)
-					# print("Sending: ", reply)
 				conn.sendall(pickle.dumps(reply)) 
 			except:
 				break
 
-		print('connection dropped.')
+		#player DCed so reset to defaults and add to DC list so we can re-add if they re-connect
+		players[player] = attributes
+		DC.append(player)
+		print(f'connection dropped (player {player}).')
 
-
+DC = [] #disconnected player IDs
+clients = set()
 player = 0 #player ID
-num_players = 0
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s: #IPV4 adress, TCP
 
 	s.bind((HOST, PORT))
@@ -67,6 +71,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s: #IPV4 adress, TCP
 	while True: #continuously look for connections, if found, start new thread
 		conn, addr = s.accept()
 		print("Connected by:", addr)
-
-		start_new_thread(client, (conn, player))
-		player += 1
+		if len(DC):
+			DC_player = DC.pop()
+			start_new_thread(client, (conn, DC_player))
+		else:
+			start_new_thread(client, (conn, player))
+			player += 1

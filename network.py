@@ -1,6 +1,7 @@
 import socket
 import pickle
-#MAGIC NUMBERS
+
+buffer_size = 2048
 
 class Network:
 	def __init__(self):
@@ -10,21 +11,17 @@ class Network:
 		self.addr = (self.HOST, self.PORT)
 		self.data = self.connect()
 
-	def get_data(self):
-		return self.data
-
 	def connect(self):
-		try: #connect and send info back to validate
+		try: #connect and get player ID
 			self.client.connect(self.addr)
-			self.playerID = pickle.loads(self.client.recv(1024))
-			# return pickle.loads(self.client.recv(1024))
+			self.playerID = pickle.loads(self.client.recv(buffer_size))
 		except:
-			pass
+			print("couldn't connect to host.")
 
 	def send(self, data):
 		try:
 			self.client.send(pickle.dumps(data))
-			return pickle.loads(self.client.recv(2048))
+			return pickle.loads(self.client.recv(buffer_size))
 		except socket.error as e:
 			print(e)
 

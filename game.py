@@ -25,14 +25,16 @@ def main():
 
 	bg = pygame.image.load('sprites/background.jpg').convert()
 
+	net = Network()
+
 	new_map = Map()
 	#use all objects, set specific number of grass tree and water objects
 	new_map.generate_map(grass=20,trees=20, water=2) 
 
 	clock = pygame.time.Clock()
 
-	ash = Player(choice(tuple(new_map.nodes)))
-	p2 = Player((100,100))
+	ash = Player(choice(tuple(new_map.nodes)),net.playerID)
+	p2, p3 = None, None
 
 	npc = Npc(150,170,400)
 	bot = Player((290,90))
@@ -47,8 +49,6 @@ def main():
 	# pygame.mixer.music.play(-1)
 
 	font = pygame.font.SysFont('verdana',10,False,True)
-
-	net = Network()
 
 	ash.ID = net.playerID
 
@@ -65,20 +65,34 @@ def main():
 		ash.draw(win)
 		npc.draw(win)
 		bot.draw(win)
-		p2.draw(win)
+		if p2 and p2.ID != None:
+			p2.draw(win)
 
 		bike.draw(win)
 		mushroom.draw(win)
 
+
 		for bullet in ash.inventory:
 			ash.draw_bullet(win,bullet)
-			ash.check_kill(bullet, p2)
+			if p2 and p2.ID != None:
+				ash.check_kill(bullet, p2)
 
-		for xy in p2.inventory:
-			bullet = pygame.image.load('sprites/objects/pokeball.png').convert_alpha()
-			win.blit(bullet, xy)
+		#note that we are 20px behind (last position doesnt show... this is temp fix)
+		if p2 and p2.ID != None:
+			for bullet in p2.inventory:
+				bullet_sprite = pygame.image.load('sprites/objects/pokeball.png').convert_alpha()
+				x,y,_dir,start_x,start_y = bullet
+				if _dir == 'L':
+					x += 20
+				elif _dir == 'R':
+					x -= 20
+				elif _dir == 'U':
+					y += 20
+				elif _dir == 'D':
+					y -= 20
+				win.blit(bullet_sprite, (x,y))
 
-		ash.check_trample(p2)
+			ash.check_trample(p2)
 
 		time = font.render(f'Time: {round(pygame.time.get_ticks()/1000,2)}',1,(0,0,0))
 		win.blit(time, (390, 10))
@@ -103,34 +117,40 @@ def main():
 	#main event loop
 	while running:
 		clock.tick(9) #9 FPS
-
+		
 		p2_attrs = net.send(ash.attributes()) #return attributes of other players
-		p2.x, p2.y = p2_attrs['x'], p2_attrs['y']
-		p2.left, p2.right, p2.up, p2.down = p2_attrs['L'], p2_attrs['R'], p2_attrs['U'], p2_attrs['D']
-		p2.standing, p2.walk_count = p2_attrs['standing'], p2_attrs['walk count']
-		p2.bike, p2.mushroom = p2_attrs['bike'], p2_attrs['mushroom']
-		p2.inventory = p2_attrs['inventory']
-		p2.stats = p2_attrs['stats']
-		p2.killed = p2_attrs['killed']
-		p2.dead = p2_attrs['dead']
-		p2.ID = p2_attrs['ID']
 
-		#another played killed us
-		if p2.killed == ash.ID and not ash.dead:
-			ash.die()
-			ash.dead = True
+		#create new player instance if:
+		#1) they have an ID (connected to server)
+		#2) we haven't already created an instance
+		if not p2 and p2_attrs['ID'] != None:
+			p2 = Player()
 
-		#we've killed another player and they are dead so reset killed
-		elif ash.killed == p2.ID and p2.dead:
-			print('yes')
-			ash.killed = None
+		#returned attributes of other players from server
+		elif p2:
+			p2.x, p2.y = p2_attrs['x'], p2_attrs['y']
+			p2.left, p2.right, p2.up, p2.down = p2_attrs['L'], p2_attrs['R'], p2_attrs['U'], p2_attrs['D']
+			p2.standing, p2.walk_count = p2_attrs['standing'], p2_attrs['walk count']
+			p2.hit_slow, p2.bike, p2.mushroom = p2_attrs['hit slow'], p2_attrs['bike'], p2_attrs['mushroom']
+			p2.inventory = p2_attrs['inventory']
+			p2.stats = p2_attrs['stats']
+			p2.killed = p2_attrs['killed']
+			p2.dead = p2_attrs['dead']
+			p2.ID = p2_attrs['ID']
 
-		#we are dead and they havn't killed us so reset dead
-		elif ash.dead and p2.killed != ash.ID:
-			ash.dead = False
+			#another player killed us and we are not dead
+			if p2.killed == ash.ID and not ash.dead:
+				ash.die()
+				ash.dead = True
 
-		# if p2.x + p2.width >= ash.x and p2.x <= (ash.x + ash.width) and p2.y + p2.height >= ash.y and p2.y <= (ash.y + ash.height):
-		# 	print(f'touching! p2:{(p2.x,p2.y)} p1:{(ash.x,ash.y)}')
+			#we've killed another player and they are dead so reset killed
+			elif ash.killed == p2.ID and p2.dead:
+				ash.killed = None
+
+			#we are dead and they havn't killed us so reset dead
+			elif ash.dead and p2.killed != ash.ID:
+				ash.dead = False
+
 
 		for event in pygame.event.get(): #get mouse positions, keyboard clicks etc
 			if event.type == pygame.QUIT: #we pressed the exit button
