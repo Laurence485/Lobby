@@ -29,7 +29,7 @@ attributes = {
 'dead': False,
 'ID':None
 }
-players = [attributes]*3
+players = [attributes]*5 #5 players
 
 def client(conn, player):
 	with conn:
@@ -44,7 +44,7 @@ def client(conn, player):
 					break
 				else:
 					#slice out this player and return other players only
-					reply = (players[:player]+players[player+1:])[0]
+					reply = (players[:player]+players[player+1:])
 					# if player == 1:
 					# 	reply = players[0]
 					# else:
@@ -60,7 +60,6 @@ def client(conn, player):
 		print(f'connection dropped (player {player}).')
 
 DC = [] #disconnected player IDs
-clients = set()
 player = 0 #player ID
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s: #IPV4 adress, TCP
 

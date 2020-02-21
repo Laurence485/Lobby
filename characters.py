@@ -3,7 +3,7 @@ from snap_to_grid import SnaptoGrid
 import config
 from map_generation import Map
 from random import choice
-from weapons import Bike, Pokeball
+from weapons import Pokeball
 # from network import Network
 import config
 
@@ -276,7 +276,7 @@ class Player(Character):
 			self.inventory.pop(self.inventory.index(bullet))
 
 	def check_kill(self, bullet, enemy):
-		'''check kill by pokeball'''
+		'''check kill (collision) by pokeball'''
 		# sq = config.grid_spacing
 		#adding 1 square padding to enemy bounds lets us attack when we are 1sq away
 		if bullet.x + bullet.width >= enemy.x and bullet.x <= enemy.x + enemy.width:

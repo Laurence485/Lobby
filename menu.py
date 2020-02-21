@@ -19,7 +19,7 @@ class Menu:
 		win.blit(menu_img, (menu_x,menu_y))
 		win.blit(header, (menu_x, menu_y))
 
-		for  i, stats in enumerate([player_stats,enemy_stats]):
+		for  i, stats in enumerate([player_stats]+enemy_stats):
 			name = 'A'
 			name = name[:max_len_name] #truncate if >10
 			name_pos = 12+12-len(name) #text positions relative to a name of max len 10

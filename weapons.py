@@ -76,3 +76,24 @@ class Pokeball:
 
 	def distance(self):
 		return abs(self.x - self._start_x) + abs(self.y - self._start_y)
+
+class WeaponStatus:
+	'''check if we've picked up a weapon'''
+	def __init__(self, ash):
+		if ash.bike:
+			self.weapon_timer(ash.bike, ash.start_bike_ticks, ash)
+		if ash.mushroom:
+			self.weapon_timer(ash.mushroom, ash.start_mushroom_ticks, ash)
+
+	def weapon_timer(self, item, start_ticks, ash):
+		'''start 15s timers for bike / mushroom'''
+		seconds=(pygame.time.get_ticks()-start_ticks)/1000
+		if seconds > 15:
+			if item == ash.mushroom:
+				ash.mushroom = False
+				ash.width /=2
+				ash.height /=2
+				ash.start_mushroom_ticks = 0
+			elif item == ash.bike:
+				ash.bike = False
+				ash.start_bike_ticks = 0
