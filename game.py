@@ -3,15 +3,15 @@ import pygame
 from characters import Player, Npc
 from map_generation import Map
 from random_node import RandomNode
+from random import choice
 from network import Network
 from menu import Menu
 from weapons import Bike, Mushroom, WeaponStatus
 from multiplayer import Multiplayer
+import time
+
 #change frame update to dirty_rects: https://www.pygame.org/docs/tut/newbieguide.html
-#2 fncs - generate map, load map
-#we use generate map to generate new maps and pickel them, we use load map to pic
-#a map via name or random (we pickle nodes, objs, obj coords, movement cost nodes)
-#we then dont need seed, and solves global weapons problem + allows us to have diff maps
+#if server time reaches 3m, change map. Then done!
 def main():
 	username = input("Welcome to Pokéwars \n Enter Username: ")
 
@@ -19,6 +19,8 @@ def main():
 	pygame.running = True
 	running = True
 	menu = False
+	grid = False
+	game_time_loop = config.game_time_loop
 
 	# window for drawing on
 	window_width = config.window_width
@@ -32,14 +34,20 @@ def main():
 
 	net = Network()
 
-	new_map = Map()
-	#use all objects, set specific number of grass tree and water objects
-	new_map.generate_map(grass=20,trees=20, water=2) 
+	# new_map = Map()
+	#generate and save map
+	# # new_map.generate_map('city', True)
+	# maps = ['myfirstmap','grass','water','trees','city']
+
+	#load map from server
+	current_map = 0
+	Map.load(net.maps[current_map])
 
 	clock = pygame.time.Clock()
+	start_time = net.start_time #start game timer
 
 	#create client player object and assign colour based on ID
-	ash = Player(RandomNode(new_map.nodes).node,net.playerID, username)
+	ash = Player(RandomNode(Map.nodes).node,net.playerID, username)
 
 	#other player objects
 	p2, p3, p4, p5 = None, None, None, None
@@ -50,8 +58,13 @@ def main():
 
 	bike = Bike()
 	mushroom = Mushroom()
-	bike.new_location(RandomNode(Map.movement_cost_area).node)
-	mushroom.new_location(RandomNode(Map.movement_cost_area).node)
+	#put bikes and mushrooms in grass/water if we're using a map with grass/water else random available node
+	if len(Map.movement_cost_area):
+		bike.new_location(RandomNode(Map.movement_cost_area).node)
+		mushroom.new_location(RandomNode(Map.movement_cost_area).node)
+	else:
+		bike.new_location(RandomNode(Map.nodes).node, False)
+		mushroom.new_location(RandomNode(Map.nodes).node, False)
 	
 	# target_sound = pygame.mixer.Sound('sounds/objective.wav') #run with target_sound.play()
 	# music = pygame.mixer.music.load('sounds/music.mp3')
@@ -61,13 +74,36 @@ def main():
 
 	ash.ID = net.playerID
 
-	def redraw_gamewindow():
+	def end_game(current_map):
+		print('game ended.')
+		if current_map < len(net.maps)-1:
+			current_map += 1
+		else: current_map = 0
+		Map.load(net.maps[current_map])
+
+
+	def game_timer(game_time_loop, current_map):
+		'''3m timers for each map, after 180s, server time will be 180, so we must
+		*2 the game_time_loop i.e. check for 360s on the next map and so on'''
+		seconds=(time.time()-start_time)
+		print(game_time_loop, seconds)
+		if seconds > game_time_loop:
+			game_time_loop *= 2
+			end_game(current_map)
+			running = False
+			print(game_time_loop, seconds)
+			return 0
+
+		return 180-seconds
+
+	def redraw_gamewindow(grid):
 		win.blit(bg,(0,0)) #put picutre on screen (background)
 
 		# draw grid
-		for x in range(0,window_width,grid_spacing): #col
-			for y in range(0,window_height,grid_spacing): #row
-				pygame.draw.rect(win, (125,125,125), (x,y,grid_spacing,grid_spacing),1)
+		if grid:
+			for x in range(0,window_width,grid_spacing): #col
+				for y in range(0,window_height,grid_spacing): #row
+					pygame.draw.rect(win, (125,125,125), (x,y,grid_spacing,grid_spacing),1)
 
 		Map.draw(win)
 		bike.draw(win)
@@ -75,6 +111,7 @@ def main():
 		npc.draw(win)
 		ash.draw(win)
 
+		#draw all players
 		for p in players:
 			if p and p.ID != None:
 				p.draw(win)
@@ -95,7 +132,8 @@ def main():
 
 				ash.check_trample(p)
 
-		if menu:
+		#pressed z or time ran out
+		if menu or game_timer(game_time_loop, current_map)==0:
 			Menu(win, [ash.stats,ash.username], [[p.stats,p.username] for p in players if p])
 
 		for bullet in ash.inventory:
@@ -105,8 +143,8 @@ def main():
 					ash.check_kill(bullet, p)
 
 
-		time = font.render(f'Time: {round(pygame.time.get_ticks()/1000,2)}',1,(0,0,0))
-		win.blit(time, (390, 10))
+		time = font.render(f'Time: {round(game_timer(game_time_loop, current_map),0)}',1,(0,0,0))
+		win.blit(time, (0, 0))
 
 		pygame.display.update()
 
@@ -126,12 +164,14 @@ def main():
 					ash.space_up = True
 				if event.key == pygame.K_z: #z for menu
 					menu = True if not menu else False
+				if event.key == pygame.K_a: #a for grid
+					grid = True if not grid else False
 
 		#move amongst available nodes 
 		#(no movement out of bounds and in object coordinates)
 		#movement cost in grass / water
-		ash.move(new_map.objs_area, new_map.movement_cost_area, bike, mushroom)
-		redraw_gamewindow()
+		ash.move(Map.objs_area, Map.movement_cost_area, bike, mushroom)
+		redraw_gamewindow(grid)
 
 	pygame.quit()
 

@@ -31,6 +31,7 @@ class Multiplayer:
 					players[i].dead = a['dead']
 					players[i].ID = a['ID']
 					players[i].username = a['username']
+					players[i].vote = a['vote']
 
 	@staticmethod
 	def check_death_status(ash, players):

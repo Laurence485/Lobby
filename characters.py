@@ -92,6 +92,7 @@ class Player(Character):
 		self.start_bike_ticks = 0 #bike timer
 		self.start_mushroom_ticks = 0 #enlarged size timer
 		self.username = username
+		self.vote = 0
 
 	#we send these attributes from the server to the client for multiplayer
 	def attributes(self):
@@ -112,7 +113,8 @@ class Player(Character):
 		'killed': self.killed,
 		'dead':self.dead,
 		'ID':self.ID,
-		'username':self.username
+		'username':self.username,
+		'vote':self.vote
 		}
 		return attrs
 
@@ -160,19 +162,35 @@ class Player(Character):
 		self.bullet_interval += 1
 		if self.bullet_interval > 5: self.bullet_interval = 0
 
-		#update the hitbox every frame
-		# self.hitbox = (self.x, self.y, self.width, self.height)
-		# pygame.draw.rect(win, (255,0,0), self.hitbox,2)
 
 	def move(self, collision_zone, movement_cost_area, bike=None, mushroom=None):
 		keys = pygame.key.get_pressed()
-
+		mca = len(movement_cost_area)
 		#simple collision detection:
 		#check if player (x,y) is in the set of object coordinates
 		#given player dimensions (w=15,h=19) setting +/- grid spacing (1 square) works ok
 		bounds = (SnaptoGrid.snap(self.x),SnaptoGrid.snap(self.y+config.grid_spacing))
-		hit_wall = True if bounds in collision_zone else False
+		#no movement through walls unless mushroomed
+		hit_wall = True if bounds in collision_zone and not self.mushroom else False
 		self.hit_slow = True if bounds in movement_cost_area else False
+
+		#found a bike
+		if bounds == bike.hidden_loc and not self.bike:
+			self.bike = True
+			self.start_bike_ticks = pygame.time.get_ticks() #start bike timer 15s
+			bike.new_location(RandomNode(Map.movement_cost_area).node if mca else RandomNode(Map.nodes).node)
+			print('found bike!')
+			self.snap()
+
+		#found a mushroom - 2x size
+		if bounds == mushroom.hidden_loc and not self.mushroom:
+			self.mushroom = True
+			self.width *= 2
+			self.height *= 2
+			self.start_mushroom_ticks = pygame.time.get_ticks() #start bike timer 15s
+			mushroom.new_location(RandomNode(Map.movement_cost_area).node if mca else RandomNode(Map.nodes).node)
+			print('found mushroom!')
+			self.snap()
 
 		if self.hit_slow:
 			#slow movement speed
@@ -182,25 +200,7 @@ class Player(Character):
 				self.vel = slow_speed
 			else: 
 				self.vel = self._vel if not self.bike else self.bike_vel
-
-			#found a bike
-			if bounds == bike.hidden_loc and not self.bike:
-				self.bike = True
-				self.start_bike_ticks = pygame.time.get_ticks() #start bike timer 15s
-				bike.new_location(RandomNode(Map.movement_cost_area).node)
-				print('found bike!')
-				self.snap()
-
-			#found a mushroom - 2x size
-			if bounds == mushroom.hidden_loc and not self.mushroom:
-				self.mushroom = True
-				self.width *= 2
-				self.height *= 2
-				self.start_mushroom_ticks = pygame.time.get_ticks() #start bike timer 15s
-				mushroom.new_location(RandomNode(Map.movement_cost_area).node)
-				print('found mushroom!')
-				self.snap()
-		else:
+		else:	
 			self.vel = self._vel if not self.bike else self.bike_vel
 			#we must re-snap to grid as (x,y) no longer to nearest square
 			self.snap()
@@ -245,13 +245,18 @@ class Player(Character):
 				self.standing = True
 				self.walk_count = 0
 		else: #collision
+		 #we respawned s.t bounds is touching an object, triggering hit_wall = True
+		 # --> find new node
+			if self.standing:
+				self.x, self.y = RandomNode(Map.nodes).node
 			if self.left: self.x += self.vel
 			elif self.right: self.x -= self.vel
 			elif self.up: self.y += self.vel
 			elif self.down: self.y -= self.vel
 
 		#prevent movement beyond the screen
-		if self.x > config.window_height-config.grid_spacing: #we would normally use self.width but as 10px grid spacing we want to be able to navigate the rightmost square
+		#we would normally use self.width but as 10px grid spacing we want to be able to navigate the rightmost square
+		if self.x > config.window_height-config.window_wall_width-config.grid_spacing: 
 			self.x -= self.vel
 		elif self.x < 0:
 			self.x += self.vel
@@ -296,8 +301,7 @@ class Player(Character):
 		if self.mushroom:
 			if enemy.x + enemy.width >= self.x and enemy.x <= self.x + self.width:
 				if enemy.y + enemy.height >= self.y and enemy.y <= self.y + self.height:
-					#check None to avoid multiple kills of same player for 1 hit before server updates
-					if not enemy.mushroom and self.killed == None:
+					if not enemy.mushroom and self.killed != enemy.ID:
 						print(f'You trampled {enemy.username}!')
 						self.killed = enemy.ID
 						self.kill()

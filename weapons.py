@@ -9,19 +9,25 @@ class Weapon:
 	def __init__(self, img, name):
 		self.weapon = img
 		self.name = name
+		self.hidden_loc = None
+		self.location = None
 
-	def new_location(self, loc):
+	def new_location(self, loc, mca=True):
 		#distance from right edge,bottom edge - and - left edge,top edge
-		edge_dist = self.measure_area(loc,1) + self.measure_area(loc,-1)
-		width = edge_dist[0] + abs(edge_dist[2])
-		height = edge_dist[1] + abs(edge_dist[3])
+		if mca: #maps with movement cost areas (grass/water)
+			edge_dist = self.measure_area(loc,1) + self.measure_area(loc,-1)
+			width = edge_dist[0] + abs(edge_dist[2])
+			height = edge_dist[1] + abs(edge_dist[3])
 
-		middle = (width//2 - self.weapon.get_width()//2, height//2 - self.weapon.get_height()//2)
-		left_pos = loc[0] + edge_dist[2]
-		top_pos = loc[1] + edge_dist[3]
+			middle = (width//2 - self.weapon.get_width()//2, height//2 - self.weapon.get_height()//2)
+			left_pos = loc[0] + edge_dist[2]
+			top_pos = loc[1] + edge_dist[3]
 
-		self.hidden_loc = loc
-		self.location = (left_pos+middle[0],top_pos+middle[1])
+			self.hidden_loc = loc
+			self.location = (left_pos+middle[0],top_pos+middle[1])
+		else:
+			self.hidden_loc = loc
+			self.location = loc
 		print(f'new {self.name} location {self.hidden_loc}')
 
 	def measure_area(self,_coords,direction):

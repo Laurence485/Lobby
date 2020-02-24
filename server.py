@@ -3,10 +3,15 @@ import socket
 from _thread import *
 import pickle
 import config
+from random import shuffle
+import time
 
 HOST = "192.168.1.147"
 PORT = 5555
 buffer_size = 2048
+maps = ['myfirstmap','grass','water','trees','city']
+shuffle(maps)
+start_time = time.time()
 
 attributes = {
 'x':0,
@@ -35,7 +40,8 @@ players = [attributes]*config.num_players
 
 def client(conn, player):
 	with conn:
-		conn.send(pickle.dumps(player)) #send player ID
+		#init game with map, player ID and start time form server
+		conn.send(pickle.dumps((maps, player, start_time)))
 		while True: #continously run whilst client still connected
 			try:
 				data = pickle.loads(conn.recv(buffer_size)) #received player attrs
