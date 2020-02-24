@@ -2,15 +2,19 @@ import config
 import pygame
 from characters import Player, Npc
 from map_generation import Map
-from random import choice
+from random_node import RandomNode
 from network import Network
 from menu import Menu
 from weapons import Bike, Mushroom, WeaponStatus
 from multiplayer import Multiplayer
 #change frame update to dirty_rects: https://www.pygame.org/docs/tut/newbieguide.html
-#chat saying who killed who
-#kill streak to chat
+#2 fncs - generate map, load map
+#we use generate map to generate new maps and pickel them, we use load map to pic
+#a map via name or random (we pickle nodes, objs, obj coords, movement cost nodes)
+#we then dont need seed, and solves global weapons problem + allows us to have diff maps
 def main():
+	username = input("Welcome to Pokéwars \n Enter Username: ")
+
 	pygame.init()
 	pygame.running = True
 	running = True
@@ -22,7 +26,7 @@ def main():
 	grid_spacing = config.grid_spacing
 	win = pygame.display.set_mode((window_width,window_height)) #width and height of window
 
-	pygame.display.set_caption("Pokémon Crisis")
+	pygame.display.set_caption("Pokéwars")
 
 	bg = pygame.image.load('sprites/background.jpg').convert()
 
@@ -34,18 +38,20 @@ def main():
 
 	clock = pygame.time.Clock()
 
-	ash = Player(choice(tuple(new_map.nodes)),net.playerID)
+	#create client player object and assign colour based on ID
+	ash = Player(RandomNode(new_map.nodes).node,net.playerID, username)
 
+	#other player objects
 	p2, p3, p4, p5 = None, None, None, None
-	players = [p2,p3,p4,p5] #players
+	players = [p2,p3,p4,p5]
 
 	npc = Npc(150,170,400)
 	bot = Player((290,90))
 
 	bike = Bike()
 	mushroom = Mushroom()
-	bike.new_location(choice(tuple(Map.movement_cost_area)))
-	mushroom.new_location(choice(tuple(Map.movement_cost_area)))
+	bike.new_location(RandomNode(Map.movement_cost_area).node)
+	mushroom.new_location(RandomNode(Map.movement_cost_area).node)
 	
 	# target_sound = pygame.mixer.Sound('sounds/objective.wav') #run with target_sound.play()
 	# music = pygame.mixer.music.load('sounds/music.mp3')
@@ -67,8 +73,6 @@ def main():
 		bike.draw(win)
 		mushroom.draw(win)
 		npc.draw(win)
-
-
 		ash.draw(win)
 
 		for p in players:
@@ -92,7 +96,7 @@ def main():
 				ash.check_trample(p)
 
 		if menu:
-			Menu(win, ash.stats, [p.stats for p in players if p])
+			Menu(win, [ash.stats,ash.username], [[p.stats,p.username] for p in players if p])
 
 		for bullet in ash.inventory:
 			ash.draw_bullet(win,bullet)
@@ -106,57 +110,12 @@ def main():
 
 		pygame.display.update()
 
-	def get_player_data():
-		'''get player data from server and map data to local player objects'''
-		attrs = net.send(ash.attributes()) #return attributes of other players
-
-		for i in range(len(players)):
-			a = attrs[i]
-
-			#create new player instance if:
-			#1) we haven't already created an instance
-			#2) they have an ID (they are connected to server)
-			if not players[i] and a['ID'] != None:
-				print('creating new player')
-				players[i] = Player()
-
-			#returned attributes of ith player from server
-			elif players[i]:
-				players[i].x, players[i].y = a['x'], a['y']
-				players[i].left, players[i].right, players[i].up, players[i].down = a['L'], a['R'], a['U'], a['D']
-				players[i].standing, players[i].walk_count = a['standing'], a['walk count']
-				players[i].hit_slow, players[i].bike, players[i].mushroom = a['hit slow'], a['bike'], a['mushroom']
-				players[i].inventory = a['inventory']
-				players[i].stats = a['stats']
-				players[i].killed = a['killed']
-				players[i].dead = a['dead']
-				players[i].ID = a['ID']
-
-
-	def check_death_status():
-		'''check if we have died or if another player has been killed by us through ash.check_kill().
-		call ash.die() and set our death and kill status accordingly.'''
-
-		#another player killed us and we are not already dead
-		if any(p.killed == ash.ID for p in players if p) and not ash.dead:
-			ash.die()
-			ash.dead = True
-
-		#we've killed another player and they are dead so reset killed
-		elif any(ash.killed == p.ID and p.dead for p in players if p):
-			ash.killed = None
-
-		#we are dead and no one else has killed us so reset dead
-		elif ash.dead and all(p.killed != ash.ID for p in players if p):
-			ash.dead = False
-
 	#main event loop
 	while running:
 		clock.tick(9) #9 FPS
 
 		Multiplayer.get_player_data(ash, net, players)
-		# get_player_data()
-		check_death_status()
+		Multiplayer.check_death_status(ash, players)
 		WeaponStatus(ash)
 
 		for event in pygame.event.get(): #get mouse positions, keyboard clicks etc

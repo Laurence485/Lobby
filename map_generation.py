@@ -2,7 +2,7 @@ import config
 import pygame
 import math
 from random import seed
-from random import choice
+from random_node import RandomNode
 from snap_to_grid import SnaptoGrid
 class Map:
 	'''load images for map generation,
@@ -32,7 +32,7 @@ class Map:
 		for x in range(0,self.window_width,self.spacing): #col
 			for y in range(0,self.window_height,self.spacing): #row
 				self.nodes.add((x,y))
-		seed(341) #***seed for testing only***
+		# seed(341) #***seed for testing only***
 
 	def generate_map(self, grass=20, trees=20, water=2):
 		obj_features = []
@@ -56,7 +56,7 @@ class Map:
 
 			#2) choose xy from available nodes such that obj doesnt touch any other object
 			available_nodes = not_oob - self.objs_area
-			rand_xy = choice(tuple(available_nodes))
+			rand_xy = RandomNode(available_nodes).node
 			rand_x, rand_y = rand_xy
 
 			colliding = True
@@ -75,7 +75,7 @@ class Map:
 							failed = True
 							available_nodes.remove(rand_xy)
 							if not(len(available_nodes)): break
-							rand_xy = choice(tuple(available_nodes))
+							rand_xy = RandomNode(available_nodes).node
 							rand_x, rand_y = rand_xy
 							break	
 
@@ -106,6 +106,7 @@ class Map:
 		#update available nodes for pathfinding to exclude nodes used for objects
 		self.nodes = [n for n in self.nodes if n not in self.objs_area]
 		obj_features.clear()
+		
 
 	@classmethod
 	def draw(cls, win):

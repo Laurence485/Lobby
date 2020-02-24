@@ -2,6 +2,7 @@
 import socket
 from _thread import *
 import pickle
+import config
 
 HOST = "192.168.1.147"
 PORT = 5555
@@ -27,9 +28,10 @@ attributes = {
 	},
 'killed': None,
 'dead': False,
-'ID':None
+'ID':None,
+'username':'Noob'
 }
-players = [attributes]*5 #5 players
+players = [attributes]*config.num_players
 
 def client(conn, player):
 	with conn:
@@ -43,21 +45,18 @@ def client(conn, player):
 					print('Disconnected from server.')
 					break
 				else:
-					#slice out this player and return other players only
+					#slice out this player and return other players only, or we could do a deepcopy
 					reply = (players[:player]+players[player+1:])
-					# if player == 1:
-					# 	reply = players[0]
-					# else:
-					# 	reply = players[1]
 
 				conn.sendall(pickle.dumps(reply)) 
 			except:
 				break
-
+		current_player = players[player]['username']
+		print(f'connection dropped ({current_player}, ID:{player}).')
+		
 		#player DCed so reset to defaults and add to DC list so we can re-add if they re-connect
 		players[player] = attributes
 		DC.append(player)
-		print(f'connection dropped (player {player}).')
 
 DC = [] #disconnected player IDs
 player = 0 #player ID

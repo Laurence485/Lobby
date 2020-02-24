@@ -2,9 +2,8 @@ import pygame
 from snap_to_grid import SnaptoGrid
 import config
 from map_generation import Map
-from random import choice
+from random_node import RandomNode
 from weapons import Pokeball
-# from network import Network
 import config
 
 class Character:
@@ -65,7 +64,7 @@ class Character:
 		win.blit(pygame.transform.scale2x(direction), (self.x,self.y))
 
 class Player(Character):
-	def __init__(self,xy=(50,70), ID=0):
+	def __init__(self,xy=(50,70), ID=0, username='Noob'):
 		super().__init__(xy[0],xy[1], config.player_vel, f'player {ID}/left2.png',f'player {ID}/left3.png',f'player {ID}/right2.png',f'player {ID}/right3.png',f'player {ID}/down2.png', f'player {ID}/down3.png', f'player {ID}/up2.png', f'player {ID}/up3.png')
 		self.stand_left = pygame.image.load(f'sprites/player {ID}/left1.png').convert_alpha()
 		self.stand_right = pygame.image.load(f'sprites/player {ID}/right1.png').convert_alpha()
@@ -92,7 +91,7 @@ class Player(Character):
 		self.bike_vel = config.bike_vel
 		self.start_bike_ticks = 0 #bike timer
 		self.start_mushroom_ticks = 0 #enlarged size timer
-		self.connected = False
+		self.username = username
 
 	#we send these attributes from the server to the client for multiplayer
 	def attributes(self):
@@ -113,6 +112,7 @@ class Player(Character):
 		'killed': self.killed,
 		'dead':self.dead,
 		'ID':self.ID,
+		'username':self.username
 		}
 		return attrs
 
@@ -187,7 +187,7 @@ class Player(Character):
 			if bounds == bike.hidden_loc and not self.bike:
 				self.bike = True
 				self.start_bike_ticks = pygame.time.get_ticks() #start bike timer 15s
-				bike.new_location(choice(tuple(Map.movement_cost_area)))
+				bike.new_location(RandomNode(Map.movement_cost_area).node)
 				print('found bike!')
 				self.snap()
 
@@ -197,7 +197,7 @@ class Player(Character):
 				self.width *= 2
 				self.height *= 2
 				self.start_mushroom_ticks = pygame.time.get_ticks() #start bike timer 15s
-				mushroom.new_location(choice(tuple(Map.movement_cost_area)))
+				mushroom.new_location(RandomNode(Map.movement_cost_area).node)
 				print('found mushroom!')
 				self.snap()
 		else:
@@ -284,7 +284,7 @@ class Player(Character):
 				try: #bullet might already be removed from distance check
 					self.inventory.pop(self.inventory.index(bullet))
 					if not enemy.mushroom:
-						print('killed an enemy!')
+						print(f'You killed {enemy.username}!')
 						self.killed = enemy.ID
 						self.kill()
 				except: 
@@ -298,7 +298,7 @@ class Player(Character):
 				if enemy.y + enemy.height >= self.y and enemy.y <= self.y + self.height:
 					#check None to avoid multiple kills of same player for 1 hit before server updates
 					if not enemy.mushroom and self.killed == None:
-						print('trampled an enemy!')
+						print(f'You trampled {enemy.username}!')
 						self.killed = enemy.ID
 						self.kill()
 						
@@ -308,12 +308,12 @@ class Player(Character):
 		self.stats['kills'] += 1
 		self.stats['K/D'] = self.KD_ratio()
 
-	def die(self):
+	def die(self, username):
 		'''update death stats with +1 and reset player attributes'''
 		self.stats['deaths'] += 1
 		self.stats['K/D'] = self.KD_ratio()
-		respawn = choice(tuple(Map.nodes))
-		print(f"we died...respawning at {respawn}")
+		respawn = RandomNode(Map.nodes).node
+		print(f"You were killed by {username}...respawning at {respawn}")
 		self.x,self.y = respawn
 		self.left = False
 		self.right = False
