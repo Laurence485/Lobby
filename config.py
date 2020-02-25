@@ -10,4 +10,3 @@ bike_vel = 2*player_vel
 
 #----------mutliplayer-------------
 num_players = 5
-game_time_loop = 10 #3m game time

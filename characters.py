@@ -64,7 +64,7 @@ class Character:
 		win.blit(pygame.transform.scale2x(direction), (self.x,self.y))
 
 class Player(Character):
-	def __init__(self,xy=(50,70), ID=0, username='Noob'):
+	def __init__(self,xy=(50,70), ID=0, username='Noob', current_map=0):
 		super().__init__(xy[0],xy[1], config.player_vel, f'player {ID}/left2.png',f'player {ID}/left3.png',f'player {ID}/right2.png',f'player {ID}/right3.png',f'player {ID}/down2.png', f'player {ID}/down3.png', f'player {ID}/up2.png', f'player {ID}/up3.png')
 		self.stand_left = pygame.image.load(f'sprites/player {ID}/left1.png').convert_alpha()
 		self.stand_right = pygame.image.load(f'sprites/player {ID}/right1.png').convert_alpha()
@@ -92,7 +92,8 @@ class Player(Character):
 		self.start_bike_ticks = 0 #bike timer
 		self.start_mushroom_ticks = 0 #enlarged size timer
 		self.username = username
-		self.vote = 0
+		self.map = current_map
+		self.strafe = False
 
 	#we send these attributes from the server to the client for multiplayer
 	def attributes(self):
@@ -114,7 +115,7 @@ class Player(Character):
 		'dead':self.dead,
 		'ID':self.ID,
 		'username':self.username,
-		'vote':self.vote
+		'map':self.map
 		}
 		return attrs
 
@@ -166,6 +167,7 @@ class Player(Character):
 	def move(self, collision_zone, movement_cost_area, bike=None, mushroom=None):
 		keys = pygame.key.get_pressed()
 		mca = len(movement_cost_area)
+
 		#simple collision detection:
 		#check if player (x,y) is in the set of object coordinates
 		#given player dimensions (w=15,h=19) setting +/- grid spacing (1 square) works ok
@@ -209,44 +211,101 @@ class Player(Character):
 			if self.space_up and self.bullet_interval == 0 :
 				self.space_up = False
 				self.inventory.append(Pokeball(self.x,self.y,self.width,self.height,self.direction, self.vel))
+			#press s to strafe
+			if keys[pygame.K_s]:
+				self.strafe = True
+			else:
+				self.strafe = False
 			if keys[pygame.K_LEFT]:
+				if self.up and self.strafe:
+					self.left = False
+					self.right = False
+					self.up = True
+					self.down = False
+					self.standing = False
+				elif self.down and self.strafe:
+					self.left = False
+					self.right = False
+					self.up = False
+					self.down = True
+					self.standing = False
+				else:
+					self.left = True
+					self.right = False
+					self.up = False
+					self.down = False
+					self.standing = False
+					self.direction = 'L'
 				self.x -= self.vel
-				self.left = True
-				self.right = False
-				self.up = False
-				self.down = False
-				self.standing = False
-				self.direction = 'L'
 			elif keys[pygame.K_RIGHT]:
+				if self.up and self.strafe:
+					self.left = False
+					self.right = False
+					self.up = True
+					self.down = False
+					self.standing = False
+				elif self.down and self.strafe:
+					self.left = False
+					self.right = False
+					self.up = False
+					self.down = True
+					self.standing = False
+				else:
+					self.left = False
+					self.right = True
+					self.up = False
+					self.down = False
+					self.standing = False
+					self.direction = 'R'
 				self.x += self.vel
-				self.left = False
-				self.right = True
-				self.up = False
-				self.down = False
-				self.standing = False
-				self.direction = 'R'
 			elif keys[pygame.K_UP]:
+				if self.left and self.strafe:
+					self.left = True
+					self.right = False
+					self.up = False
+					self.down = False
+					self.standing = False
+				elif self.right and self.strafe:
+					self.left = False
+					self.right = True
+					self.up = False
+					self.down = False
+					self.standing = False
+				else:
+					self.left = False
+					self.right = False
+					self.up = True
+					self.down = False
+					self.standing = False
+					self.direction = 'U'
 				self.y -= self.vel
-				self.left = False
-				self.right = False
-				self.up = True
-				self.down = False
-				self.standing = False
-				self.direction = 'U'
 			elif keys[pygame.K_DOWN]:
+				if self.left and self.strafe:
+					self.left = True
+					self.right = False
+					self.up = False
+					self.down = False
+					self.standing = False
+				elif self.right and self.strafe:
+					self.left = False
+					self.right = True
+					self.up = False
+					self.down = False
+					self.standing = False
+				else:
+					self.left = False
+					self.right = False
+					self.up = False
+					self.down = True
+					self.standing = False
+					self.direction = 'D'
 				self.y += self.vel
-				self.left = False
-				self.right = False
-				self.up = False
-				self.down = True
-				self.standing = False
-				self.direction = 'D'
 			else:
 				self.standing = True
 				self.walk_count = 0
 		else: #collision
-		 #we respawned s.t bounds is touching an object, triggering hit_wall = True
-		 # --> find new node
+		 #self.standing means we respawned s.t bounds is touching an object, triggering hit_wall = True
+		 # --> so find new node...
 			if self.standing:
 				self.x, self.y = RandomNode(Map.nodes).node
 			if self.left: self.x += self.vel
@@ -264,6 +323,7 @@ class Player(Character):
 			self.y += self.vel
 		elif self.y > config.window_height-self.height:
 			self.y -= self.vel
+
 
 	def draw_bullet(self, win, bullet):
 		bullet.draw(win)

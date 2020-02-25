@@ -11,7 +11,6 @@ from multiplayer import Multiplayer
 import time
 
 #change frame update to dirty_rects: https://www.pygame.org/docs/tut/newbieguide.html
-#if server time reaches 3m, change map. Then done!
 def main():
 	username = input("Welcome to Pokéwars \n Enter Username: ")
 
@@ -20,7 +19,6 @@ def main():
 	running = True
 	menu = False
 	grid = False
-	game_time_loop = config.game_time_loop
 
 	# window for drawing on
 	window_width = config.window_width
@@ -32,19 +30,17 @@ def main():
 
 	bg = pygame.image.load('sprites/background.jpg').convert()
 
-	net = Network()
+	net = Network()	
 
-	# new_map = Map()
 	#generate and save map
-	# # new_map.generate_map('city', True)
-	# maps = ['myfirstmap','grass','water','trees','city']
+	# new_map = Map()
+	#new_map.generate_map('city', True)
 
 	#load map from server
 	current_map = 0
 	Map.load(net.maps[current_map])
 
 	clock = pygame.time.Clock()
-	start_time = net.start_time #start game timer
 
 	#create client player object and assign colour based on ID
 	ash = Player(RandomNode(Map.nodes).node,net.playerID, username)
@@ -58,13 +54,8 @@ def main():
 
 	bike = Bike()
 	mushroom = Mushroom()
-	#put bikes and mushrooms in grass/water if we're using a map with grass/water else random available node
-	if len(Map.movement_cost_area):
-		bike.new_location(RandomNode(Map.movement_cost_area).node)
-		mushroom.new_location(RandomNode(Map.movement_cost_area).node)
-	else:
-		bike.new_location(RandomNode(Map.nodes).node, False)
-		mushroom.new_location(RandomNode(Map.nodes).node, False)
+
+	WeaponStatus.set_locations(bike, mushroom)
 	
 	# target_sound = pygame.mixer.Sound('sounds/objective.wav') #run with target_sound.play()
 	# music = pygame.mixer.music.load('sounds/music.mp3')
@@ -73,28 +64,6 @@ def main():
 	font = pygame.font.SysFont('verdana',10,False,True)
 
 	ash.ID = net.playerID
-
-	def end_game(current_map):
-		print('game ended.')
-		if current_map < len(net.maps)-1:
-			current_map += 1
-		else: current_map = 0
-		Map.load(net.maps[current_map])
-
-
-	def game_timer(game_time_loop, current_map):
-		'''3m timers for each map, after 180s, server time will be 180, so we must
-		*2 the game_time_loop i.e. check for 360s on the next map and so on'''
-		seconds=(time.time()-start_time)
-		print(game_time_loop, seconds)
-		if seconds > game_time_loop:
-			game_time_loop *= 2
-			end_game(current_map)
-			running = False
-			print(game_time_loop, seconds)
-			return 0
-
-		return 180-seconds
 
 	def redraw_gamewindow(grid):
 		win.blit(bg,(0,0)) #put picutre on screen (background)
@@ -132,8 +101,8 @@ def main():
 
 				ash.check_trample(p)
 
-		#pressed z or time ran out
-		if menu or game_timer(game_time_loop, current_map)==0:
+		#pressed z
+		if menu:
 			Menu(win, [ash.stats,ash.username], [[p.stats,p.username] for p in players if p])
 
 		for bullet in ash.inventory:
@@ -142,17 +111,22 @@ def main():
 				if p and p.ID != None:
 					ash.check_kill(bullet, p)
 
-
-		time = font.render(f'Time: {round(game_timer(game_time_loop, current_map),0)}',1,(0,0,0))
-		win.blit(time, (0, 0))
-
 		pygame.display.update()
 
+
+	def change_map():
+		'''host (ID=0) may change map i.e. to next shuffled map from server or back to 0'''
+		if ash.map < len(net.maps)-1:
+			ash.map += 1
+		else: ash.map = 0
+		Map.load(net.maps[ash.map])
+		WeaponStatus.set_locations(bike, mushroom)
+		
 	#main event loop
 	while running:
 		clock.tick(9) #9 FPS
 
-		Multiplayer.get_player_data(ash, net, players)
+		Multiplayer.get_player_data(ash, net, players, current_map, bike, mushroom)
 		Multiplayer.check_death_status(ash, players)
 		WeaponStatus(ash)
 
@@ -164,8 +138,10 @@ def main():
 					ash.space_up = True
 				if event.key == pygame.K_z: #z for menu
 					menu = True if not menu else False
-				if event.key == pygame.K_a: #a for grid
+				if event.key == pygame.K_x: #a for grid
 					grid = True if not grid else False
+				if event.key == pygame.K_c and ash.ID == 0: #host can press c to change map
+					change_map()
 
 		#move amongst available nodes 
 		#(no movement out of bounds and in object coordinates)

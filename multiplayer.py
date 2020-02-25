@@ -1,8 +1,11 @@
 from characters import Player
+from map_generation import Map
+from weapons import WeaponStatus
+
 class Multiplayer:
 	'''class containing functions checking data from the server'''
 	@staticmethod
-	def get_player_data(ash, net, players):
+	def get_player_data(ash, net, players, current_map, bike, mushroom):
 			'''get player data from server and map data to local player objects'''
 			attrs = net.send(ash.attributes()) #return attributes of other players
 
@@ -31,7 +34,13 @@ class Multiplayer:
 					players[i].dead = a['dead']
 					players[i].ID = a['ID']
 					players[i].username = a['username']
-					players[i].vote = a['vote']
+					players[i].map = a['map']
+
+					#change local map if the host has changed the map
+					if players[i].ID == 0 and players[i].map!=ash.map:
+						ash.map = players[i].map
+						Map.load(net.maps[players[i].map])
+						WeaponStatus.set_locations(bike, mushroom)
 
 	@staticmethod
 	def check_death_status(ash, players):

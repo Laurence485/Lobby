@@ -9,7 +9,7 @@ import time
 HOST = "192.168.1.147"
 PORT = 5555
 buffer_size = 2048
-maps = ['myfirstmap','grass','water','trees','city']
+maps = ['myfirstmap','grass','water','trees','city', 'oasis','empty']
 shuffle(maps)
 start_time = time.time()
 
@@ -34,14 +34,15 @@ attributes = {
 'killed': None,
 'dead': False,
 'ID':None,
-'username':'Noob'
+'username':'Noob',
+'map': 0
 }
 players = [attributes]*config.num_players
 
 def client(conn, player):
 	with conn:
 		#init game with map, player ID and start time form server
-		conn.send(pickle.dumps((maps, player, start_time)))
+		conn.send(pickle.dumps((maps, player)))
 		while True: #continously run whilst client still connected
 			try:
 				data = pickle.loads(conn.recv(buffer_size)) #received player attrs

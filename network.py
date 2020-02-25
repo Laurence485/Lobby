@@ -14,7 +14,7 @@ class Network:
 	def connect(self):
 		try: #connect and get player ID
 			self.client.connect(self.addr)
-			self.maps, self.playerID, self.start_time = pickle.loads(self.client.recv(buffer_size))
+			self.maps, self.playerID = pickle.loads(self.client.recv(buffer_size))
 		except:
 			print("couldn't connect to host.")
 

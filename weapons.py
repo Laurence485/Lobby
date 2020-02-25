@@ -1,6 +1,6 @@
 import pygame
 from map_generation import Map
-from random import choice
+from random_node import RandomNode
 import config
 
 class Weapon:
@@ -103,3 +103,13 @@ class WeaponStatus:
 			elif item == ash.bike:
 				ash.bike = False
 				ash.start_bike_ticks = 0
+
+	@classmethod
+	def set_locations(cls, bike, mushroom):
+		'''put bikes and mushrooms in grass/water if we're using a map with grass/water else random available node'''
+		if len(Map.movement_cost_area):
+			bike.new_location(RandomNode(Map.movement_cost_area).node)
+			mushroom.new_location(RandomNode(Map.movement_cost_area).node)
+		else:
+			bike.new_location(RandomNode(Map.nodes).node, False)
+			mushroom.new_location(RandomNode(Map.nodes).node, False)

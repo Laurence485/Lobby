@@ -37,7 +37,7 @@ class Map:
 
 	def generate_map(self, map_name='random', save=False):
 		obj_features = []
-		items = ['bike shop','department store','mart','game corner','oaks lab', 'pokemon center']+['tree']*10+['grass']*3+['water']
+		items = []
 
 		for item in items:
 			obj = self.sprites[item]
