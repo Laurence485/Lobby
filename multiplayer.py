@@ -5,7 +5,7 @@ from weapons import WeaponStatus
 class Multiplayer:
 	'''class containing functions checking data from the server'''
 	@staticmethod
-	def get_player_data(ash, net, players, bike, mushroom):
+	def get_player_data(ash, net, players, bikes, mushrooms):
 			'''get player data from server and map data to local player objects'''
 			attrs = net.send(ash.attributes()) #return attributes of other players
 

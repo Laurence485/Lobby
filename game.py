@@ -12,7 +12,7 @@ import time
 
 #change frame update to dirty_rects: https://www.pygame.org/docs/tut/newbieguide.html
 def main():
-	username = input("Welcome to Pokéwars \n Enter Username: ")
+	username = input("Welcome to Pokéwars \n Movement: arrow keys \n Shoot: Spacebar \n Strafe: S \n Menu: Z \n Show Grid: X \n Change Map (Host only): C \n\n Enter Username: ")
 
 	pygame.init()
 	pygame.running = True

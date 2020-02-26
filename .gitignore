@@ -1,2 +1,6 @@
 log.txt
 old_main.py
+chat_client.py
+chat_server.py
+game_pathfinding.py
+pathfinding.py

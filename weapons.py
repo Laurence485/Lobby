@@ -28,7 +28,7 @@ class Weapon:
 		else:
 			self.hidden_loc = loc
 			self.location = loc
-		print(f'new {self.name} location {self.hidden_loc}')
+		# print(f'new {self.name} location {self.hidden_loc}')
 
 	def measure_area(self,_coords,direction):
 		'''go R/D or L/U until we hit edge of grass/water and return the distances'''

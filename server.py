@@ -4,14 +4,12 @@ from _thread import *
 import pickle
 import config
 from random import shuffle
-import time
 
 HOST = "192.168.1.147"
 PORT = 5555
 buffer_size = 2048
 maps = ['myfirstmap','grass','water','trees','city', 'oasis','empty']
 shuffle(maps)
-start_time = time.time()
 
 attributes = {
 'x':0,
