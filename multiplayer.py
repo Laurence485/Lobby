@@ -5,7 +5,7 @@ from weapons import WeaponStatus
 class Multiplayer:
 	'''class containing functions checking data from the server'''
 	@staticmethod
-	def get_player_data(ash, net, players, current_map, bike, mushroom):
+	def get_player_data(ash, net, players, bike, mushroom):
 			'''get player data from server and map data to local player objects'''
 			attrs = net.send(ash.attributes()) #return attributes of other players
 
@@ -40,7 +40,7 @@ class Multiplayer:
 					if players[i].ID == 0 and players[i].map!=ash.map:
 						ash.map = players[i].map
 						Map.load(net.maps[players[i].map])
-						WeaponStatus.set_locations(bike, mushroom)
+						WeaponStatus.set_locations(bikes, mushrooms)
 
 	@staticmethod
 	def check_death_status(ash, players):

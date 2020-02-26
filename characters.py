@@ -94,6 +94,12 @@ class Player(Character):
 		self.username = username
 		self.map = current_map
 		self.strafe = False
+		self.kill_sound = pygame.mixer.Sound(config.kill_sound)
+		self.bike_sound = pygame.mixer.Sound(config.bike_sound)
+		self.death_sound = pygame.mixer.Sound(config.death_sound)
+		self.mushroom_sound = pygame.mixer.Sound(config.mushroom_sound)
+		self.pokeball_sound = pygame.mixer.Sound(config.pokeball_sound)
+		self.trample_sound = pygame.mixer.Sound(config.trample_sound)
 
 	#we send these attributes from the server to the client for multiplayer
 	def attributes(self):
@@ -164,7 +170,7 @@ class Player(Character):
 		if self.bullet_interval > 5: self.bullet_interval = 0
 
 
-	def move(self, collision_zone, movement_cost_area, bike=None, mushroom=None):
+	def move(self, collision_zone, movement_cost_area, bikes=None, mushrooms=None):
 		keys = pygame.key.get_pressed()
 		mca = len(movement_cost_area)
 
@@ -177,22 +183,30 @@ class Player(Character):
 		self.hit_slow = True if bounds in movement_cost_area else False
 
 		#found a bike
-		if bounds == bike.hidden_loc and not self.bike:
-			self.bike = True
-			self.start_bike_ticks = pygame.time.get_ticks() #start bike timer 15s
-			bike.new_location(RandomNode(Map.movement_cost_area).node if mca else RandomNode(Map.nodes).node)
-			print('found bike!')
-			self.snap()
+		for bike in bikes:
+			if bounds == bike.hidden_loc and not self.bike:
+				self.bike = True
+				self.start_bike_ticks = pygame.time.get_ticks() #start bike timer 15s
+				bike.new_location(RandomNode(Map.movement_cost_area).node if mca else RandomNode(Map.nodes).node)
+				print('found bike!')
+				self.bike_sound.play()
+				bike_active_sound = pygame.mixer.music.load(config.bike_active_sound)
+				pygame.mixer.music.play()
+				self.snap()
 
 		#found a mushroom - 2x size
-		if bounds == mushroom.hidden_loc and not self.mushroom:
-			self.mushroom = True
-			self.width *= 2
-			self.height *= 2
-			self.start_mushroom_ticks = pygame.time.get_ticks() #start bike timer 15s
-			mushroom.new_location(RandomNode(Map.movement_cost_area).node if mca else RandomNode(Map.nodes).node)
-			print('found mushroom!')
-			self.snap()
+		for mushroom in mushrooms:
+			if bounds == mushroom.hidden_loc and not self.mushroom:
+				self.mushroom = True
+				self.width *= 2
+				self.height *= 2
+				self.start_mushroom_ticks = pygame.time.get_ticks() #start bike timer 15s
+				mushroom.new_location(RandomNode(Map.movement_cost_area).node if mca else RandomNode(Map.nodes).node)
+				print('found mushroom!')
+				self.mushroom_sound.play()
+				mushroom_active_sound = pygame.mixer.music.load(config.mushroom_active_sound)
+				pygame.mixer.music.play()
+				self.snap()
 
 		if self.hit_slow:
 			#slow movement speed
@@ -211,6 +225,7 @@ class Player(Character):
 			if self.space_up and self.bullet_interval == 0 :
 				self.space_up = False
 				self.inventory.append(Pokeball(self.x,self.y,self.width,self.height,self.direction, self.vel))
+				self.pokeball_sound.play()
 			#press s to strafe
 			if keys[pygame.K_s]:
 				self.strafe = True
@@ -304,7 +319,9 @@ class Player(Character):
 				self.standing = True
 				self.walk_count = 0
 		else: #collision
-		 #self.standing means we respawned s.t bounds is touching an object, triggering hit_wall = True
+		 #self.standing means either:
+		 #1) we respawned s.t bounds is touching an object, triggering hit_wall = True
+		 #2) we used mushroom and are not on top of a building
 		 # --> so find new node...
 			if self.standing:
 				self.x, self.y = RandomNode(Map.nodes).node
@@ -350,6 +367,7 @@ class Player(Character):
 					self.inventory.pop(self.inventory.index(bullet))
 					if not enemy.mushroom:
 						print(f'You killed {enemy.username}!')
+						self.kill_sound.play()
 						self.killed = enemy.ID
 						self.kill()
 				except: 
@@ -363,6 +381,7 @@ class Player(Character):
 				if enemy.y + enemy.height >= self.y and enemy.y <= self.y + self.height:
 					if not enemy.mushroom and self.killed != enemy.ID:
 						print(f'You trampled {enemy.username}!')
+						self.trample_sound.play()
 						self.killed = enemy.ID
 						self.kill()
 						
@@ -374,6 +393,7 @@ class Player(Character):
 
 	def die(self, username):
 		'''update death stats with +1 and reset player attributes'''
+		self.death_sound.play()
 		self.stats['deaths'] += 1
 		self.stats['K/D'] = self.KD_ratio()
 		respawn = RandomNode(Map.nodes).node

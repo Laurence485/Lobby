@@ -103,13 +103,23 @@ class WeaponStatus:
 			elif item == ash.bike:
 				ash.bike = False
 				ash.start_bike_ticks = 0
+			#return to default music if nothing activated
+			if not ash.mushroom and not ash.bike:
+				music = pygame.mixer.music.load(config.theme)
+				pygame.mixer.music.set_volume(0.5)
+				pygame.mixer.music.play(-1)
 
 	@classmethod
-	def set_locations(cls, bike, mushroom):
+	def set_locations(cls, bikes, mushrooms):
 		'''put bikes and mushrooms in grass/water if we're using a map with grass/water else random available node'''
-		if len(Map.movement_cost_area):
-			bike.new_location(RandomNode(Map.movement_cost_area).node)
-			mushroom.new_location(RandomNode(Map.movement_cost_area).node)
-		else:
-			bike.new_location(RandomNode(Map.nodes).node, False)
-			mushroom.new_location(RandomNode(Map.nodes).node, False)
+		for bike in bikes:
+			if len(Map.movement_cost_area):
+				bike.new_location(RandomNode(Map.movement_cost_area).node)
+			else:
+				bike.new_location(RandomNode(Map.nodes).node, False)
+
+		for mushroom in mushrooms:
+			if len(Map.movement_cost_area):
+				mushroom.new_location(RandomNode(Map.movement_cost_area).node)
+			else:
+				mushroom.new_location(RandomNode(Map.nodes).node, False)

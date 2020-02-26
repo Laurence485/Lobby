@@ -36,14 +36,14 @@ def main():
 	# new_map = Map()
 	#new_map.generate_map('city', True)
 
-	#load map from server
+	#load first shuffled map from server
 	current_map = 0
 	Map.load(net.maps[current_map])
 
 	clock = pygame.time.Clock()
 
-	#create client player object and assign colour based on ID
-	ash = Player(RandomNode(Map.nodes).node,net.playerID, username)
+	#create client player object and assign colour based on ID, username from input, map from server
+	ash = Player(RandomNode(Map.nodes).node, net.playerID, username, current_map)
 
 	#other player objects
 	p2, p3, p4, p5 = None, None, None, None
@@ -52,20 +52,21 @@ def main():
 	npc = Npc(150,170,400)
 	bot = Player((290,90))
 
-	bike = Bike()
-	mushroom = Mushroom()
+	bikes = [Bike() for i in range(config.bikes)]
+	mushrooms = [Mushroom() for i in range(config.mushrooms)]
 
-	WeaponStatus.set_locations(bike, mushroom)
+	WeaponStatus.set_locations(bikes, mushrooms)
 	
-	# target_sound = pygame.mixer.Sound('sounds/objective.wav') #run with target_sound.play()
-	# music = pygame.mixer.music.load('sounds/music.mp3')
-	# pygame.mixer.music.play(-1)
+	music = pygame.mixer.music.load(config.theme)
+	pygame.mixer.music.set_volume(0.5)
+	pygame.mixer.music.play(-1)
 
 	font = pygame.font.SysFont('verdana',10,False,True)
 
 	ash.ID = net.playerID
 
 	def redraw_gamewindow(grid):
+		'''draw objects onto the screen: background, grid, players, weapons'''
 		win.blit(bg,(0,0)) #put picutre on screen (background)
 
 		# draw grid
@@ -75,8 +76,10 @@ def main():
 					pygame.draw.rect(win, (125,125,125), (x,y,grid_spacing,grid_spacing),1)
 
 		Map.draw(win)
-		bike.draw(win)
-		mushroom.draw(win)
+		for bike in bikes:
+			bike.draw(win)
+		for mushroom in mushrooms:
+			mushroom.draw(win)
 		npc.draw(win)
 		ash.draw(win)
 
@@ -115,18 +118,18 @@ def main():
 
 
 	def change_map():
-		'''host (ID=0) may change map i.e. to next shuffled map from server or back to 0'''
+		'''host (ID=0) may change map i.e. go to next shuffled map from server or back to 0'''
 		if ash.map < len(net.maps)-1:
 			ash.map += 1
 		else: ash.map = 0
 		Map.load(net.maps[ash.map])
-		WeaponStatus.set_locations(bike, mushroom)
+		WeaponStatus.set_locations(bikes, mushrooms)
 		
 	#main event loop
 	while running:
 		clock.tick(9) #9 FPS
 
-		Multiplayer.get_player_data(ash, net, players, current_map, bike, mushroom)
+		Multiplayer.get_player_data(ash, net, players, bikes, mushrooms)
 		Multiplayer.check_death_status(ash, players)
 		WeaponStatus(ash)
 
@@ -146,7 +149,7 @@ def main():
 		#move amongst available nodes 
 		#(no movement out of bounds and in object coordinates)
 		#movement cost in grass / water
-		ash.move(Map.objs_area, Map.movement_cost_area, bike, mushroom)
+		ash.move(Map.objs_area, Map.movement_cost_area, bikes, mushrooms)
 		redraw_gamewindow(grid)
 
 	pygame.quit()
