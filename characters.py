@@ -397,7 +397,7 @@ class Player(Character):
 		self.stats['deaths'] += 1
 		self.stats['K/D'] = self.KD_ratio()
 		respawn = RandomNode(Map.nodes).node
-		print(f"You were killed by {username}...respawning at {respawn}")
+		print(f"You got pwned by {username}...respawning at {respawn}")
 		self.x,self.y = respawn
 		self.left = False
 		self.right = False

@@ -34,7 +34,7 @@ def main():
 
 	#generate and save map
 	# new_map = Map()
-	#new_map.generate_map('city', True)
+	# new_map.generate_map('random', False)
 
 	#load first shuffled map from server
 	current_map = 0
@@ -48,9 +48,6 @@ def main():
 	#other player objects
 	p2, p3, p4, p5 = None, None, None, None
 	players = [p2,p3,p4,p5]
-
-	npc = Npc(150,170,400)
-	bot = Player((290,90))
 
 	bikes = [Bike() for i in range(config.bikes)]
 	mushrooms = [Mushroom() for i in range(config.mushrooms)]
@@ -80,7 +77,6 @@ def main():
 			bike.draw(win)
 		for mushroom in mushrooms:
 			mushroom.draw(win)
-		npc.draw(win)
 		ash.draw(win)
 
 		#draw all players
@@ -127,7 +123,8 @@ def main():
 		
 	#main event loop
 	while running:
-		clock.tick(9) #9 FPS
+		#rather than 2x the bike speed, we are 2x the FPS so we can still move 1sq at a time
+		clock.tick(9) if not ash.bike else clock.tick(18) #9 FPS or #18FPS if bike
 
 		Multiplayer.get_player_data(ash, net, players, bikes, mushrooms)
 		Multiplayer.check_death_status(ash, players)

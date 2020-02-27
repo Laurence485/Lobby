@@ -1,14 +1,17 @@
 #-------window and grid---------
-window_width = 500
-window_height = 500
+window_width = 400
+window_height = 400
 window_wall_width = 70 #this is the rock wall on the right of some maps
 grid_spacing = 10 #square size for grid
 
 #--------player attributes-----------
 player_vel = grid_spacing
-bike_vel = 2*player_vel
+bike_vel = player_vel
 
 #----------mutliplayer-------------
+HOST = "25.38.138.206"
+PORT = 5555
+buffer_size = 2048
 num_players = 5
 
 #---------weapons---------------

@@ -5,9 +5,9 @@ import pickle
 import config
 from random import shuffle
 
-HOST = "192.168.1.147"
-PORT = 5555
-buffer_size = 2048
+HOST = config.HOST
+PORT = config.PORT
+buffer_size = config.buffer_size
 maps = ['myfirstmap','grass','water','trees','city', 'oasis','empty']
 shuffle(maps)
 
@@ -43,7 +43,7 @@ def client(conn, player):
 		conn.send(pickle.dumps((maps, player)))
 		while True: #continously run whilst client still connected
 			try:
-				data = pickle.loads(conn.recv(buffer_size)) #received player attrs
+				data = pickle.loads(conn.recv(config.buffer_size)) #received player attrs
 				players[player] = data
 
 				if not data:

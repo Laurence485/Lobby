@@ -12,14 +12,14 @@ class Map:
 	pyg = pygame.image
 	sprites = {'bike shop':pyg.load('sprites/Objects/bikeShop.png'),
 		'department store':pyg.load('sprites/Objects/departmentStore.png'),
-		'door_house':pyg.load('sprites/Objects/doorHouse.png'),
+		'door house':pyg.load('sprites/Objects/doorHouse.png'),
 		'game corner':pyg.load('sprites/Objects/gameCorner.png'),
 		'grass':pyg.load('sprites/Objects/grass_patch.jpg'),#72x51
 		'mart':pyg.load('sprites/Objects/mart.png'), #64x62
 		'oaks lab': pyg.load('sprites/Objects/oaksLab.png'), #112x71
 		'water': pyg.load('sprites/Objects/pool.png'), #130,114
 		'pokemon center': pyg.load('sprites/Objects/pokemonCenter.png'), #80x70
-		'purple_house':pyg.load('sprites/Objects/purpleHouse.png'),
+		'purple house':pyg.load('sprites/Objects/purpleHouse.png'),
 		'tree':pyg.load('sprites/Objects/tree.png') #30x45
 	}
 	objects = []
@@ -37,7 +37,7 @@ class Map:
 
 	def generate_map(self, map_name='random', save=False):
 		obj_features = []
-		items = []
+		items = ['tree']*5+['pokemon center']+['grass']*3+['water']+['door house']
 
 		for item in items:
 			obj = self.sprites[item]
@@ -134,6 +134,7 @@ class Map:
 		cls.objects = _map['objects']
 		cls.objs_area = _map['obj coords']
 		print(f'loaded map: {map_name}.')
+		# print(_map['objects'])
 
 	@classmethod
 	def draw(cls, win):
