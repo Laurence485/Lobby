@@ -2,20 +2,23 @@ import config
 import pygame
 from characters import Player, Npc
 from map_generation import Map
+from random_node import RandomNode
 from random import choice
 from network import Network
 from menu import Menu
-from weapons import Bike, Mushroom
+from weapons import Bike, Mushroom, WeaponStatus
+from multiplayer import Multiplayer
+import time
+
 #change frame update to dirty_rects: https://www.pygame.org/docs/tut/newbieguide.html
-#chat saying who killed who
-#kill streak to chat
 def main():
+	username = input("Welcome to Pokéwars \n Movement: arrow keys \n Shoot: Spacebar \n Strafe: S \n Menu: Z \n Show Grid: X \n Change Map (Host only): C \n\n Enter Username: ")
+
 	pygame.init()
 	pygame.running = True
 	running = True
 	menu = False
-
-	# net = Network()
+	grid = False
 
 	# window for drawing on
 	window_width = config.window_width
@@ -23,89 +26,109 @@ def main():
 	grid_spacing = config.grid_spacing
 	win = pygame.display.set_mode((window_width,window_height)) #width and height of window
 
-	pygame.display.set_caption("Pokémon Crisis")
+	pygame.display.set_caption("Pokéwars")
 
 	bg = pygame.image.load('sprites/background.jpg').convert()
 
-	new_map = Map()
-	#use all objects, set specific number of grass tree and water objects
-	new_map.generate_map(grass=20,trees=20, water=2) 
+	net = Network()	
+
+	#generate and save map
+	# new_map = Map()
+	# new_map.generate_map('random', False)
+
+	#load first shuffled map from server
+	current_map = 0
+	Map.load(net.maps[current_map])
 
 	clock = pygame.time.Clock()
 
-	ash = Player(choice(tuple(new_map.nodes)))
-	p2 = Player((400,400))
-	# ash = net.get_position()
-	npc = Npc(150,170,400)
-	bot = Player((290,90))
+	#create client player object and assign colour based on ID, username from input, map from server
+	ash = Player(RandomNode(Map.nodes).node, net.playerID, username, current_map)
 
+	#other player objects
+	p2, p3, p4, p5 = None, None, None, None
+	players = [p2,p3,p4,p5]
 
-	bike = Bike()
-	mushroom = Mushroom()
-	bike.new_location(choice(tuple(Map.movement_cost_area)))
-	mushroom.new_location(choice(tuple(Map.movement_cost_area)))
+	bikes = [Bike() for i in range(config.bikes)]
+	mushrooms = [Mushroom() for i in range(config.mushrooms)]
+
+	WeaponStatus.set_locations(bikes, mushrooms)
 	
-	# target_sound = pygame.mixer.Sound('sounds/objective.wav') #run with target_sound.play()
-	# music = pygame.mixer.music.load('sounds/music.mp3')
-	# pygame.mixer.music.play(-1)
+	music = pygame.mixer.music.load(config.theme)
+	pygame.mixer.music.set_volume(0.5)
+	pygame.mixer.music.play(-1)
 
 	font = pygame.font.SysFont('verdana',10,False,True)
 
-	def redraw_gamewindow():
+	ash.ID = net.playerID
+
+	def redraw_gamewindow(grid):
+		'''draw objects onto the screen: background, grid, players, weapons'''
 		win.blit(bg,(0,0)) #put picutre on screen (background)
 
 		# draw grid
-		for x in range(0,window_width,grid_spacing): #col
-			for y in range(0,window_height,grid_spacing): #row
-				pygame.draw.rect(win, (125,125,125), (x,y,grid_spacing,grid_spacing),1)
+		if grid:
+			for x in range(0,window_width,grid_spacing): #col
+				for y in range(0,window_height,grid_spacing): #row
+					pygame.draw.rect(win, (125,125,125), (x,y,grid_spacing,grid_spacing),1)
 
 		Map.draw(win)
-
+		for bike in bikes:
+			bike.draw(win)
+		for mushroom in mushrooms:
+			mushroom.draw(win)
 		ash.draw(win)
-		npc.draw(win)
-		bot.draw(win)
-		p2.draw(win)
 
-		bike.draw(win)
-		mushroom.draw(win)
+		#draw all players
+		for p in players:
+			if p and p.ID != None:
+				p.draw(win)
+
+				#note that we are 20px behind (last position doesnt show... this is temp fix)
+				for bullet in p.inventory:
+					bullet_sprite = pygame.image.load('sprites/objects/pokeball.png').convert_alpha()
+					x,y,_dir,start_x,start_y = bullet
+					if _dir == 'L':
+						x += 20
+					elif _dir == 'R':
+						x -= 20
+					elif _dir == 'U':
+						y += 20
+					elif _dir == 'D':
+						y -= 20
+					win.blit(bullet_sprite, (x,y))
+
+				ash.check_trample(p)
+
+		#pressed z
+		if menu:
+			Menu(win, [ash.stats,ash.username], [[p.stats,p.username] for p in players if p])
 
 		for bullet in ash.inventory:
 			ash.draw_bullet(win,bullet)
-			ash.check_kill(bullet, p2)
-
-		ash.check_trample(p2)
-
-		time = font.render(f'Time: {round(pygame.time.get_ticks()/1000,2)}',1,(0,0,0))
-		win.blit(time, (390, 10))
-
-		if menu:
-			Menu(win, ash.stats)
+			for p in players:
+				if p and p.ID != None:
+					ash.check_kill(bullet, p)
 
 		pygame.display.update()
 
-	def weapon_timer(item, start_ticks):
-		seconds=(pygame.time.get_ticks()-start_ticks)/1000
-		if seconds > 15:
-			if item == ash.mushroom:
-				ash.mushroom = False
-				ash.width /=2
-				ash.height /=2
-				ash.start_mushroom_ticks = 0
-			elif item == ash.bike:
-				ash.bike = False
-				ash.start_bike_ticks = 0
 
+	def change_map():
+		'''host (ID=0) may change map i.e. go to next shuffled map from server or back to 0'''
+		if ash.map < len(net.maps)-1:
+			ash.map += 1
+		else: ash.map = 0
+		Map.load(net.maps[ash.map])
+		WeaponStatus.set_locations(bikes, mushrooms)
+		
 	#main event loop
 	while running:
-		clock.tick(9) #9 FPS
+		#rather than 2x the bike speed, we are 2x the FPS so we can still move 1sq at a time
+		clock.tick(9) if not ash.bike else clock.tick(18) #9 FPS or #18FPS if bike
 
-		# p2_attrs = net.send(ash.attributes())
-		# p2.x, p2.y = p2_attrs['x'], p2_attrs['y']
-		# p2.left, p2.right, p2.up, p2.down = p2_attrs['L'], p2_attrs['R'], p2_attrs['U'], p2_attrs['D']
-		# p2.standing, p2.walk_count = p2_attrs['standing'], p2_attrs['walk count']
-
-		# if p2.x + p2.width >= ash.x and p2.x <= (ash.x + ash.width) and p2.y + p2.height >= ash.y and p2.y <= (ash.y + ash.height):
-		# 	print(f'touching! p2:{(p2.x,p2.y)} p1:{(ash.x,ash.y)}')
+		Multiplayer.get_player_data(ash, net, players, bikes, mushrooms)
+		Multiplayer.check_death_status(ash, players)
+		WeaponStatus(ash)
 
 		for event in pygame.event.get(): #get mouse positions, keyboard clicks etc
 			if event.type == pygame.QUIT: #we pressed the exit button
@@ -115,18 +138,16 @@ def main():
 					ash.space_up = True
 				if event.key == pygame.K_z: #z for menu
 					menu = True if not menu else False
-
-		#bike timer 15s
-		if ash.bike:
-			weapon_timer(ash.bike, ash.start_bike_ticks)
-		if ash.mushroom:
-			weapon_timer(ash.mushroom, ash.start_mushroom_ticks)
+				if event.key == pygame.K_x: #a for grid
+					grid = True if not grid else False
+				if event.key == pygame.K_c and ash.ID == 0: #host can press c to change map
+					change_map()
 
 		#move amongst available nodes 
 		#(no movement out of bounds and in object coordinates)
 		#movement cost in grass / water
-		ash.move(new_map.objs_area, new_map.movement_cost_area, bike, mushroom)
-		redraw_gamewindow()
+		ash.move(Map.objs_area, Map.movement_cost_area, bikes, mushrooms)
+		redraw_gamewindow(grid)
 
 	pygame.quit()
 

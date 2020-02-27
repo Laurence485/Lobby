@@ -1,6 +1,6 @@
 import pygame
 from map_generation import Map
-from random import choice
+from random_node import RandomNode
 import config
 
 class Weapon:
@@ -9,20 +9,26 @@ class Weapon:
 	def __init__(self, img, name):
 		self.weapon = img
 		self.name = name
+		self.hidden_loc = None
+		self.location = None
 
-	def new_location(self, loc):
+	def new_location(self, loc, mca=True):
 		#distance from right edge,bottom edge - and - left edge,top edge
-		edge_dist = self.measure_area(loc,1) + self.measure_area(loc,-1)
-		width = edge_dist[0] + abs(edge_dist[2])
-		height = edge_dist[1] + abs(edge_dist[3])
+		if mca: #maps with movement cost areas (grass/water)
+			edge_dist = self.measure_area(loc,1) + self.measure_area(loc,-1)
+			width = edge_dist[0] + abs(edge_dist[2])
+			height = edge_dist[1] + abs(edge_dist[3])
 
-		middle = (width//2 - self.weapon.get_width()//2, height//2 - self.weapon.get_height()//2)
-		left_pos = loc[0] + edge_dist[2]
-		top_pos = loc[1] + edge_dist[3]
+			middle = (width//2 - self.weapon.get_width()//2, height//2 - self.weapon.get_height()//2)
+			left_pos = loc[0] + edge_dist[2]
+			top_pos = loc[1] + edge_dist[3]
 
-		self.hidden_loc = loc
-		self.location = (left_pos+middle[0],top_pos+middle[1])
-		print(f'new {self.name} location {self.hidden_loc}')
+			self.hidden_loc = loc
+			self.location = (left_pos+middle[0],top_pos+middle[1])
+		else:
+			self.hidden_loc = loc
+			self.location = loc
+		# print(f'new {self.name} location {self.hidden_loc}')
 
 	def measure_area(self,_coords,direction):
 		'''go R/D or L/U until we hit edge of grass/water and return the distances'''
@@ -76,3 +82,44 @@ class Pokeball:
 
 	def distance(self):
 		return abs(self.x - self._start_x) + abs(self.y - self._start_y)
+
+class WeaponStatus:
+	'''check if we've picked up a weapon'''
+	def __init__(self, ash):
+		if ash.bike:
+			self.weapon_timer(ash.bike, ash.start_bike_ticks, ash)
+		if ash.mushroom:
+			self.weapon_timer(ash.mushroom, ash.start_mushroom_ticks, ash)
+
+	def weapon_timer(self, item, start_ticks, ash):
+		'''start 15s timers for bike / mushroom'''
+		seconds=(pygame.time.get_ticks()-start_ticks)/1000
+		if seconds > 15:
+			if item == ash.mushroom:
+				ash.mushroom = False
+				ash.width /=2
+				ash.height /=2
+				ash.start_mushroom_ticks = 0
+			elif item == ash.bike:
+				ash.bike = False
+				ash.start_bike_ticks = 0
+			#return to default music if nothing activated
+			if not ash.mushroom and not ash.bike:
+				music = pygame.mixer.music.load(config.theme)
+				pygame.mixer.music.set_volume(0.5)
+				pygame.mixer.music.play(-1)
+
+	@classmethod
+	def set_locations(cls, bikes, mushrooms):
+		'''put bikes and mushrooms in grass/water if we're using a map with grass/water else random available node'''
+		for bike in bikes:
+			if len(Map.movement_cost_area):
+				bike.new_location(RandomNode(Map.movement_cost_area).node)
+			else:
+				bike.new_location(RandomNode(Map.nodes).node, False)
+
+		for mushroom in mushrooms:
+			if len(Map.movement_cost_area):
+				mushroom.new_location(RandomNode(Map.movement_cost_area).node)
+			else:
+				mushroom.new_location(RandomNode(Map.nodes).node, False)

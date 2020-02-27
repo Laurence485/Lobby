@@ -1,42 +1,43 @@
 import config
 import pygame
 import math
+import pickle
 from random import seed
-from random import choice
+from random_node import RandomNode
 from snap_to_grid import SnaptoGrid
 class Map:
 	'''load images for map generation,
 	generate random x between 1 and window width - rounded object width
 	random y between 1 and window height - rounded object height'''
 	pyg = pygame.image
-	sprites = {'bike shop':pyg.load('sprites/Objects/mart.png'),
+	sprites = {'bike shop':pyg.load('sprites/Objects/bikeShop.png'),
 		'department store':pyg.load('sprites/Objects/departmentStore.png'),
-		'door_house':pyg.load('sprites/Objects/doorHouse.png'),
+		'door house':pyg.load('sprites/Objects/doorHouse.png'),
 		'game corner':pyg.load('sprites/Objects/gameCorner.png'),
 		'grass':pyg.load('sprites/Objects/grass_patch.jpg'),#72x51
 		'mart':pyg.load('sprites/Objects/mart.png'), #64x62
 		'oaks lab': pyg.load('sprites/Objects/oaksLab.png'), #112x71
 		'water': pyg.load('sprites/Objects/pool.png'), #130,114
 		'pokemon center': pyg.load('sprites/Objects/pokemonCenter.png'), #80x70
-		'purple_house':pyg.load('sprites/Objects/purpleHouse.png'),
+		'purple house':pyg.load('sprites/Objects/purpleHouse.png'),
 		'tree':pyg.load('sprites/Objects/tree.png') #30x45
 	}
 	objects = []
 	nodes = set() #all traversable nodes
 	movement_cost_area = {} #movement has a cost - grass/water
+	objs_area = set() #no movement through here - (x,y) area in use by all objects
 	def __init__(self):
-		self.window_width = config.window_width
+		self.window_width = config.window_width-config.window_wall_width
 		self.window_height = config.window_height
 		self.spacing = config.grid_spacing
-		self.objs_area = set() #no movement through here - (x,y) area in use by all objects
 		for x in range(0,self.window_width,self.spacing): #col
 			for y in range(0,self.window_height,self.spacing): #row
 				self.nodes.add((x,y))
-		seed(341) #***seed for testing only***
+		# seed(341) 
 
-	def generate_map(self, grass=20, trees=20, water=2):
+	def generate_map(self, map_name='random', save=False):
 		obj_features = []
-		items = ['water']*3+['grass']*6+['tree']*15+['pokemon center']
+		items = ['tree']*5+['pokemon center']+['grass']*3+['water']+['door house']
 
 		for item in items:
 			obj = self.sprites[item]
@@ -56,8 +57,8 @@ class Map:
 
 			#2) choose xy from available nodes such that obj doesnt touch any other object
 			available_nodes = not_oob - self.objs_area
-			rand_xy = choice(tuple(available_nodes))
-			rand_x, rand_y = rand_xy[0], rand_xy[1]
+			rand_xy = RandomNode(available_nodes).node
+			rand_x, rand_y = rand_xy
 
 			colliding = True
 			if len(obj_features):
@@ -75,15 +76,15 @@ class Map:
 							failed = True
 							available_nodes.remove(rand_xy)
 							if not(len(available_nodes)): break
-							rand_xy = choice(tuple(available_nodes))
-							rand_x, rand_y = rand_xy[0], rand_xy[1]
+							rand_xy = RandomNode(available_nodes).node
+							rand_x, rand_y = rand_xy
 							break	
 
 					colliding = False if not failed else True
 
 			if not(len(available_nodes)): break
 
-			self.objects.append([obj,rand_xy])
+			self.objects.append([item,rand_xy])
 
 			obj_coords_x = [rand_x+(i*self.spacing) for i in range(square_width)]
 			obj_coords_y = [rand_y+(i*self.spacing) for i in range(square_height)]
@@ -107,9 +108,37 @@ class Map:
 		self.nodes = [n for n in self.nodes if n not in self.objs_area]
 		obj_features.clear()
 
+		if save:
+			self.save(map_name)
+	
+	def save(self, map_name):
+		'''save map to maps/ directory'''
+		cache_path = f'maps/{map_name}.pkl'
+		_map = {
+		'nodes':self.nodes,
+		'mca': self.movement_cost_area,
+		'objects':self.objects,
+		'obj coords':self.objs_area
+		}
+		with open (cache_path,'wb') as path:
+			pickle.dump(_map, path)
+		print(f'"{map_name}" saved to {cache_path}.')
+
+	@classmethod
+	def load(cls, map_name):
+		'''load map from maps/ directory'''
+		with open(f'maps/{map_name}.pkl', 'rb') as path:
+			_map = pickle.load(path)
+		cls.nodes = _map['nodes']
+		cls.movement_cost_area = _map['mca']
+		cls.objects = _map['objects']
+		cls.objs_area = _map['obj coords']
+		print(f'loaded map: {map_name}.')
+		# print(_map['objects'])
+
 	@classmethod
 	def draw(cls, win):
 		for obj in cls.objects:
-			item = obj[0]
-			x,y = obj[1][0], obj[1][1]
+			item = cls.sprites[obj[0]]
+			x,y = obj[1]
 			win.blit(item, (x,y))
