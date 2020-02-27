@@ -36,6 +36,7 @@ class Map:
 		# seed(341) 
 
 	def generate_map(self, map_name='random', save=False):
+		'''generate and save a map to .pkl from a list of sprites'''
 		obj_features = []
 		items = ['tree']*5+['pokemon center']+['grass']*3+['water']+['door house']
 
