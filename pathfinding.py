@@ -3,6 +3,7 @@ from queue import PriorityQueue
 import config
 import time
 from snap_to_grid import SnaptoGrid
+import pygame
 
 class Pathfinding:
 	'''set up grid, pathfinding algorithms'''
@@ -49,7 +50,7 @@ class Pathfinding:
 				result.append(neighbour)		
 		return result
 
-	def breadth_first_search(self, start, end):
+	def breadth_first_search(self, start, end, win):
 		print('computing BFS route...')
 		positions = Queue()
 		positions.put(start) #enqueue start

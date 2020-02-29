@@ -47,6 +47,7 @@ def main():
 
 	def redraw_gamewindow():
 		win.blit(bg,(0,0)) #put picutre on screen (background)
+		pygame.draw.rect(win, (200,200,200), (0,0,window_width,window_height))
 
 		# # draw grid
 		# for x in range(0,window_width,grid_spacing): #col
@@ -57,15 +58,19 @@ def main():
 
 		if start_route:
 			# draw bfs route
-			for x,y in bfs_route:
+			for x,y in routes['BFS']:
 				pygame.draw.rect(win, (0,0,255), (x,y,grid_spacing,grid_spacing))
 			# draw dijkstra route
-			for x,y in da_route:
+			for x,y in routes['GBFS']:
 				pygame.draw.rect(win, (255,0,0), (x,y,grid_spacing,grid_spacing))
-			# draw A* route
-			for x,y in a_star_route:
+			#draw DA route
+			for x,y in routes['DA']:
 				pygame.draw.rect(win, (0,255,0), (x,y,grid_spacing,grid_spacing))
-			#re-position oak if oob
+			# draw A* route
+			for x,y in routes['A*']:
+				pygame.draw.rect(win, (100,100,100), (x,y,grid_spacing,grid_spacing))
+
+			# re-position oak if oob
 			oak_x = target_x
 			oak_y = target_y
 			if oak_x > window_width-oak.get_width(): oak_x -= grid_spacing
@@ -89,7 +94,7 @@ def main():
 				running = False
 			if event.type == pygame.MOUSEBUTTONDOWN and not start_route:
 				target_x, target_y = event.pos[0], event.pos[1]
-				bfs_route, da_route, a_star_route = path.compute_all_paths(ash.x,ash.y,target_x,target_y)
+				routes = path.compute_all_paths(ash.x,ash.y,target_x,target_y)
 				start_route = True
 
 		#move amongst available nodes 

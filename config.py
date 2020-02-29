@@ -16,7 +16,7 @@ num_players = 5
 
 #---------weapons---------------
 bikes = 5
-mushrooms = 5
+mushrooms = 2
 
 #------------sounds--------------
 theme = 'sounds/sevii_islands.mp3'
