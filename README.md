@@ -1,4 +1,4 @@
-# Pokewars
+# Pokéwars
 
 Description:
 
@@ -8,7 +8,7 @@ This project was made using python3.7, pygame and the sockets module to handle i
 
 The player must navigate randomly generated maps, gathering weapons and power-ups from long grass and deep pools, and destroy enemy players.
 
-The game supports 6 native maps, each using a range of difference sprites and terrains from Pokémon. 
+The game supports 7 native maps, each using a range of difference sprites and terrains from Pokémon. 
 
 The Map class in  map_generation.py has generate_map(),save() and load() functions, which can be used to generate new maps by passing in a list of sprites as well as to save and load maps. 
 
