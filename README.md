@@ -66,7 +66,3 @@ Only the host player must run server.py. Other players need only run game.py.
 
 # Screenshots
 
-
-![ss1](https://user-images.githubusercontent.com/31314787/75720241-0e3b3100-5cce-11ea-9f9b-724fa0e9b7a1.PNG)
-![ss2](https://user-images.githubusercontent.com/31314787/75720244-0f6c5e00-5cce-11ea-8e1a-943334dad200.PNG)
-![ss3](https://user-images.githubusercontent.com/31314787/75720246-1004f480-5cce-11ea-91be-46d8b6434351.PNG)
