@@ -1,4 +1,4 @@
-# Pokewars
+# Pokéwars
 
 Description:
 
