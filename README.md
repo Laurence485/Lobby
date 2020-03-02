@@ -10,7 +10,7 @@ The player must navigate randomly generated maps, gathering weapons and power-up
 
 The game supports 7 native maps, each using a range of difference sprites and terrains from Pokémon. 
 
-The Map class in  map_generation.py has generate_map(),save() and load() functions, which can be used to generate new maps by passing in a list of sprites as well as to save and load maps. 
+The Map class in  map_generation.py has generate_map(),save() and load() functions, which can be used to generate and save new maps by passing in a list of sprites. 
 
 The game maps used can be changed by editing maps[] in config.py. Any newly generated maps should be added here.
 
