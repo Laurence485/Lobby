@@ -64,6 +64,8 @@ Only the host player must run server.py. Other players need only run game.py.
 
 <em>Not for commercial use</em>. Please credit me if you intend to use code from this game.
 
+# Screenshots
+
 
 ![ss1](https://user-images.githubusercontent.com/31314787/75720241-0e3b3100-5cce-11ea-9f9b-724fa0e9b7a1.PNG)
 ![ss2](https://user-images.githubusercontent.com/31314787/75720244-0f6c5e00-5cce-11ea-8e1a-943334dad200.PNG)
