@@ -9,8 +9,8 @@ player_vel = grid_spacing
 bike_vel = player_vel
 
 #----------mutliplayer-------------
-HOST = "25.38.138.206"
-PORT = 5555
+HOST = "localhost"
+PORT = 12345
 buffer_size = 2048
 num_players = 5
 
