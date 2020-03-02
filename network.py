@@ -11,7 +11,7 @@ class Network:
 		self.data = self.connect()
 
 	def connect(self):
-		try: #connect and get player ID
+		try: #connect and get shuffled maps and player ID
 			self.client.connect(self.addr)
 			self.maps, self.playerID = pickle.loads(self.client.recv(config.buffer_size))
 		except:
