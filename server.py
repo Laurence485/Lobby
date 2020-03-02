@@ -8,7 +8,7 @@ from random import shuffle
 HOST = config.HOST
 PORT = config.PORT
 buffer_size = config.buffer_size
-maps = ['myfirstmap','grass','water','trees','city', 'oasis','empty']
+maps = config.maps
 shuffle(maps)
 
 attributes = {

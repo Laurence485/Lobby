@@ -13,6 +13,7 @@ HOST = "localhost"
 PORT = 12345
 buffer_size = 2048
 num_players = 5
+maps = ['myfirstmap','grass','water','trees','city', 'oasis','empty']
 
 #---------weapons---------------
 bikes = 5
