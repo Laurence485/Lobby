@@ -6,7 +6,7 @@ grid_spacing = 10 #square size for grid
 
 #--------player attributes-----------
 player_vel = grid_spacing
-bike_vel = player_vel
+bike_vel = player_vel*2
 
 #----------mutliplayer-------------
 HOST = "localhost"
