@@ -365,12 +365,12 @@ class Player(Character):
 			if bullet.y + bullet.height >= enemy.y and bullet.y <= enemy.y + enemy.height:
 				try: #bullet might already be removed from distance check
 					self.inventory.pop(self.inventory.index(bullet))
-					if not enemy.mushroom and self.killed != enemy.ID:
+					if not self.killed != enemy.ID:
 						print(f'You killed {enemy.username}!')
 						self.kill_sound.play()
 						self.killed = enemy.ID
 						self.kill()
-				except: 
+				except:
 					print('Warning: already removed bullet from distance check.')
 
 

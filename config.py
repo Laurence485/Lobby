@@ -6,11 +6,11 @@ grid_spacing = 10 #square size for grid
 
 #--------player attributes-----------
 player_vel = grid_spacing
-bike_vel = player_vel
+bike_vel = player_vel*2
 
 #----------mutliplayer-------------
-HOST = "localhost"
-PORT = 12345
+HOST = "18.189.44.162"
+PORT = 5555
 buffer_size = 2048
 num_players = 5
 maps = ['myfirstmap','grass','water','trees','city', 'oasis','empty']
