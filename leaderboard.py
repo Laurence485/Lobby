@@ -32,10 +32,3 @@ class Leaderboard:
 		with self.conn:
 			self.c.execute("SELECT * FROM leaderboard ORDER BY kills DESC LIMIT 10;")
 			return self.c.fetchall()
-
-
-db = Leaderboard()
-# db.create_leaderboard()
-# db.insert_new_player('nubz')
-# db.update_player('nubz',2,1,1.2)
-print(db.get_leaderboard())

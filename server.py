@@ -4,6 +4,7 @@ from _thread import *
 import pickle
 import config
 from random import shuffle
+from leaderboard import Leaderboard
 
 HOST = config.HOST
 PORT = config.PORT
@@ -37,13 +38,37 @@ attributes = {
 }
 players = [attributes]*config.num_players
 
+
 def client(conn, player):
 	with conn:
 		#init game with map, player ID and start time form server
 		conn.send(pickle.dumps((maps, player)))
+
+		db = Leaderboard()
+
+		#add player to leaderboard db if not already there
+		username = pickle.loads(conn.recv(config.buffer_size))
+		db.insert_new_player(username)
+
+		print(db.get_leaderboard())
+
+		# db.insert_new_player(players[])
 		while True: #continously run whilst client still connected
 			try:
 				data = pickle.loads(conn.recv(config.buffer_size)) #received player attrs
+
+				stats = list(players[player]['stats'].values())
+
+				#a players stats have been updated, update the leaderboard db
+				if any(list(data['stats'].values())[i] != stats[i] for i in range(len(stats))):
+					kills = data['stats']['kills']
+					deaths = data['stats']['deaths']
+					kd = data['stats']['K/D']
+
+					db.update_player(data['username'],kills,deaths,kd)
+
+					print('leaderboard updated.')
+
 				players[player] = data
 
 				if not data:

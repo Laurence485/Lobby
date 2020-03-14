@@ -29,7 +29,7 @@ def main():
 
 	bg = pygame.image.load('sprites/background.jpg').convert()
 
-	net = Network()	
+	net = Network(username.lower())	
 
 	#generate and save map
 	# new_map = Map()
