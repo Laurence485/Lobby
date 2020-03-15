@@ -8,7 +8,7 @@ class Multiplayer:
 	def get_player_data(ash, net, players, bikes, mushrooms):
 			'''get player data from server and map data to local player objects'''
 			attrs = net.send(ash.attributes()) #return attributes of other players
-			print((attrs))
+
 			for i in range(len(players)):
 				'''ith player should map to ith attribute on server as players are
 				added in order which clients connect. If client DCs and reconnects, they are
@@ -20,11 +20,9 @@ class Multiplayer:
 				#2) they have an ID (they are connected to server)
 				if not players[i] and a['ID'] != None:
 					print(f'{a["username"]} connected.')
-					new_player = Player((a['x'],a['y']),a['ID'])
-					players.append(new_player)
-					print(len(players))
+					players[i] = Player((a['x'],a['y']),a['ID'])
 
-				#update player from server
+				#update (in place) the ith player from server
 				elif players[i]:
 					players[i].x, players[i].y = a['x'], a['y']
 					players[i].left, players[i].right, players[i].up, players[i].down = a['L'], a['R'], a['U'], a['D']
@@ -61,4 +59,8 @@ class Multiplayer:
 		#we are dead and no one else has killed us so reset dead
 		if ash.dead and all(p.killed != ash.ID for p in players if p):
 			ash.dead = False
+
+	@staticmethod
+	def check_leaderboard():
+		pass
 

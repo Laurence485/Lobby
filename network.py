@@ -14,7 +14,7 @@ class Network:
 		try: #connect and get shuffled maps and player ID
 			self.client.connect(self.addr)
 			self.client.send(pickle.dumps(username))
-			self.maps, self.playerID = pickle.loads(self.client.recv(config.buffer_size))
+			self.maps, self.playerID, self.leaderboard = pickle.loads(self.client.recv(config.buffer_size))
 			return True
 		except:
 			print("couldn't connect to server.")

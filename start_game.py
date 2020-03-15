@@ -14,7 +14,7 @@ class StartGame:
 		self.grid = False
 		self.win = win
 		self.net = net
-
+		
 		#generate and save map
 		# new_map = Map()
 		# new_map.generate_map('random', False)
@@ -29,7 +29,8 @@ class StartGame:
 		self.ash = Player(RandomNode(Map.nodes).node, self.net.playerID, username, self.current_map)
 
 		#other player objects
-		self.players = []
+		p2, p3, p4, p5 = None, None, None, None
+		self.players = [p2,p3,p4,p5]
 
 		self.bikes = [Bike() for i in range(config.bikes)]
 		self.mushrooms = [Mushroom() for i in range(config.mushrooms)]

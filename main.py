@@ -82,6 +82,15 @@ def main():
 					return 'play' if index == 0 else 'leaderboard'
 				win.blit(pointer, (pos[0]-pointer.get_width()*2,pos[1]))
 
+	def show_leaderboard(all_player_stats):
+		'''format leaderboard stats from db'''
+		print("---LEADERBOARD---")
+		for stats in all_player_stats:
+			name = stats[0]
+			kills = stats[1]
+			deaths = stats[2]
+			kd = stats[3]
+			print(f" ------- \n (player) {name}:  \n kills: {kills} \n deaths: {deaths} \n K/D: {kd}\n------- \n")
 
 	while running:
 		for event in pygame.event.get(): #get mouse positions, keyboard clicks etc
@@ -107,7 +116,13 @@ def main():
 									game_started = True
 									game = StartGame(win, net, username)
 							elif menu_item == 'leaderboard':
-								print('showing leaderboard...')
+								if net.data is None:
+									net = Network(username.lower())
+									if net.data is not None:
+										print('successfully connected to server.')
+										show_leaderboard(net.leaderboard)
+								else:
+									show_leaderboard(net.leaderboard)
 			else:
 				game.check_keyboard_input(event)
 
@@ -124,4 +139,5 @@ def main():
 	pygame.quit()
 
 if __name__ == '__main__':
+	# username = input("Welcome to Pokéwars \n Movement: arrow keys \n Shoot: Spacebar \n Strafe: S \n Menu: Z \n Show Grid: X \n Change Map (Host only): C \n\n Enter Username: ")
 	main()

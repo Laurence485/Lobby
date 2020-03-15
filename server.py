@@ -1,4 +1,3 @@
-#use socket and threading to handle connections
 import socket
 from _thread import *
 import pickle
@@ -36,18 +35,14 @@ attributes = {
 'username':'Noob',
 'map': 0
 }
-players = []
+players = [attributes]*config.num_players
 
 
 def client(conn, player):
 	with conn:
-		#init game with map and player ID
-		conn.send(pickle.dumps((maps, player)))
-
 		db = Leaderboard()
-
-		#new dict of player attributes to keep track of
-		players.append(attributes)
+		#init game with map player ID
+		conn.send(pickle.dumps((maps, player,db.get_leaderboard())))
 
 		#add player to leaderboard db if not already there
 		username = pickle.loads(conn.recv(config.buffer_size))
@@ -86,7 +81,7 @@ def client(conn, player):
 		current_player = players[player]['username']
 		print(f'connection dropped ({current_player}, ID:{player}).')
 		
-		#player DCed so dont check those attributes anymore and add  to DC list so we can re-add if they re-connect
+		#player DCed so reset to defaults and add to DC list so we can re-add if they re-connect
 		players[player] = attributes
 		DC.append(player)
 
