@@ -59,8 +59,3 @@ class Multiplayer:
 		#we are dead and no one else has killed us so reset dead
 		if ash.dead and all(p.killed != ash.ID for p in players if p):
 			ash.dead = False
-
-	@staticmethod
-	def check_leaderboard():
-		pass
-
