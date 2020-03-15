@@ -36,15 +36,18 @@ attributes = {
 'username':'Noob',
 'map': 0
 }
-players = [attributes]*config.num_players
+players = []
 
 
 def client(conn, player):
 	with conn:
-		#init game with map, player ID and start time form server
+		#init game with map and player ID
 		conn.send(pickle.dumps((maps, player)))
 
 		db = Leaderboard()
+
+		#new dict of player attributes to keep track of
+		players.append(attributes)
 
 		#add player to leaderboard db if not already there
 		username = pickle.loads(conn.recv(config.buffer_size))
@@ -52,7 +55,6 @@ def client(conn, player):
 
 		print(db.get_leaderboard())
 
-		# db.insert_new_player(players[])
 		while True: #continously run whilst client still connected
 			try:
 				data = pickle.loads(conn.recv(config.buffer_size)) #received player attrs
@@ -84,7 +86,7 @@ def client(conn, player):
 		current_player = players[player]['username']
 		print(f'connection dropped ({current_player}, ID:{player}).')
 		
-		#player DCed so reset to defaults and add to DC list so we can re-add if they re-connect
+		#player DCed so dont check those attributes anymore and add  to DC list so we can re-add if they re-connect
 		players[player] = attributes
 		DC.append(player)
 

@@ -15,8 +15,10 @@ class Network:
 			self.client.connect(self.addr)
 			self.client.send(pickle.dumps(username))
 			self.maps, self.playerID = pickle.loads(self.client.recv(config.buffer_size))
+			return True
 		except:
-			print("couldn't connect to host.")
+			print("couldn't connect to server.")
+			return None
 
 	def send(self, data):
 		try:

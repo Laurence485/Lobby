@@ -171,6 +171,9 @@ class Player(Character):
 
 
 	def move(self, collision_zone, movement_cost_area, bikes=None, mushrooms=None):
+		'''move amongst available nodes 
+			(no movement out of bounds and in object coordinates)
+			movement cost in grass / water'''
 		keys = pygame.key.get_pressed()
 		mca = len(movement_cost_area)
 
@@ -359,8 +362,6 @@ class Player(Character):
 
 	def check_kill(self, bullet, enemy):
 		'''check kill (collision) by pokeball'''
-		# sq = config.grid_spacing
-		#adding 1 square padding to enemy bounds lets us attack when we are 1sq away
 		if bullet.x + bullet.width >= enemy.x and bullet.x <= enemy.x + enemy.width:
 			if bullet.y + bullet.height >= enemy.y and bullet.y <= enemy.y + enemy.height:
 				try: #bullet might already be removed from distance check

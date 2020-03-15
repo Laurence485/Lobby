@@ -124,7 +124,7 @@ def main():
 	while running:
 		#rather than 2x the bike speed, we are 2x the FPS so we can still move 1sq at a time
 		clock.tick(9) if not ash.bike else clock.tick(18) #9 FPS or #18FPS if bike
-
+		
 		Multiplayer.get_player_data(ash, net, players, bikes, mushrooms)
 		Multiplayer.check_death_status(ash, players)
 		WeaponStatus(ash)
