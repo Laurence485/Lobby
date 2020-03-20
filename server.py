@@ -48,8 +48,6 @@ def client(conn, player):
 		username = pickle.loads(conn.recv(config.buffer_size))
 		db.insert_new_player(username)
 
-		print(db.get_leaderboard())
-
 		while True: #continously run whilst client still connected
 			try:
 				data = pickle.loads(conn.recv(config.buffer_size)) #received player attrs
