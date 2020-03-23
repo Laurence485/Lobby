@@ -54,11 +54,11 @@ Change Map (Host only): C
 
 Change HOST and PORT in config.py to reflect your setup.
 
-Ideally place server.py and config.py on a server. Multiple instances can then be launched from anywhere with many players playing simultaneously.
+Ideally place server.py, config.py and leaderboard.py on a server. Create a new database from the leaderboard file. Multiple instances can then be launched from anywhere with many players playing simultaneously.
 
 Another option is to download and use Hamachi to simulate your LAN. 
 
-Only the host player must run server.py. Other players need only run game.py.
+Only the host player must run server.py. Other players need only run main.py.
 
 # LICENSE
 
