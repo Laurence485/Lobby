@@ -4,7 +4,7 @@ from center_item import centerItem
 from network import Network
 from start_game import StartGame
 
-def main():
+def main(username):
 	'''init pygame and set up homescreen objects'''
 	pygame.init()
 	running = True
@@ -12,7 +12,6 @@ def main():
 	global walk_count
 	walk_count = 0
 
-	username = 'TEST'
 	game_started = False
 
 	# window for drawing on
@@ -83,7 +82,7 @@ def main():
 				win.blit(pointer, (pos[0]-pointer.get_width()*2,pos[1]))
 
 	def show_leaderboard(all_player_stats):
-		'''format leaderboard stats from db'''
+		'''format and print leaderboard stats from db'''
 		print("---LEADERBOARD---")
 		for stats in all_player_stats:
 			name = stats[0]
@@ -139,5 +138,5 @@ def main():
 	pygame.quit()
 
 if __name__ == '__main__':
-	# username = input("Welcome to Pokéwars \n Movement: arrow keys \n Shoot: Spacebar \n Strafe: S \n Menu: Z \n Show Grid: X \n Change Map (Host only): C \n\n Enter Username: ")
-	main()
+	username = input("Welcome to Pokéwars \n Movement: arrow keys \n Shoot: Spacebar \n Strafe: S \n Menu: Z \n Show Grid: X \n Change Map (Host only): C \n\n Enter Username: ")
+	main(username)
