@@ -6,8 +6,8 @@ from map_generation import Map
 from menu import Menu
 from multiplayer import Multiplayer
 from network import Network
-from random_node import RandomNode
 from typing import Any
+from utils import random_xy
 
 with open('config.yaml', 'r') as config_file:
     config = yaml.load(config_file)
@@ -70,23 +70,27 @@ class NewGame:
     """Setup a new game and handle game loop methods."""
 
     def __init__(self, game_window: Any, net: Network):
-        self.menu = False
-        self.grid = False
+        self.background = pygame.image.load(background).convert()
         self.window = game_window
         self.net = net
         self.username = self.net.username
-
-        self.background = pygame.image.load(background).convert()
+        self.menu = False
+        self.grid = False
 
         Map.load('myfirstmap')
 
-        self.ash = Player(RandomNode(Map.nodes).node, 0, self.username, 0)
+        self.player = Player(
+            xy=random_xy(Map.nodes),
+            ID=0,
+            username=self.username,
+            current_map=0
+        )
 
         # Other player objects
         p2, p3, p4, p5 = None, None, None, None
         self.players = [p2, p3, p4, p5]
 
-        self.ash.ID = 0
+        self.player.ID = 0
 
     def check_keyboard_input(self, event: Any) -> None:
         """Check for keyboard input.
@@ -103,12 +107,12 @@ class NewGame:
     def fetch_data(self) -> None:
         """get data from server, player positions, stats, kill status etc"""
         Multiplayer.get_player_data(
-            self.ash, self.net, self.players, self.bikes, self.mushrooms
+            self.player, self.net, self.players, self.bikes, self.mushrooms
         )
-        Multiplayer.check_death_status(self.ash, self.players)
+        Multiplayer.check_death_status(self.player, self.players)
 
     def check_collisions_and_pickups(self) -> None:
-        self.ash.move(Map.objs_area, Map.movement_cost_area)
+        self.player.move(Map.objs_area, Map.movement_cost_area)
 
     def redraw_gamewindow(self) -> None:
         """Draw objects onto the screen."""
@@ -116,7 +120,7 @@ class NewGame:
 
         self.draw_grid()
         Map.draw(self.window)
-        self.ash.draw(self.window)
+        self.player.draw(self.window)
 
         # Draw all players.
         for p in self.players:
@@ -142,7 +146,7 @@ class NewGame:
     def show_menu(self) -> None:
         Menu(
             self.window,
-            [self.ash.stats, self.ash.username],
+            [self.player.stats, self.player.username],
             [[p.stats, p.username] for p in self.players if p]
         )
 

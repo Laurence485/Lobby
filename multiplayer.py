@@ -1,6 +1,5 @@
 from characters import Player
 from map_generation import Map
-from weapons import WeaponStatus
 
 class Multiplayer:
 	'''class containing functions checking data from the server'''
@@ -13,7 +12,7 @@ class Multiplayer:
 				'''ith player should map to ith attribute on server as players are
 				added in order which clients connect. If client DCs and reconnects, they are
 				issued the same player id'''
-				a = attrs[i] 
+				a = attrs[i]
 
 				#create new player instance if:
 				#1) we haven't already created an instance
@@ -40,7 +39,6 @@ class Multiplayer:
 					if players[i].ID == 0 and players[i].map!=ash.map:
 						ash.map = players[i].map
 						Map.load(net.maps[players[i].map])
-						WeaponStatus.set_locations(bikes, mushrooms)
 
 	@staticmethod
 	def check_death_status(ash, players):
@@ -55,7 +53,7 @@ class Multiplayer:
 				# #we've killed another player and they are dead so reset killed
 				elif p.dead and ash.killed == p.ID:
 					ash.killed = None
-			
+
 		#we are dead and no one else has killed us so reset dead
 		if ash.dead and all(p.killed != ash.ID for p in players if p):
 			ash.dead = False

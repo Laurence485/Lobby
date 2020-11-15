@@ -1,10 +1,8 @@
 import pygame
 from snap_to_grid import SnaptoGrid
 import config
-from map_generation import Map
-from random_node import RandomNode
-from weapons import Pokeball
-import config
+from utils import random_xy
+
 
 class Character:
 	'''setup common characteristics of movable characters
@@ -24,14 +22,8 @@ class Character:
 		self.walk_up = [pygame.image.load(f'sprites/{u1}').convert_alpha(), pygame.image.load(f'sprites/{u2}').convert_alpha()]
 		self.hit_slow = False #slowed movement area: grass/water
 		self.mushroom = False
-		self.stats = {
-		'kills':0,
-		'deaths':0,
-		'K/D': 0
-		}
 		self.ID = None
-		self.killed = None
-		self.dead = False
+
 
 	def walk_animation(self, direction, win):
 		if not self.hit_slow:
@@ -40,10 +32,7 @@ class Character:
 			else:
 				self.enlarge(direction[self.walk_count//2], win)
 		else: #we are in grass/water
-			if not self.mushroom: #chop off bottom of player
 				win.blit(direction[self.walk_count//2], (self.x,self.y), (0,0,SnaptoGrid.snap(self.width),self.height-self.height//4))
-			else:
-				self.enlarge(direction[self.walk_count//2], win)
 
 		self.walk_count += 1
 
@@ -166,9 +155,6 @@ class Player(Character):
 					self.stand_sprite(self.stand_down_bike,win)
 				else: self.stand_sprite(self.stand_down,win)
 
-		#simple timer for shooting
-		self.bullet_interval += 1
-		if self.bullet_interval > 5: self.bullet_interval = 0
 
 
 	def move(self, collision_zone, movement_cost_area, bikes=None, mushrooms=None):
@@ -185,32 +171,6 @@ class Player(Character):
 		#no movement through walls unless mushroomed
 		hit_wall = True if bounds in collision_zone else False
 		self.hit_slow = True if bounds in movement_cost_area else False
-
-		#found a bike
-		# for bike in bikes:
-		# 	if bounds == bike.hidden_loc and not self.bike:
-		# 		self.bike = True
-		# 		self.start_bike_ticks = pygame.time.get_ticks() #start bike timer 15s
-		# 		bike.new_location(RandomNode(Map.movement_cost_area).node if mca else RandomNode(Map.nodes).node)
-		# 		print('found bike!')
-		# 		self.bike_sound.play()
-		# 		bike_active_sound = pygame.mixer.music.load(config.bike_active_sound)
-		# 		pygame.mixer.music.play()
-		# 		self.snap()
-
-		# #found a mushroom - 2x size
-		# for mushroom in mushrooms:
-		# 	if bounds == mushroom.hidden_loc and not self.mushroom:
-		# 		self.mushroom = True
-		# 		self.width *= 2
-		# 		self.height *= 2
-		# 		self.start_mushroom_ticks = pygame.time.get_ticks() #start bike timer 15s
-		# 		mushroom.new_location(RandomNode(Map.movement_cost_area).node if mca else RandomNode(Map.nodes).node)
-		# 		print('found mushroom!')
-		# 		self.mushroom_sound.play()
-		# 		mushroom_active_sound = pygame.mixer.music.load(config.mushroom_active_sound)
-		# 		pygame.mixer.music.play()
-		# 		self.snap()
 
 		if self.hit_slow:
 			#slow movement speed
@@ -328,7 +288,7 @@ class Player(Character):
 		 #2) we used mushroom and are not on top of a building
 		 # --> so find new node...
 			if self.standing:
-				self.x, self.y = RandomNode(Map.nodes).node
+				self.x, self.y = random_xy()
 			if self.left: self.x += self.vel
 			elif self.right: self.x -= self.vel
 			elif self.up: self.y += self.vel
@@ -346,108 +306,6 @@ class Player(Character):
 			self.y -= self.vel
 
 
-	def draw_bullet(self, win, bullet):
-		bullet.draw(win)
-		# print((bullet.x,bullet.y), (self.x,self.y))
-		if bullet._direction == 'L':
-			bullet.x -= bullet.vel
-		elif bullet._direction == 'R' :
-			bullet.x += bullet.vel
-		elif bullet._direction == 'U':
-			bullet.y -= bullet.vel
-		elif bullet._direction == 'D':
-			bullet.y += bullet.vel
-		#delete bullets after distance of 150px
-		if bullet.distance() > 150:
-			self.inventory.pop(self.inventory.index(bullet))
-
-	def check_kill(self, bullet, enemy):
-		'''check kill (collision) by pokeball'''
-		if bullet.x + bullet.width >= enemy.x and bullet.x <= enemy.x + enemy.width:
-			if bullet.y + bullet.height >= enemy.y and bullet.y <= enemy.y + enemy.height:
-				try: #bullet might already be removed from distance check
-					self.inventory.pop(self.inventory.index(bullet))
-					if self.killed != enemy.ID:
-						print(f'You killed {enemy.username}!')
-						self.kill_sound.play()
-						self.killed = enemy.ID
-						self.kill()
-				except:
-					print('Warning: already removed bullet from distance check.')
-
-
-	def check_trample(self, enemy):
-		'''check if we've trampled someone with double size'''
-		if self.mushroom:
-			if enemy.x + enemy.width >= self.x and enemy.x <= self.x + self.width:
-				if enemy.y + enemy.height >= self.y and enemy.y <= self.y + self.height:
-					if not enemy.mushroom and self.killed != enemy.ID:
-						print(f'You trampled {enemy.username}!')
-						self.trample_sound.play()
-						self.killed = enemy.ID
-						self.kill()
-
-
-	def kill(self):
-		'''update kill stats with +1'''
-		self.stats['kills'] += 1
-		self.stats['K/D'] = self.KD_ratio()
-
-	def die(self, username):
-		'''update death stats with +1 and reset player attributes'''
-		self.death_sound.play()
-		self.stats['deaths'] += 1
-		self.stats['K/D'] = self.KD_ratio()
-		respawn = RandomNode(Map.nodes).node
-		print(f"You got pwned by {username}...respawning at {respawn}")
-		self.x,self.y = respawn
-		self.left = False
-		self.right = False
-		self.up = False
-		self.down = True
-		self.standing = True
-		self.inventory = []
-		self.bullet_interval = 0
-		self.space_up = False
-		self.direction = 'D'
-		self.walk_count = 0
-		self.vel = config.player_vel
-		self.hit_slow = False
-
-	def KD_ratio(self):
-		return round(self.stats['kills'] / self.stats['deaths'], 2) if self.stats['deaths'] > 0 else 'infinity'
-
 	def snap(self):
 		'''snap player x,y to grid'''
 		self.x, self.y = SnaptoGrid.snap(self.x), SnaptoGrid.snap(self.y)
-
-
-class Npc(Character):
-	'''Npc character moves back and forth between specific coordinates'''
-	def __init__(self, x, y, end):
-		super().__init__(x,y,config.player_vel,'player2/left2.png','player2/left3.png','player2/right2.png','player2/right3.png','player2/down2.png', 'player2/down3.png', 'player2/up2.png', 'player2/up3.png')
-		self.end = end
-		self.path = (self.x, self.end)
-
-	def draw(self, win):
-		self.move()
-		if self.walk_count + 1 > 4:
-			self.walk_count = 0
-		if self.vel > 0:
-			self.walk_animation(self.walk_right, win)
-		else:
-			self.walk_animation(self.walk_left, win)
-
-	def move(self):
-		if self.vel > 0: #moving right
-			if self.x + self.vel < self.path[1]:
-				self.x += self.vel
-			else:
-				self.vel = self.vel * -1 #switch direction
-				self.walk_count = 0
-		else: #moving left
-			if self.x - self.vel > self.path[0]:
-				self.x += self.vel
-			else:
-				self.vel = self.vel * -1
-				self.walk_count = 0

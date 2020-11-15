@@ -3,8 +3,10 @@ import pygame
 import math
 import pickle
 from random import seed
-from random_node import RandomNode
 from snap_to_grid import SnaptoGrid
+from utils import random_xy
+
+
 class Map:
 	'''load images for map generation,
 	generate random x between 1 and window width - rounded object width
@@ -22,8 +24,8 @@ class Map:
 		'purple house':pyg.load('sprites/Objects/purpleHouse.png'),
 		'tree':pyg.load('sprites/Objects/tree.png') #30x45
 	}
-	objects = []
 	nodes = set() #all traversable nodes
+	objects = []
 	movement_cost_area = {} #movement has a cost - grass/water
 	objs_area = set() #no movement through here - (x,y) area in use by all objects
 	def __init__(self):
@@ -32,11 +34,11 @@ class Map:
 		self.spacing = config.grid_spacing
 		for x in range(0,self.window_width,self.spacing): #col
 			for y in range(0,self.window_height,self.spacing): #row
-				self.nodes.add((x,y))
-		# seed(341) 
+				nodes.add((x,y))
+		# seed(341)
 
 	def generate_map(self, map_name='random', save=False):
-		'''generate and save a map to .pkl from a list of sprites'''
+		'''generate xand save a map to .pkl from a list of sprites'''
 		obj_features = []
 		items = ['tree']*5+['pokemon center']+['grass']*3+['water']+['door house']
 
@@ -58,7 +60,7 @@ class Map:
 
 			#2) choose xy from available nodes such that obj doesnt touch any other object
 			available_nodes = not_oob - self.objs_area
-			rand_xy = RandomNode(available_nodes).node
+			rand_xy = random_xy(available_nodes)
 			rand_x, rand_y = rand_xy
 
 			colliding = True
@@ -77,9 +79,9 @@ class Map:
 							failed = True
 							available_nodes.remove(rand_xy)
 							if not(len(available_nodes)): break
-							rand_xy = RandomNode(available_nodes).node
+							rand_xy = random_xy(available_nodes)
 							rand_x, rand_y = rand_xy
-							break	
+							break
 
 					colliding = False if not failed else True
 
@@ -93,9 +95,9 @@ class Map:
 			#get square area used by object or movement cost if grass/water
 			for x in obj_coords_x:
 				for y in obj_coords_y:
-					if item != 'grass' and item != 'water': 
-						self.objs_area.add((x,y)) 
-					else: 
+					if item != 'grass' and item != 'water':
+						self.objs_area.add((x,y))
+					else:
 						self.movement_cost_area[(x,y)] = 6 if item == 'grass' else 4
 			features = {
 				'x': rand_x,
@@ -106,17 +108,17 @@ class Map:
 			obj_features.append(features)
 
 		#update available nodes for pathfinding to exclude nodes used for objects
-		self.nodes = [n for n in self.nodes if n not in self.objs_area]
+		nodes = [n for n in nodes if n not in self.objs_area]
 		obj_features.clear()
 
 		if save:
 			self.save(map_name)
-	
+
 	def save(self, map_name):
 		'''save map to maps/ directory'''
 		cache_path = f'maps/{map_name}.pkl'
 		_map = {
-		'nodes':self.nodes,
+		'nodes':nodes,
 		'mca': self.movement_cost_area,
 		'objects':self.objects,
 		'obj coords':self.objs_area
