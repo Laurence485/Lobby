@@ -29,3 +29,5 @@ mushroom_sound = 'sounds/mushroom.wav'
 mushroom_active_sound = 'sounds/mushroom - south of heaven.ogg'
 pokeball_sound = 'sounds/pokeball.wav'
 trample_sound = 'sounds/trample.wav'
+
+game_framerate = 9

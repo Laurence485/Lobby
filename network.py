@@ -8,6 +8,7 @@ class Network:
 		self.HOST = config.HOST
 		self.PORT = config.PORT
 		self.addr = (self.HOST, self.PORT)
+		self.username = username
 		self.data = self.connect(username)
 
 	def connect(self, username):
