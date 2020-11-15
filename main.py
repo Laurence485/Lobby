@@ -72,7 +72,7 @@ def main(username):
 	def check_hover_over_menu_item(click=False):
 		'''blit pointer arrow on screen when hovering over menu buttons'''
 		for index, menu_item in enumerate([[play_button_pos,play_button.get_rect()],[leaderboard_button_pos,leaderboard_button.get_rect()]]):
-			
+
 			pos = menu_item[0]
 			dimensions = menu_item[1]
 

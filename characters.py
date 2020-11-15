@@ -7,7 +7,7 @@ from weapons import Pokeball
 import config
 
 class Character:
-	'''setup common characteristics of movable characters 
+	'''setup common characteristics of movable characters
 	---> player, npc, pathfinder characters etc'''
 	def __init__(self,x, y, vel, l1,l2,r1,r2,d1,d2,u1,u2, width=15, height=19):
 		self.x = x
@@ -37,12 +37,12 @@ class Character:
 		if not self.hit_slow:
 			if not self.mushroom:
 				win.blit(direction[self.walk_count//2], (self.x,self.y))
-			else: 
+			else:
 				self.enlarge(direction[self.walk_count//2], win)
 		else: #we are in grass/water
 			if not self.mushroom: #chop off bottom of player
 				win.blit(direction[self.walk_count//2], (self.x,self.y), (0,0,SnaptoGrid.snap(self.width),self.height-self.height//4))
-			else: 
+			else:
 				self.enlarge(direction[self.walk_count//2], win)
 
 		self.walk_count += 1
@@ -160,7 +160,7 @@ class Player(Character):
 				if self.bike:
 					self.stand_sprite(self.stand_up_bike,win)
 				else: self.stand_sprite(self.stand_up,win)
-			elif self.down:	
+			elif self.down:
 				if self.bike:
 					self.stand_sprite(self.stand_down_bike,win)
 				else: self.stand_sprite(self.stand_down,win)
@@ -171,7 +171,7 @@ class Player(Character):
 
 
 	def move(self, collision_zone, movement_cost_area, bikes=None, mushrooms=None):
-		'''move amongst available nodes 
+		'''move amongst available nodes
 			(no movement out of bounds and in object coordinates)
 			movement cost in grass / water'''
 		keys = pygame.key.get_pressed()
@@ -217,9 +217,9 @@ class Player(Character):
 				speed = self._vel if not self.bike else self.bike_vel
 				slow_speed = speed - movement_cost_area[bounds]
 				self.vel = slow_speed
-			else: 
+			else:
 				self.vel = self._vel if not self.bike else self.bike_vel
-		else:	
+		else:
 			self.vel = self._vel if not self.bike else self.bike_vel
 			#we must re-snap to grid as (x,y) no longer to nearest square
 			self.snap()
@@ -335,7 +335,7 @@ class Player(Character):
 
 		#prevent movement beyond the screen
 		#we would normally use self.width but as 10px grid spacing we want to be able to navigate the rightmost square
-		if self.x > config.window_height-config.window_wall_width-config.grid_spacing: 
+		if self.x > config.window_height-config.window_wall_width-config.grid_spacing:
 			self.x -= self.vel
 		elif self.x < 0:
 			self.x += self.vel
@@ -357,7 +357,7 @@ class Player(Character):
 		elif bullet._direction == 'D':
 			bullet.y += bullet.vel
 		#delete bullets after distance of 150px
-		if bullet.distance() > 150: 
+		if bullet.distance() > 150:
 			self.inventory.pop(self.inventory.index(bullet))
 
 	def check_kill(self, bullet, enemy):
@@ -385,7 +385,7 @@ class Player(Character):
 						self.trample_sound.play()
 						self.killed = enemy.ID
 						self.kill()
-						
+
 
 	def kill(self):
 		'''update kill stats with +1'''
@@ -427,7 +427,7 @@ class Npc(Character):
 		super().__init__(x,y,config.player_vel,'player2/left2.png','player2/left3.png','player2/right2.png','player2/right3.png','player2/down2.png', 'player2/down3.png', 'player2/up2.png', 'player2/up3.png')
 		self.end = end
 		self.path = (self.x, self.end)
-		
+
 	def draw(self, win):
 		self.move()
 		if self.walk_count + 1 > 4:
@@ -450,6 +450,3 @@ class Npc(Character):
 			else:
 				self.vel = self.vel * -1
 				self.walk_count = 0
-
-# print(Player.__mro__) 
-# print(Character.__doc__)
