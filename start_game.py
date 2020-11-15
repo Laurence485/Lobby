@@ -86,47 +86,7 @@ class NewGame:
         p2, p3, p4, p5 = None, None, None, None
         self.players = [p2, p3, p4, p5]
 
-        # music = pygame.mixer.music.load(config.theme)
-        # pygame.mixer.music.set_volume(0.5)
-        # pygame.mixer.music.play(-1)
-
         self.ash.ID = 0
-
-    def redraw_gamewindow(self) -> None:
-        """Draw objects onto the screen.
-        Draw background, grid, players and map objects.
-        """
-        self.window.blit(self.background, (0, 0))
-
-        # Draw Grid.
-        if self.grid:
-            for x in range(0, window_width, grid_spacing):
-                for y in range(0, window_height, grid_spacing):
-                    pygame.draw.rect(
-                        self.window,
-                        (125, 125, 125),
-                        (x, y, grid_spacing, grid_spacing),
-                        1
-                    )
-
-        # Draw objects.
-        Map.draw(self.window)
-        # Draw our player.
-        self.ash.draw(self.window)
-
-        # Draw all players.
-        for p in self.players:
-            if p and p.ID is not None:
-                p.draw(self.window)
-
-        if self.menu:
-            Menu(
-                self.window,
-                [self.ash.stats, self.ash.username],
-                [[p.stats, p.username] for p in self.players if p]
-            )
-
-        pygame.display.update()
 
     def check_keyboard_input(self, event: Any) -> None:
         """Check for keyboard input.
@@ -149,6 +109,42 @@ class NewGame:
 
     def check_collisions_and_pickups(self) -> None:
         self.ash.move(Map.objs_area, Map.movement_cost_area)
+
+    def redraw_gamewindow(self) -> None:
+        """Draw objects onto the screen."""
+        self.window.blit(self.background, (0, 0))
+
+        self.draw_grid()
+        Map.draw(self.window)
+        self.ash.draw(self.window)
+
+        # Draw all players.
+        for p in self.players:
+            if p and p.ID is not None:
+                p.draw(self.window)
+
+        if self.menu:
+            self.show_menu()
+
+        pygame.display.update()
+
+    def draw_grid(self) -> None:
+        if self.grid:
+            for x in range(0, window_width, grid_spacing):
+                for y in range(0, window_height, grid_spacing):
+                    pygame.draw.rect(
+                        self.window,
+                        (125, 125, 125),
+                        (x, y, grid_spacing, grid_spacing),
+                        1
+                    )
+
+    def show_menu(self) -> None:
+        Menu(
+            self.window,
+            [self.ash.stats, self.ash.username],
+            [[p.stats, p.username] for p in self.players if p]
+        )
 
 
 if __name__ == '__main__':
