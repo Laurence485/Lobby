@@ -64,6 +64,7 @@ class Character:
 		win.blit(pygame.transform.scale2x(direction), (self.x,self.y))
 
 class Player(Character):
+	"""Create client player object and assign colour based on ID, username from input, map from server."""
 	def __init__(self,xy=(50,70), ID=0, username='Noob', current_map=0):
 		super().__init__(xy[0],xy[1], config.player_vel, f'player {ID}/left2.png',f'player {ID}/left3.png',f'player {ID}/right2.png',f'player {ID}/right3.png',f'player {ID}/down2.png', f'player {ID}/down3.png', f'player {ID}/up2.png', f'player {ID}/up3.png')
 		self.stand_left = pygame.image.load(f'sprites/player {ID}/left1.png').convert_alpha()
@@ -182,34 +183,34 @@ class Player(Character):
 		#given player dimensions (w=15,h=19) setting +/- grid spacing (1 square) works ok
 		bounds = (SnaptoGrid.snap(self.x),SnaptoGrid.snap(self.y+config.grid_spacing))
 		#no movement through walls unless mushroomed
-		hit_wall = True if bounds in collision_zone and not self.mushroom else False
+		hit_wall = True if bounds in collision_zone else False
 		self.hit_slow = True if bounds in movement_cost_area else False
 
 		#found a bike
-		for bike in bikes:
-			if bounds == bike.hidden_loc and not self.bike:
-				self.bike = True
-				self.start_bike_ticks = pygame.time.get_ticks() #start bike timer 15s
-				bike.new_location(RandomNode(Map.movement_cost_area).node if mca else RandomNode(Map.nodes).node)
-				print('found bike!')
-				self.bike_sound.play()
-				bike_active_sound = pygame.mixer.music.load(config.bike_active_sound)
-				pygame.mixer.music.play()
-				self.snap()
+		# for bike in bikes:
+		# 	if bounds == bike.hidden_loc and not self.bike:
+		# 		self.bike = True
+		# 		self.start_bike_ticks = pygame.time.get_ticks() #start bike timer 15s
+		# 		bike.new_location(RandomNode(Map.movement_cost_area).node if mca else RandomNode(Map.nodes).node)
+		# 		print('found bike!')
+		# 		self.bike_sound.play()
+		# 		bike_active_sound = pygame.mixer.music.load(config.bike_active_sound)
+		# 		pygame.mixer.music.play()
+		# 		self.snap()
 
-		#found a mushroom - 2x size
-		for mushroom in mushrooms:
-			if bounds == mushroom.hidden_loc and not self.mushroom:
-				self.mushroom = True
-				self.width *= 2
-				self.height *= 2
-				self.start_mushroom_ticks = pygame.time.get_ticks() #start bike timer 15s
-				mushroom.new_location(RandomNode(Map.movement_cost_area).node if mca else RandomNode(Map.nodes).node)
-				print('found mushroom!')
-				self.mushroom_sound.play()
-				mushroom_active_sound = pygame.mixer.music.load(config.mushroom_active_sound)
-				pygame.mixer.music.play()
-				self.snap()
+		# #found a mushroom - 2x size
+		# for mushroom in mushrooms:
+		# 	if bounds == mushroom.hidden_loc and not self.mushroom:
+		# 		self.mushroom = True
+		# 		self.width *= 2
+		# 		self.height *= 2
+		# 		self.start_mushroom_ticks = pygame.time.get_ticks() #start bike timer 15s
+		# 		mushroom.new_location(RandomNode(Map.movement_cost_area).node if mca else RandomNode(Map.nodes).node)
+		# 		print('found mushroom!')
+		# 		self.mushroom_sound.play()
+		# 		mushroom_active_sound = pygame.mixer.music.load(config.mushroom_active_sound)
+		# 		pygame.mixer.music.play()
+		# 		self.snap()
 
 		if self.hit_slow:
 			#slow movement speed
