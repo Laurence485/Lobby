@@ -7,6 +7,7 @@ from menu import Menu
 from multiplayer import Multiplayer
 from network import Network
 from random_node import RandomNode
+from typing import Any
 
 with open('config.yaml', 'r') as config_file:
     config = yaml.load(config_file)
@@ -15,9 +16,10 @@ window_width = config['WINDOW_WIDTH']
 window_height = config['WINDOW_HEIGHT']
 grid_spacing = config['GRID_SPACING']
 framerate = config['FRAMERATE']
+background = config['BACKGROUND_IMG']
 
 
-def setup_pygame():
+def setup_pygame() -> None:
     pygame.init()
     pygame.display.set_caption("Lobby")
     game_window = pygame.display.set_mode(
@@ -27,7 +29,7 @@ def setup_pygame():
     start_game_loop(game_window)
 
 
-def start_game_loop(game_window):
+def start_game_loop(game_window: Any) -> None:
     game_is_running = True
     game = NewGame(game_window, setup_network(get_username()))
     clock = pygame.time.Clock()
@@ -45,11 +47,11 @@ def start_game_loop(game_window):
         game.redraw_gamewindow()
 
 
-def get_username():
+def get_username() -> str:
     return 'testUser'
 
 
-def setup_network(username: str):
+def setup_network(username: str) -> Network:
     net = Network(username.lower())
 
     if net.data is not None:
@@ -60,21 +62,21 @@ def setup_network(username: str):
     return net
 
 
-def refresh_game(clock):
+def refresh_game(clock: Any) -> int:
     return clock.tick(framerate)
 
 
 class NewGame:
     """Setup a new game and handle game loop methods."""
 
-    def __init__(self, game_window, net):
+    def __init__(self, game_window: Any, net: Network):
         self.menu = False
         self.grid = False
         self.window = game_window
         self.net = net
         self.username = self.net.username
 
-        self.background = pygame.image.load('sprites/background.jpg').convert()
+        self.background = pygame.image.load(background).convert()
 
         Map.load('myfirstmap')
 
@@ -90,7 +92,7 @@ class NewGame:
 
         self.ash.ID = 0
 
-    def redraw_gamewindow(self):
+    def redraw_gamewindow(self) -> None:
         """Draw objects onto the screen.
         Draw background, grid, players and map objects.
         """
@@ -126,7 +128,7 @@ class NewGame:
 
         pygame.display.update()
 
-    def check_keyboard_input(self, event):
+    def check_keyboard_input(self, event: Any) -> None:
         """Check for keyboard input.
 
         Press Z for menu.
@@ -138,14 +140,14 @@ class NewGame:
             if event.key == pygame.K_x:
                 self.grid = True if not self.grid else False
 
-    def fetch_data(self):
+    def fetch_data(self) -> None:
         """get data from server, player positions, stats, kill status etc"""
         Multiplayer.get_player_data(
             self.ash, self.net, self.players, self.bikes, self.mushrooms
         )
         Multiplayer.check_death_status(self.ash, self.players)
 
-    def check_collisions_and_pickups(self):
+    def check_collisions_and_pickups(self) -> None:
         self.ash.move(Map.objs_area, Map.movement_cost_area)
 
 
