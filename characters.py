@@ -30,6 +30,8 @@ class Player:
         height=19
     ):
         self.x, self. y = xy
+        self.id = player_id
+        self.username = username
         self.width = player_width
         self.height = player_height
         self._vel = player_vel  # Non-changing reference.
@@ -37,31 +39,31 @@ class Player:
         self.walk_count = 0
         self.hitbox = (self.x, self.y, self.width, self.height)
         self.hit_slow = False  # Slow the players movement in grass/water.
-        self.mushroom = False
+        self.left = False
+        self.right = False
+        self.up = False
+        self.down = True
+        self.standing = True
+        self.strafe = False
+        self.setup_player_sprites()
+        self.setup_bike_sprites()
+        self.setup_bike_attributes()
+        self.setup_mushroom_attributes()
 
-        self.id = player_id
+    def setup_player_sprites(self) -> None:
         self.stand_left = load_player_img('left1')
         self.stand_right = load_player_img('right1')
         self.stand_up = load_player_img('up1')
         self.stand_down = load_player_img('down1')
 
         self.walk_left = [load_player_img('left2'), load_player_img('left3')]
-        self.walk_right = [load_player_img('right2'), load_player_img('right3')]
+        self.walk_right = [
+            load_player_img('right2'), load_player_img('right3')
+        ]
         self.walk_up = [load_player_img('up2'), load_player_img('up3')]
         self.walk_down = [load_player_img('down2'), load_player_img('down3')]
-        self.left = False
-        self.right = False
-        self.up = False
-        self.down = True
-        self.standing = True
 
-        self.setup_bike_attributes()
-        self.start_mushroom_ticks = 0
-        self.username = username
-        self.strafe = False
-        self.mushroom_sound = sound(mushroom_sound)
-
-    def setup_bike_attributes(self) -> None:
+    def setup_bike_sprites(self) -> None:
         self.stand_left_bike = load_player_img('bike_left1')
         self.stand_right_bike = load_player_img('bike_right1')
         self.stand_up_bike = load_player_img('bike_up1')
@@ -80,9 +82,15 @@ class Player:
         ]
         self.stand_down_bike = load_player_img('bike_down1')
 
+    def setup_bike_attributes(self) -> None:
         self.bike = False
         self.bike_vel = bike_vel
         self.bike_sound = sound(bike_sound)
+
+    def setup_mushroom_attributes(self) -> None:
+        self.start_mushroom_ticks = 0
+        self.mushroom = False
+        self.mushroom_sound = sound(mushroom_sound)
 
     def walk_animation(self, direction, win):
         if not self.hit_slow:
