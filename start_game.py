@@ -48,7 +48,8 @@ def start_game_loop(game_window: pygame.Surface) -> None:
 
         refresh_game(clock)
         # game.fetch_data()
-        game.check_collisions_and_pickups()
+        game.player.check_collisions(Map.objs_area, Map.movement_cost_area)
+        game.player.move()
         game.redraw_gamewindow()
 
 
@@ -112,10 +113,6 @@ class NewGame:
             self.player, self.net, self.players, self.bikes, self.mushrooms
         )
         Multiplayer.check_death_status(self.player, self.players)
-
-    def check_collisions_and_pickups(self) -> None:
-        self.player.check_collisions(Map.objs_area, Map.movement_cost_area)
-        self.player.move(Map.movement_cost_area)
 
     def redraw_gamewindow(self) -> None:
         """Draw objects onto the screen."""
