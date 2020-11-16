@@ -1,7 +1,6 @@
 import pygame
 import yaml
-from snap_to_grid import SnaptoGrid
-from utils import load_player_img, random_xy, sound
+from utils import load_player_img, random_xy, sound, sync_value_with_grid
 
 with open('config.yaml', 'r') as config_file:
     config = yaml.load(config_file)
@@ -92,56 +91,32 @@ class Player:
         self.mushroom = False
         self.mushroom_sound = sound(mushroom_sound)
 
-    def walk_animation(self, direction, win):
-        if not self.hit_slow:
-            if not self.mushroom:
-                win.blit(direction[self.walk_count//2], (self.x,self.y))
-            else:
-                self.enlarge(direction[self.walk_count//2], win)
-        else: #we are in grass/water
-                win.blit(direction[self.walk_count//2], (self.x,self.y), (0,0,SnaptoGrid.snap(self.width),self.height-self.height//4))
-
-        self.walk_count += 1
-
-    def stand_sprite(self, direction, win):
-        if not self.hit_slow:
-            if not self.mushroom:
-                win.blit(direction, (self.x,self.y))
-            else:
-                self.enlarge(direction, win)
-        else:
-            if not self.mushroom:
-                win.blit(direction, (self.x,self.y), (0,0,SnaptoGrid.snap(self.width),self.height-self.height//4))
-            else:
-                self.enlarge(direction, win)
-
-    def enlarge(self, direction, win):
-        '''scale up the player by 2x'''
-        win.blit(pygame.transform.scale2x(direction), (self.x,self.y))
-
-    #we send these attributes from the server to the client for multiplayer
     def attributes(self):
+        """Send these attributes from the server to the client for
+            multiplayer.
+        """
         attrs = {
-        'x':self.x,
-        'y':self.y,
-        'L':self.left,
-        'R':self.right,
-        'U':self.up,
-        'D':self.down,
-        'standing':self.standing,
-        'walk count':self.walk_count,
-        'hit slow':self.hit_slow, #we are in a reduced movement area...chop bottom off
-        'bike': self.bike,
-        'mushroom': self.mushroom,
-        'ID':self.id,
-        'username':self.username,
-        'map':self.map
+            'x': self.x,
+            'y': self.y,
+            'L': self.left,
+            'R': self.right,
+            'U': self.up,
+            'D': self.down,
+            'standing': self.standing,
+            'walk count': self.walk_count,
+            'hit slow': self.hit_slow,
+            'bike': self.bike,
+            'mushroom': self.mushroom,
+            'ID': self.id,
+            'username': self.username,
+            'map': self.map
         }
         return attrs
 
-    #draw ash onto the screen
-    #animate directions
     def draw(self, win):
+        """Draw player onto the screen according to the player's
+            direction.
+        """
         if self.walk_count + 1 > 4:
             self.walk_count = 0
         if not self.standing:
@@ -179,6 +154,32 @@ class Player:
                     self.stand_sprite(self.stand_down_bike,win)
                 else: self.stand_sprite(self.stand_down,win)
 
+    def walk_animation(self, direction, win):
+        if not self.hit_slow:
+            if not self.mushroom:
+                win.blit(direction[self.walk_count // 2], (self.x, self.y))
+            else:
+                self.enlarge(direction[self.walk_count // 2], win)
+        else: # We are in grass/water.
+                win.blit(direction[self.walk_count // 2], (self.x, self.y), (0, 0, sync_value_with_grid(self.width), self.height - self.height // 4))
+
+        self.walk_count += 1
+
+    def stand_sprite(self, direction, win):
+        if not self.hit_slow:
+            if not self.mushroom:
+                win.blit(direction, (self.x,self.y))
+            else:
+                self.enlarge(direction, win)
+        else:
+            if not self.mushroom:
+                win.blit(direction, (self.x,self.y), (0,0,sync_value_with_grid(self.width),self.height-self.height//4))
+            else:
+                self.enlarge(direction, win)
+
+    def enlarge(self, direction, win):
+        """Scale up the player by 2x"""
+        win.blit(pygame.transform.scale2x(direction), (self.x, self.y))
 
 
     def move(self, collision_zone, movement_cost_area, bikes=None, mushrooms=None):
@@ -191,7 +192,7 @@ class Player:
         #simple collision detection:
         #check if player (x,y) is in the set of object coordinates
         #given player dimensions (w=15,h=19) setting +/- grid spacing (1 square) works ok
-        bounds = (SnaptoGrid.snap(self.x),SnaptoGrid.snap(self.y+grid_spacing))
+        bounds = (sync_value_with_grid(self.x),sync_value_with_grid(self.y+grid_spacing))
         #no movement through walls unless mushroomed
         hit_wall = True if bounds in collision_zone else False
         self.hit_slow = True if bounds in movement_cost_area else False
@@ -329,4 +330,4 @@ class Player:
 
     def snap(self):
         '''snap player x,y to grid'''
-        self.x, self.y = SnaptoGrid.snap(self.x), SnaptoGrid.snap(self.y)
+        self.x, self.y = sync_value_with_grid(self.x), sync_value_with_grid(self.y)

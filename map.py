@@ -3,7 +3,6 @@ import pygame
 import math
 import pickle
 from random import seed
-from snap_to_grid import SnaptoGrid
 from utils import random_xy
 
 
@@ -46,8 +45,8 @@ class Map:
 			obj = self.sprites[item]
 
 			#get obj dimensions according to our grid
-			obj_width = SnaptoGrid.snap(obj.get_width())
-			obj_height = SnaptoGrid.snap(obj.get_height())
+			obj_width = sync_value_with_grid(obj.get_width())
+			obj_height = sync_value_with_grid(obj.get_height())
 			square_width = int(obj_width / self.spacing)
 			square_height = int(obj_height / self.spacing)
 

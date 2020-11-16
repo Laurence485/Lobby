@@ -1,3 +1,4 @@
+import math
 import pygame.image
 import pygame.mixer
 
@@ -24,3 +25,11 @@ def load_player_img(
 
 def sound(path_to_sound_file: str) -> pygame.mixer.Sound:
     return pygame.mixer.Sound(path_to_sound_file)
+
+
+def sync_value_with_grid(n):
+    """round n to nearest 10 (grid spacing size)."""
+    floor = (n // 10) * 10
+    ceil = math.ceil(n / 10) * 10
+
+    return int(floor) if n - floor < 5 else int(ceil)

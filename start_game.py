@@ -18,6 +18,9 @@ framerate = config['FRAMERATE']
 game_map = config['MAP']
 background = config['BACKGROUND_IMG']
 
+if grid_spacing != 10:
+    raise NotImplementedError('Do not adjust the grid spacing.')
+
 
 def setup_pygame() -> None:
     pygame.init()
