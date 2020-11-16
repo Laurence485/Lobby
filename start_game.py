@@ -114,7 +114,8 @@ class NewGame:
         Multiplayer.check_death_status(self.player, self.players)
 
     def check_collisions_and_pickups(self) -> None:
-        self.player.move(Map.objs_area, Map.movement_cost_area)
+        self.player.check_collisions(Map.objs_area, Map.movement_cost_area)
+        self.player.move(Map.movement_cost_area)
 
     def redraw_gamewindow(self) -> None:
         """Draw objects onto the screen."""

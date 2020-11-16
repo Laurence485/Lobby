@@ -37,6 +37,7 @@ class Player:
         self.vel = player_vel
         self.walk_count = 0
         self.hitbox = (self.x, self.y, self.width, self.height)
+        self.hit_wall = False
         self.hit_slow = False  # Slow the players movement in grass/water.
         self.left = False
         self.right = False
@@ -91,7 +92,7 @@ class Player:
         self.mushroom = False
         self.mushroom_sound = sound(mushroom_sound)
 
-    def attributes(self):
+    def attributes(self) -> dict:
         """Send these attributes from the server to the client for
             multiplayer.
         """
@@ -113,7 +114,7 @@ class Player:
         }
         return attrs
 
-    def draw(self, win):
+    def draw(self, win: pygame.Surface) -> None:
         """Draw player onto the screen according to the player's
             direction.
         """
@@ -181,38 +182,53 @@ class Player:
         """Scale up the player by 2x"""
         win.blit(pygame.transform.scale2x(direction), (self.x, self.y))
 
+    def check_collisions(
+        self,
+        collision_nodes: set,
+        reduced_speed_nodes: dict
+    ) -> None:
+        """Check for collisions with immovable objects and with grass
+            and water.
 
-    def move(self, collision_zone, movement_cost_area, bikes=None, mushrooms=None):
-        '''move amongst available nodes
-            (no movement out of bounds and in object coordinates)
-            movement cost in grass / water'''
-        keys = pygame.key.get_pressed()
-        mca = len(movement_cost_area)
+        This is a simple collision detection that checks if the player
+        coordinates are in the set of object coordinates.
+        """
+        player_pos = (
+            sync_value_with_grid(self.x),
+            sync_value_with_grid(self.y + grid_spacing)
+        )
 
-        #simple collision detection:
-        #check if player (x,y) is in the set of object coordinates
-        #given player dimensions (w=15,h=19) setting +/- grid spacing (1 square) works ok
-        bounds = (sync_value_with_grid(self.x),sync_value_with_grid(self.y+grid_spacing))
-        #no movement through walls unless mushroomed
-        hit_wall = True if bounds in collision_zone else False
-        self.hit_slow = True if bounds in movement_cost_area else False
+        self.hit_wall = True if player_pos in collision_nodes else False
+        self.hit_slow = True if player_pos in reduced_speed_nodes else False
+
+        self.assign_player_speed(reduced_speed_nodes, player_pos)
+
+    def assign_player_speed(
+        self,
+        reduced_speed_nodes: dict,
+        player_pos: tuple
+    ) -> None:
 
         if self.hit_slow:
-            #slow movement speed
             if not self.mushroom:
                 speed = self._vel if not self.bike else self.bike_vel
-                slow_speed = speed - movement_cost_area[bounds]
+                reduced_speed = reduced_speed_nodes[player_pos]
+                slow_speed = speed - reduced_speed
                 self.vel = slow_speed
             else:
                 self.vel = self._vel if not self.bike else self.bike_vel
         else:
             self.vel = self._vel if not self.bike else self.bike_vel
-            #we must re-snap to grid as (x,y) no longer to nearest square
-            self.snap()
+            # We must re-sync with the grid as the player pos is no
+            # longer to the nearest square.
+            self.sync_player_pos()
 
-        if not hit_wall:
+    def move(self, movement_cost_area) -> None:
+        """Move the player with the arrow keys."""
+        keys = pygame.key.get_pressed()
 
-            #press s to strafe
+        if not self.hit_wall:
+
             if keys[pygame.K_s]:
                 self.strafe = True
             else:
@@ -236,7 +252,6 @@ class Player:
                     self.up = False
                     self.down = False
                     self.standing = False
-                    self.direction = 'L'
                 self.x -= self.vel
             elif keys[pygame.K_RIGHT]:
                 if self.up and self.strafe:
@@ -257,7 +272,6 @@ class Player:
                     self.up = False
                     self.down = False
                     self.standing = False
-                    self.direction = 'R'
                 self.x += self.vel
             elif keys[pygame.K_UP]:
                 if self.left and self.strafe:
@@ -278,7 +292,6 @@ class Player:
                     self.up = True
                     self.down = False
                     self.standing = False
-                    self.direction = 'U'
                 self.y -= self.vel
             elif keys[pygame.K_DOWN]:
                 if self.left and self.strafe:
@@ -299,7 +312,6 @@ class Player:
                     self.up = False
                     self.down = True
                     self.standing = False
-                    self.direction = 'D'
                 self.y += self.vel
             else:
                 self.standing = True
@@ -327,7 +339,8 @@ class Player:
         elif self.y > window_height-self.height:
             self.y -= self.vel
 
-
-    def snap(self):
-        '''snap player x,y to grid'''
-        self.x, self.y = sync_value_with_grid(self.x), sync_value_with_grid(self.y)
+    def sync_player_pos(self) -> None:
+        """sync player x,y with grid"""
+        self.x, self.y = (
+            sync_value_with_grid(self.x), sync_value_with_grid(self.y)
+        )
