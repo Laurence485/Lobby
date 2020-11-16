@@ -16,6 +16,9 @@ bike_vel = player_vel * config['BIKE_VELOCITY_FACTOR']
 bike_sound = config['BIKE_SOUND']
 mushroom_sound = config['MUSHROOM_SOUND']
 
+if bike_vel != player_vel:
+    raise NotImplementedError('Do not adjust the bike velocity.')
+
 
 class Player:
     """Create a new player object."""
@@ -33,7 +36,6 @@ class Player:
         self.username = username
         self.width = player_width
         self.height = player_height
-        self._vel = player_vel  # Non-changing reference.
         self.vel = player_vel
         self.walk_count = 0
         self.hitbox = (self.x, self.y, self.width, self.height)
@@ -210,13 +212,13 @@ class Player:
     ) -> None:
 
         if self.hit_slow:
-            speed = self._vel if not self.bike else self.bike_vel
+            speed = player_vel if not self.bike else self.bike_vel
             reduced_speed = reduced_speed_nodes[player_pos]
             slow_speed = speed - reduced_speed
             self.vel = slow_speed
 
         else:
-            self.vel = self._vel if not self.bike else self.bike_vel
+            self.vel = player_vel if not self.bike else self.bike_vel
             # We must re-sync with the grid as the player pos is no
             # longer to the nearest square.
             self.sync_player_pos()
