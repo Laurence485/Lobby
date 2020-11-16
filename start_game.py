@@ -6,7 +6,6 @@ from map import Map
 from menu import Menu
 from multiplayer import Multiplayer
 from network import Network
-from typing import Any
 from utils import random_xy
 
 with open('config.yaml', 'r') as config_file:
@@ -16,6 +15,7 @@ window_width = config['WINDOW_WIDTH']
 window_height = config['WINDOW_HEIGHT']
 grid_spacing = config['GRID_SPACING']
 framerate = config['FRAMERATE']
+game_map = config['MAP']
 background = config['BACKGROUND_IMG']
 
 
@@ -29,10 +29,12 @@ def setup_pygame() -> None:
     start_game_loop(game_window)
 
 
-def start_game_loop(game_window: Any) -> None:
+def start_game_loop(game_window: pygame.Surface) -> None:
     game_is_running = True
-    game = NewGame(game_window, setup_network(get_username()))
     clock = pygame.time.Clock()
+
+    Map.load(game_map)
+    game = NewGame(game_window, setup_network(get_username()))
 
     while game_is_running:
         for event in pygame.event.get():
@@ -54,30 +56,28 @@ def get_username() -> str:
 def setup_network(username: str) -> Network:
     net = Network(username.lower())
 
-    if net.data is not None:
-        print('successfully connected to server.')
-    else:
+    if net.data is None:
         print('cannot connect to server.')
+    else:
+        print('successfully connected to server.')
 
     return net
 
 
-def refresh_game(clock: Any) -> int:
+def refresh_game(clock: pygame.time.Clock) -> int:
     return clock.tick(framerate)
 
 
 class NewGame:
     """Setup a new game and handle game loop methods."""
 
-    def __init__(self, game_window: Any, net: Network):
+    def __init__(self, game_window: pygame.Surface, net: Network):
         self.background = pygame.image.load(background).convert()
         self.window = game_window
         self.net = net
         self.username = self.net.username
         self.menu = False
         self.grid = False
-
-        Map.load('myfirstmap')
 
         self.player = Player(
             xy=random_xy(Map.nodes),
@@ -92,7 +92,7 @@ class NewGame:
 
         self.player.ID = 0
 
-    def check_keyboard_input(self, event: Any) -> None:
+    def check_keyboard_input(self, event: pygame.event.Event) -> None:
         """Check for keyboard input.
 
         Press Z for menu.

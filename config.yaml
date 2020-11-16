@@ -1,6 +1,18 @@
 WINDOW_WIDTH: 400
 WINDOW_HEIGHT: 400
 WINDOW_WALL_WIDTH: 70
-GRID_SPACING: 10
+GRID_SPACING: &player_vel 10
 FRAMERATE: 10
 BACKGROUND_IMG: 'sprites/background.jpg'
+MAP: 'myfirstmap'
+
+PLAYER_VELOCITY: *player_vel
+BIKE_VELOCITY_FACTOR: 2
+BIKE_SOUND: 'sounds/bike.wav'
+MUSHROOM_SOUND: 'sounds/mushroom.wav'
+
+
+# HOST = "localhost"
+# PORT = 12345
+# buffer_size = 2048
+# num_players = 5

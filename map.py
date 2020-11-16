@@ -34,7 +34,7 @@ class Map:
 		self.spacing = config.grid_spacing
 		for x in range(0,self.window_width,self.spacing): #col
 			for y in range(0,self.window_height,self.spacing): #row
-				nodes.add((x,y))
+				self.nodes.add((x,y))
 		# seed(341)
 
 	def generate_map(self, map_name='random', save=False):
