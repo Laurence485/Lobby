@@ -74,6 +74,24 @@ class Player(Character):
         self.stand_right = load_player_img('right1')
         self.stand_up = load_player_img('up1')
         self.stand_down = load_player_img('down1')
+
+        self.left = False
+        self.right = False
+        self.up = False
+        self.down = True
+        self.standing = True
+
+        self.setup_bike_attributes()
+        self.start_mushroom_ticks = 0
+        self.username = username
+        self.strafe = False
+        self.mushroom_sound = sound(mushroom_sound)
+
+    def setup_bike_attributes(self) -> None:
+        self.stand_left_bike = load_player_img('bike_left1')
+        self.stand_right_bike = load_player_img('bike_right1')
+        self.stand_up_bike = load_player_img('bike_up1')
+
         self.bike_left = [
             load_player_img('bike_left2'), load_player_img('bike_left3')
         ]
@@ -86,23 +104,11 @@ class Player(Character):
         self.bike_down = [
             load_player_img('bike_down2'), load_player_img('bike_down3')
         ]
-        self.stand_left_bike = load_player_img('bike_left1')
-        self.stand_right_bike = load_player_img('bike_right1')
-        self.stand_up_bike = load_player_img('bike_up1')
         self.stand_down_bike = load_player_img('bike_down1')
-        self.left = False
-        self.right = False
-        self.up = False
-        self.down = True
-        self.standing = True
 
         self.bike = False
         self.bike_vel = bike_vel
-        self.start_mushroom_ticks = 0
-        self.username = username
-        self.strafe = False
         self.bike_sound = sound(bike_sound)
-        self.mushroom_sound = sound(mushroom_sound)
 
     #we send these attributes from the server to the client for multiplayer
     def attributes(self):
