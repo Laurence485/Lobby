@@ -81,9 +81,8 @@ class NewGame:
 
         self.player = Player(
             xy=random_xy(Map.nodes),
-            ID=0,
+            player_id=0,
             username=self.username,
-            current_map=0
         )
 
         # Other player objects

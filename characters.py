@@ -9,6 +9,8 @@ with open('config.yaml', 'r') as config_file:
 window_width = config['WINDOW_WIDTH']
 window_height = config['WINDOW_HEIGHT']
 window_wall_width = config['WINDOW_WALL_WIDTH']
+player_width = config['PLAYER_WIDTH']
+player_height = config['PLAYER_HEIGHT']
 grid_spacing = config['GRID_SPACING']
 player_vel = config['PLAYER_VELOCITY']
 bike_vel = player_vel * config['BIKE_VELOCITY_FACTOR']
@@ -16,65 +18,37 @@ bike_sound = config['BIKE_SOUND']
 mushroom_sound = config['MUSHROOM_SOUND']
 
 
-class Character:
-    '''setup common characteristics of movable characters
-    ---> player, npc, pathfinder characters etc'''
-    def __init__(self,x, y, vel, l1,l2,r1,r2,d1,d2,u1,u2, width=15, height=19):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self._vel = vel #non-changing reference
-        self.vel = vel
-        self.walk_count = 0
-        self.hitbox = (self.x, self.y, self.width, self.height)
-        self.walk_left = [pygame.image.load(f'sprites/{l1}').convert_alpha(), pygame.image.load(f'sprites/{l2}').convert_alpha()]
-        self.walk_right = [pygame.image.load(f'sprites/{r1}').convert_alpha(), pygame.image.load(f'sprites/{r2}').convert_alpha()]
-        self.walk_down = [pygame.image.load(f'sprites/{d1}').convert_alpha(), pygame.image.load(f'sprites/{d2}').convert_alpha()]
-        self.walk_up = [pygame.image.load(f'sprites/{u1}').convert_alpha(), pygame.image.load(f'sprites/{u2}').convert_alpha()]
-        self.hit_slow = False #slowed movement area: grass/water
-        self.mushroom = False
-        self.ID = None
-
-
-    def walk_animation(self, direction, win):
-        if not self.hit_slow:
-            if not self.mushroom:
-                win.blit(direction[self.walk_count//2], (self.x,self.y))
-            else:
-                self.enlarge(direction[self.walk_count//2], win)
-        else: #we are in grass/water
-                win.blit(direction[self.walk_count//2], (self.x,self.y), (0,0,SnaptoGrid.snap(self.width),self.height-self.height//4))
-
-        self.walk_count += 1
-
-    def stand_sprite(self, direction, win):
-        if not self.hit_slow:
-            if not self.mushroom:
-                win.blit(direction, (self.x,self.y))
-            else:
-                self.enlarge(direction, win)
-        else:
-            if not self.mushroom:
-                win.blit(direction, (self.x,self.y), (0,0,SnaptoGrid.snap(self.width),self.height-self.height//4))
-            else:
-                self.enlarge(direction, win)
-
-    def enlarge(self, direction, win):
-        '''scale up the player by 2x'''
-        win.blit(pygame.transform.scale2x(direction), (self.x,self.y))
-
-
-class Player(Character):
+class Player:
     """Create a new player object."""
 
-    def __init__(self, xy=(50, 70), ID=0, username='Noob', current_map=0):
-        super().__init__(xy[0],xy[1], player_vel, f'player {ID}/left2.png',f'player {ID}/left3.png',f'player {ID}/right2.png',f'player {ID}/right3.png',f'player {ID}/down2.png', f'player {ID}/down3.png', f'player {ID}/up2.png', f'player {ID}/up3.png')
+    def __init__(
+        self,
+        xy=(50, 70),
+        player_id=0,
+        username='Noob',
+        width=15,
+        height=19
+    ):
+        self.x, self. y = xy
+        self.width = player_width
+        self.height = player_height
+        self._vel = player_vel  # Non-changing reference.
+        self.vel = player_vel
+        self.walk_count = 0
+        self.hitbox = (self.x, self.y, self.width, self.height)
+        self.hit_slow = False  # Slow the players movement in grass/water.
+        self.mushroom = False
+
+        self.id = player_id
         self.stand_left = load_player_img('left1')
         self.stand_right = load_player_img('right1')
         self.stand_up = load_player_img('up1')
         self.stand_down = load_player_img('down1')
 
+        self.walk_left = [load_player_img('left2'), load_player_img('left3')]
+        self.walk_right = [load_player_img('right2'), load_player_img('right3')]
+        self.walk_up = [load_player_img('up2'), load_player_img('up3')]
+        self.walk_down = [load_player_img('down2'), load_player_img('down3')]
         self.left = False
         self.right = False
         self.up = False
@@ -110,6 +84,33 @@ class Player(Character):
         self.bike_vel = bike_vel
         self.bike_sound = sound(bike_sound)
 
+    def walk_animation(self, direction, win):
+        if not self.hit_slow:
+            if not self.mushroom:
+                win.blit(direction[self.walk_count//2], (self.x,self.y))
+            else:
+                self.enlarge(direction[self.walk_count//2], win)
+        else: #we are in grass/water
+                win.blit(direction[self.walk_count//2], (self.x,self.y), (0,0,SnaptoGrid.snap(self.width),self.height-self.height//4))
+
+        self.walk_count += 1
+
+    def stand_sprite(self, direction, win):
+        if not self.hit_slow:
+            if not self.mushroom:
+                win.blit(direction, (self.x,self.y))
+            else:
+                self.enlarge(direction, win)
+        else:
+            if not self.mushroom:
+                win.blit(direction, (self.x,self.y), (0,0,SnaptoGrid.snap(self.width),self.height-self.height//4))
+            else:
+                self.enlarge(direction, win)
+
+    def enlarge(self, direction, win):
+        '''scale up the player by 2x'''
+        win.blit(pygame.transform.scale2x(direction), (self.x,self.y))
+
     #we send these attributes from the server to the client for multiplayer
     def attributes(self):
         attrs = {
@@ -124,7 +125,7 @@ class Player(Character):
         'hit slow':self.hit_slow, #we are in a reduced movement area...chop bottom off
         'bike': self.bike,
         'mushroom': self.mushroom,
-        'ID':self.ID,
+        'ID':self.id,
         'username':self.username,
         'map':self.map
         }
