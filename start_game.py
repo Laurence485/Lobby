@@ -2,7 +2,7 @@ import pygame
 import yaml
 
 from characters import Player
-from map_generation import Map
+from map import Map
 from menu import Menu
 from multiplayer import Multiplayer
 from network import Network
