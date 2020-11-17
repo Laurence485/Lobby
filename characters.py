@@ -3,7 +3,7 @@ import yaml
 from utils import load_player_img, random_xy, sound, sync_value_with_grid
 
 with open('config.yaml', 'r') as config_file:
-    config = yaml.load(config_file)
+    config = yaml.load(config_file, yaml.Loader)
 
 window_width = config['WINDOW_WIDTH']
 window_height = config['WINDOW_HEIGHT']
@@ -16,8 +16,8 @@ bike_vel = player_vel * config['BIKE_VELOCITY_FACTOR']
 bike_sound = config['BIKE_SOUND']
 mushroom_sound = config['MUSHROOM_SOUND']
 
-if bike_vel != player_vel:
-    raise NotImplementedError('Do not adjust the bike velocity.')
+if config['BIKE_VELOCITY_FACTOR'] != 1:
+    raise NotImplementedError('Do not adjust the bike velocity factor.')
 
 
 class Player:
@@ -47,12 +47,12 @@ class Player:
         self.down = True
         self.standing = True
         self.strafe = False
-        self.setup_player_sprites()
-        self.setup_bike_sprites()
-        self.setup_bike_attributes()
-        self.setup_mushroom_attributes()
+        self._setup_player_sprites()
+        self._setup_bike_sprites()
+        self._setup_bike_attributes()
+        self._setup_mushroom_attributes()
 
-    def setup_player_sprites(self) -> None:
+    def _setup_player_sprites(self) -> None:
         self.stand_left = load_player_img('left1')
         self.stand_right = load_player_img('right1')
         self.stand_up = load_player_img('up1')
@@ -65,7 +65,7 @@ class Player:
         self.walk_up = [load_player_img('up2'), load_player_img('up3')]
         self.walk_down = [load_player_img('down2'), load_player_img('down3')]
 
-    def setup_bike_sprites(self) -> None:
+    def _setup_bike_sprites(self) -> None:
         self.stand_left_bike = load_player_img('bike_left1')
         self.stand_right_bike = load_player_img('bike_right1')
         self.stand_up_bike = load_player_img('bike_up1')
@@ -84,12 +84,12 @@ class Player:
         ]
         self.stand_down_bike = load_player_img('bike_down1')
 
-    def setup_bike_attributes(self) -> None:
+    def _setup_bike_attributes(self) -> None:
         self.bike = False
         self.bike_vel = bike_vel
         self.bike_sound = sound(bike_sound)
 
-    def setup_mushroom_attributes(self) -> None:
+    def _setup_mushroom_attributes(self) -> None:
         self.start_mushroom_ticks = 0
         self.mushroom = False
         self.mushroom_sound = sound(mushroom_sound)
@@ -181,7 +181,7 @@ class Player:
                 self.enlarge(direction, win)
 
     def enlarge(self, direction, win):
-        """Scale up the player by 2x"""
+        """Scale up the player size by 2."""
         win.blit(pygame.transform.scale2x(direction), (self.x, self.y))
 
     def check_collisions(
@@ -203,14 +203,14 @@ class Player:
         self.hit_wall = True if player_pos in collision_nodes else False
         self.hit_slow = True if player_pos in reduced_speed_nodes else False
 
-        self.assign_player_speed(reduced_speed_nodes, player_pos)
+        self._assign_player_speed(reduced_speed_nodes, player_pos)
 
-    def assign_player_speed(
+    def _assign_player_speed(
         self,
         reduced_speed_nodes: dict,
         player_pos: tuple
     ) -> None:
-
+        """Assign player speed according to player location."""
         if self.hit_slow:
             speed = player_vel if not self.bike else self.bike_vel
             reduced_speed = reduced_speed_nodes[player_pos]
@@ -219,9 +219,9 @@ class Player:
 
         else:
             self.vel = player_vel if not self.bike else self.bike_vel
-            # We must re-sync with the grid as the player pos is no
+            # We must re-sync with the grid as the player position is no
             # longer to the nearest square.
-            self.sync_player_pos()
+            self._sync_player_pos()
 
     def move(self) -> None:
         """Move the player with the arrow keys."""
@@ -339,7 +339,7 @@ class Player:
         elif self.y > window_height-self.height:
             self.y -= self.vel
 
-    def sync_player_pos(self) -> None:
+    def _sync_player_pos(self) -> None:
         """sync player x,y with grid"""
         self.x, self.y = (
             sync_value_with_grid(self.x), sync_value_with_grid(self.y)

@@ -9,7 +9,7 @@ from network import Network
 from utils import random_xy
 
 with open('config.yaml', 'r') as config_file:
-    config = yaml.load(config_file)
+    config = yaml.load(config_file, yaml.Loader)
 
 window_width = config['WINDOW_WIDTH']
 window_height = config['WINDOW_HEIGHT']
@@ -37,7 +37,7 @@ def start_game_loop(game_window: pygame.Surface) -> None:
     clock = pygame.time.Clock()
 
     Map.load(game_map)
-    game = NewGame(game_window, setup_network(get_username()))
+    game = NewGame(game_window, _setup_network(_get_username()))
 
     while game_is_running:
         for event in pygame.event.get():
@@ -46,18 +46,18 @@ def start_game_loop(game_window: pygame.Surface) -> None:
 
             game.check_keyboard_input(event)
 
-        refresh_game(clock)
+        _refresh_game(clock)
         # game.fetch_data()
         game.player.check_collisions(Map.objs_area, Map.movement_cost_area)
         game.player.move()
         game.redraw_gamewindow()
 
 
-def get_username() -> str:
+def _get_username() -> str:
     return 'testUser'
 
 
-def setup_network(username: str) -> Network:
+def _setup_network(username: str) -> Network:
     net = Network(username.lower())
 
     if net.data is None:
@@ -68,7 +68,7 @@ def setup_network(username: str) -> Network:
     return net
 
 
-def refresh_game(clock: pygame.time.Clock) -> int:
+def _refresh_game(clock: pygame.time.Clock) -> int:
     return clock.tick(framerate)
 
 
@@ -100,6 +100,7 @@ class NewGame:
 
         Press Z for menu.
         Press X to show the grid.
+        Press B to use the bike.
         """
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_z:
@@ -120,7 +121,7 @@ class NewGame:
         """Draw objects onto the screen."""
         self.window.blit(self.background, (0, 0))
 
-        self.draw_grid()
+        self._draw_grid()
         Map.draw(self.window)
         self.player.draw(self.window)
 
@@ -130,11 +131,11 @@ class NewGame:
                 p.draw(self.window)
 
         if self.menu:
-            self.show_menu()
+            self._show_menu()
 
         pygame.display.update()
 
-    def draw_grid(self) -> None:
+    def _draw_grid(self) -> None:
         if self.grid:
             for x in range(0, window_width, grid_spacing):
                 for y in range(0, window_height, grid_spacing):
@@ -145,7 +146,7 @@ class NewGame:
                         1
                     )
 
-    def show_menu(self) -> None:
+    def _show_menu(self) -> None:
         Menu(
             self.window,
             [self.player.stats, self.player.username],
