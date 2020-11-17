@@ -8,16 +8,14 @@ with open('config.yaml', 'r') as config_file:
 window_width = config['WINDOW_WIDTH']
 window_height = config['WINDOW_HEIGHT']
 window_wall_width = config['WINDOW_WALL_WIDTH']
+grid_spacing = config['GRID_SPACING']
+
 player_width = config['PLAYER_WIDTH']
 player_height = config['PLAYER_HEIGHT']
-grid_spacing = config['GRID_SPACING']
 player_vel = config['PLAYER_VELOCITY']
-bike_vel = player_vel * config['BIKE_VELOCITY_FACTOR']
+
 bike_sound = config['BIKE_SOUND']
 mushroom_sound = config['MUSHROOM_SOUND']
-
-if config['BIKE_VELOCITY_FACTOR'] != 1:
-    raise NotImplementedError('Do not adjust the bike velocity factor.')
 
 
 class Player:
@@ -53,40 +51,43 @@ class Player:
         self._setup_mushroom_attributes()
 
     def _setup_player_sprites(self) -> None:
-        self.stand_left = load_player_img('left1')
-        self.stand_right = load_player_img('right1')
-        self.stand_up = load_player_img('up1')
-        self.stand_down = load_player_img('down1')
+        self.stand_left_img = load_player_img('left1')
+        self.stand_right_img = load_player_img('right1')
+        self.stand_up_img = load_player_img('up1')
+        self.stand_down_img = load_player_img('down1')
 
-        self.walk_left = [load_player_img('left2'), load_player_img('left3')]
-        self.walk_right = [
+        self.walk_left_imgs = [
+            load_player_img('left2'), load_player_img('left3')
+        ]
+        self.walk_right_imgs = [
             load_player_img('right2'), load_player_img('right3')
         ]
-        self.walk_up = [load_player_img('up2'), load_player_img('up3')]
-        self.walk_down = [load_player_img('down2'), load_player_img('down3')]
+        self.walk_up_imgs = [load_player_img('up2'), load_player_img('up3')]
+        self.walk_down_imgs = [
+            load_player_img('down2'), load_player_img('down3')
+        ]
 
     def _setup_bike_sprites(self) -> None:
-        self.stand_left_bike = load_player_img('bike_left1')
-        self.stand_right_bike = load_player_img('bike_right1')
-        self.stand_up_bike = load_player_img('bike_up1')
+        self.bike_stand_left_img = load_player_img('bike_left1')
+        self.bike_stand_right_img = load_player_img('bike_right1')
+        self.bike_stand_up_img = load_player_img('bike_up1')
+        self.bike_stand_down_img = load_player_img('bike_down1')
 
-        self.bike_left = [
+        self.bike_left_imgs = [
             load_player_img('bike_left2'), load_player_img('bike_left3')
         ]
-        self.bike_right = [
+        self.bike_right_imgs = [
             load_player_img('bike_right2'), load_player_img('bike_right3')
         ]
-        self.bike_up = [
+        self.bike_up_imgs = [
             load_player_img('bike_up2'), load_player_img('bike_up3')
         ]
-        self.bike_down = [
+        self.bike_down_imgs = [
             load_player_img('bike_down2'), load_player_img('bike_down3')
         ]
-        self.stand_down_bike = load_player_img('bike_down1')
 
     def _setup_bike_attributes(self) -> None:
         self.bike = False
-        self.bike_vel = bike_vel
         self.bike_sound = sound(bike_sound)
 
     def _setup_mushroom_attributes(self) -> None:
@@ -124,38 +125,63 @@ class Player:
             self.walk_count = 0
         if not self.standing:
             if self.right:
-                if self.bike:
-                    self.walk_animation(self.bike_right, win)
-                else: self.walk_animation(self.walk_right, win)
+                self._assign_player_move_animation(
+                    self.bike_right_imgs, self.walk_right_imgs, win
+                )
             elif self.left:
-                if self.bike:
-                    self.walk_animation(self.bike_left, win)
-                else: self.walk_animation(self.walk_left, win)
+                self._assign_player_move_animation(
+                    self.bike_left_imgs, self.walk_left_imgs, win
+                )
             elif self.up:
-                if self.bike:
-                    self.walk_animation(self.bike_up, win)
-                else: self.walk_animation(self.walk_up, win)
+                self._assign_player_move_animation(
+                    self.bike_up_imgs, self.walk_up_imgs, win
+                )
             elif self.down:
-                if self.bike:
-                    self.walk_animation(self.bike_down, win)
-                else: self.walk_animation(self.walk_down, win)
+                self._assign_player_move_animation(
+                    self.bike_down_imgs, self.walk_down_imgs, win
+                )
         else:
             if self.right:
-                if self.bike:
-                    self.stand_sprite(self.stand_right_bike,win)
-                else: self.stand_sprite(self.stand_right,win)
+                self._assign_player_stand_animation(
+                    self.bike_stand_right_img, self.stand_right_img, win
+                )
             elif self.left:
-                if self.bike:
-                    self.stand_sprite(self.stand_left_bike,win)
-                else: self.stand_sprite(self.stand_left,win)
+                self._assign_player_stand_animation(
+                    self.bike_stand_left_img, self.stand_left_img, win
+                )
             elif self.up:
-                if self.bike:
-                    self.stand_sprite(self.stand_up_bike,win)
-                else: self.stand_sprite(self.stand_up,win)
+                self._assign_player_stand_animation(
+                    self.bike_stand_up_img, self.stand_up_img, win
+                )
             elif self.down:
-                if self.bike:
-                    self.stand_sprite(self.stand_down_bike,win)
-                else: self.stand_sprite(self.stand_down,win)
+                self._assign_player_stand_animation(
+                    self.bike_stand_down_img, self.stand_down_img, win
+                )
+
+    def _assign_player_move_animation(
+        self,
+        bike_imgs: list,
+        walk_imgs: list,
+        win: pygame.Surface
+    ) -> None:
+
+        if self.bike:
+            self.walk_animation(bike_imgs, win)
+        else:
+            self.walk_animation(walk_imgs, win)
+
+    def _assign_player_stand_animation(
+        self,
+        bike_img: pygame.Surface,
+        stand_img: pygame.Surface,
+        win: pygame.Surface
+    ) -> None:
+
+        if self.bike:
+            self.stand_sprite(bike_img, win)
+        else:
+            self.stand_sprite(stand_img, win)
+
 
     def walk_animation(self, direction, win):
         if not self.hit_slow:
@@ -212,13 +238,12 @@ class Player:
     ) -> None:
         """Assign player speed according to player location."""
         if self.hit_slow:
-            speed = player_vel if not self.bike else self.bike_vel
             reduced_speed = reduced_speed_nodes[player_pos]
-            slow_speed = speed - reduced_speed
-            self.vel = slow_speed
+            slow_player_vel = player_vel - reduced_speed
+            self.vel = slow_player_vel
 
         else:
-            self.vel = player_vel if not self.bike else self.bike_vel
+            self.vel = player_vel
             # We must re-sync with the grid as the player position is no
             # longer to the nearest square.
             self._sync_player_pos()

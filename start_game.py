@@ -108,7 +108,11 @@ class NewGame:
             if event.key == pygame.K_x:
                 self.grid = True if not self.grid else False
             if event.key == pygame.K_b:
-                self.player.bike = True if not self.player.bike else False
+                if self.player.bike:
+                    self.player.bike = False
+                else:
+                    self.player.bike = True
+                    self.player.bike_sound.play()
 
     def fetch_data(self) -> None:
         """get data from server, player positions, stats, kill status etc"""
