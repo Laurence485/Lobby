@@ -50,7 +50,8 @@ def start_game_loop(game_window: pygame.Surface) -> None:
         # game.fetch_data()
         game.player.check_collisions(Map.objs_area, Map.movement_cost_area)
         game.player.move()
-        game.redraw_gamewindow()
+        game.player.animation_loop()
+        game.draw_game_objects()
 
 
 def _get_username() -> str:
@@ -121,7 +122,7 @@ class NewGame:
         )
         Multiplayer.check_death_status(self.player, self.players)
 
-    def redraw_gamewindow(self) -> None:
+    def draw_game_objects(self) -> None:
         """Draw objects onto the screen."""
         self.window.blit(self.background, (0, 0))
 

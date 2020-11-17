@@ -117,12 +117,15 @@ class Player:
         }
         return attrs
 
+    def animation_loop(self):
+        """A simple timer to loop through the players' sprites."""
+        if self.walk_count + 1 > 4:
+            self.walk_count = 0
+
     def draw(self, win: pygame.Surface) -> None:
         """Draw player onto the screen according to the player's
             direction.
         """
-        if self.walk_count + 1 > 4:
-            self.walk_count = 0
         if not self.standing:
             if self.right:
                 self._assign_player_move_animation(
@@ -181,7 +184,6 @@ class Player:
             self.stand_sprite(bike_img, win)
         else:
             self.stand_sprite(stand_img, win)
-
 
     def walk_animation(self, direction, win):
         if not self.hit_slow:
