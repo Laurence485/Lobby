@@ -121,7 +121,13 @@ class Player:
         return attrs
 
     def animation_loop(self):
-        """A simple timer to loop through the players' sprites."""
+        """A simple counter to loop through the players' sprites.
+
+        The numbers are important here as each direction has 2 possible
+        animations. They help determine not only the speed of the
+        animation cycle but also which sprite is selected in the
+        _animate method.
+        """
         if self.walk_count + 1 > 4:
             self.walk_count = 0
 
