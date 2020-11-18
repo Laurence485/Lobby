@@ -41,7 +41,7 @@ class Player:
         self.walk_count = 0
         self.hitbox = (self.x, self.y, self.width, self.height)
         self.hit_wall = False
-        self.hit_slow = False  # Slow the players movement in grass/water.
+        self.in_slow_area = False  # Slow the players movement in grass/water.
         self.left = False
         self.right = False
         self.up = False
@@ -111,7 +111,7 @@ class Player:
             'D': self.down,
             'standing': self.standing,
             'walk count': self.walk_count,
-            'hit slow': self.hit_slow,
+            'hit slow': self.in_slow_area,
             'bike': self.bike,
             'mushroom': self.mushroom,
             'ID': self.id,
@@ -198,7 +198,7 @@ class Player:
         else:
             player_img_to_draw = player_imgs
 
-        if self.hit_slow:
+        if self.in_slow_area:
             win.blit(
                 player_img_to_draw,
                 (self.x, self.y),
@@ -229,7 +229,9 @@ class Player:
         )
 
         self.hit_wall = True if player_pos in collision_nodes else False
-        self.hit_slow = True if player_pos in reduced_speed_nodes else False
+        self.in_slow_area = (
+            True if player_pos in reduced_speed_nodes else False
+        )
 
         self._assign_player_speed(reduced_speed_nodes, player_pos)
 
@@ -239,7 +241,7 @@ class Player:
         player_pos: tuple
     ) -> None:
         """Assign player speed according to player location."""
-        if self.hit_slow:
+        if self.in_slow_area:
             reduced_speed = reduced_speed_nodes[player_pos]
             slow_player_vel = player_vel - reduced_speed
             self.vel = slow_player_vel
@@ -344,7 +346,7 @@ class Player:
             self.y -= self.vel
 
     def _sync_player_pos(self) -> None:
-        """sync player x,y with grid"""
+        """Sync player x,y with grid."""
         self.x, self.y = (
             sync_value_with_grid(self.x), sync_value_with_grid(self.y)
         )
