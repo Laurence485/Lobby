@@ -225,7 +225,7 @@ class Player:
         """
         player_pos = (
             sync_value_with_grid(self.x),
-            sync_value_with_grid(self.y + grid_spacing)
+            sync_value_with_grid(self.y + 10)
         )
 
         self.hit_wall = True if player_pos in collision_nodes else False
@@ -274,11 +274,7 @@ class Player:
                     self.down = True
                     self.standing = False
                 else:
-                    self.left = True
-                    self.right = False
-                    self.up = False
-                    self.down = False
-                    self.standing = False
+                    self._set_directions("left")
                 self.x -= self.vel
             elif keys[pygame.K_RIGHT]:
                 if self.up and self.strafe:
@@ -355,15 +351,30 @@ class Player:
             elif self.up: self.y += self.vel
             elif self.down: self.y -= self.vel
 
-        #prevent movement beyond the screen
-        #we would normally use self.width but as 10px grid spacing we want to be able to navigate the rightmost square
-        if self.x > window_height-window_wall_width-grid_spacing:
+    def _set_directions(self, current_direction: str) -> None:
+        """Set all other directions to false except the current
+        direction in which the player is moving.
+        """
+        self.__dict__[current_direction] = True
+
+        all_directions = ['left', 'right', 'up', 'down']
+        all_directions.remove(current_direction)
+
+        for direction in all_directions:
+            self.__dict__['direction'] = False
+
+        self.standing = False
+
+    def prevent_movement_beyond_screen(self) -> None:
+        """Prevent movement beyond the screen."""
+        # We want to be able to navigate the rightmost square.
+        if self.x > window_height - window_wall_width - grid_spacing:
             self.x -= self.vel
         elif self.x < 0:
             self.x += self.vel
         elif self.y < 0:
             self.y += self.vel
-        elif self.y > window_height-self.height:
+        elif self.y > window_height - self.height:
             self.y -= self.vel
 
     def _sync_player_pos(self) -> None:

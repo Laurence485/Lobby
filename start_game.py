@@ -51,6 +51,7 @@ def start_game_loop(game_window: Sprite) -> None:
         # game.fetch_data()
         game.player.check_collisions(Map.objs_area, Map.movement_cost_area)
         game.player.move()
+        game.player.prevent_movement_beyond_screen()
         game.player.animation_loop()
         game.draw_game_objects()
 
