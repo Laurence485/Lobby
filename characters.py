@@ -243,8 +243,7 @@ class Player:
         """Assign player speed according to player location."""
         if self.in_slow_area:
             reduced_speed = reduced_speed_nodes[player_pos]
-            slow_player_vel = player_vel - reduced_speed
-            self.vel = slow_player_vel
+            self.vel = player_vel - reduced_speed
 
         else:
             self.vel = player_vel
@@ -256,12 +255,11 @@ class Player:
         """Move the player with the arrow keys."""
         keys = pygame.key.get_pressed()
 
-        if not self.hit_wall:
+        if self.hit_wall:
+            self._prevent_movement_into_wall()
+        else:
+            self.strafe = True if keys[pygame.K_s] else False
 
-            if keys[pygame.K_s]:
-                self.strafe = True
-            else:
-                self.strafe = False
             if keys[pygame.K_LEFT]:
                 if self.up and self.strafe:
                     self._set_directions("up")
@@ -302,22 +300,18 @@ class Player:
                 self.standing = True
                 self.walk_count = 0
 
-        else:
-            # Collision
-            # self.standing means either:
-            #1) we respawned s.t bounds is touching an object, triggering hit_wall = True
-            #2) we used mushroom and are not on top of a building
-            # --> so find new node...
-            if self.standing:
-                self.x, self.y = random_xy()
-            if self.left:
-                self.x += self.vel
-            elif self.right:
-                self.x -= self.vel
-            elif self.up:
-                self.y += self.vel
-            elif self.down:
-                self.y -= self.vel
+    def _prevent_movement_into_wall(self) -> None:
+        if self.standing:
+            print(f'Debug: Frozen on a wall. Reassigning (x,y) position.')
+            self.x, self.y = random_xy()
+        if self.left:
+            self.x += self.vel
+        elif self.right:
+            self.x -= self.vel
+        elif self.up:
+            self.y += self.vel
+        elif self.down:
+            self.y -= self.vel
 
     def _set_directions(self, current_direction: str) -> None:
         """Set all other directions to false except the current
@@ -325,7 +319,7 @@ class Player:
         """
         self.__dict__[current_direction] = True
 
-        all_directions = ['left', 'right', 'up', 'down']
+        all_directions = {'left', 'right', 'up', 'down'}
         all_directions.remove(current_direction)
 
         for direction in all_directions:
