@@ -6,6 +6,7 @@ from map import Map
 from menu import Menu
 from multiplayer import Multiplayer
 from network import Network
+from typing_utils import Sprite
 from utils import random_xy
 
 with open('config.yaml', 'r') as config_file:
@@ -32,7 +33,7 @@ def setup_pygame() -> None:
     start_game_loop(game_window)
 
 
-def start_game_loop(game_window: pygame.Surface) -> None:
+def start_game_loop(game_window: Sprite) -> None:
     game_is_running = True
     clock = pygame.time.Clock()
 
@@ -76,7 +77,7 @@ def _refresh_game(clock: pygame.time.Clock) -> int:
 class NewGame:
     """Setup a new game and handle game loop methods."""
 
-    def __init__(self, game_window: pygame.Surface, net: Network):
+    def __init__(self, game_window: Sprite, net: Network):
         self.background = pygame.image.load(background).convert()
         self.window = game_window
         self.net = net

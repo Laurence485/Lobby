@@ -1,5 +1,8 @@
 import pygame
 import yaml
+
+from typing import Union
+from typing_utils import Sprite
 from utils import load_player_img, random_xy, sound, sync_value_with_grid
 
 with open('config.yaml', 'r') as config_file:
@@ -122,28 +125,11 @@ class Player:
         if self.walk_count + 1 > 4:
             self.walk_count = 0
 
-    def draw(self, win: pygame.Surface) -> None:
+    def draw(self, win: Sprite) -> None:
         """Draw player onto the screen according to the player's
             direction.
         """
-        if not self.standing:
-            if self.right:
-                self._assign_player_move_animation(
-                    self.bike_right_imgs, self.walk_right_imgs, win
-                )
-            elif self.left:
-                self._assign_player_move_animation(
-                    self.bike_left_imgs, self.walk_left_imgs, win
-                )
-            elif self.up:
-                self._assign_player_move_animation(
-                    self.bike_up_imgs, self.walk_up_imgs, win
-                )
-            elif self.down:
-                self._assign_player_move_animation(
-                    self.bike_down_imgs, self.walk_down_imgs, win
-                )
-        else:
+        if self.standing:
             if self.right:
                 self._assign_player_stand_animation(
                     self.bike_stand_right_img, self.stand_right_img, win
@@ -160,12 +146,29 @@ class Player:
                 self._assign_player_stand_animation(
                     self.bike_stand_down_img, self.stand_down_img, win
                 )
+        else:
+            if self.right:
+                self._assign_player_move_animation(
+                    self.bike_right_imgs, self.walk_right_imgs, win
+                )
+            elif self.left:
+                self._assign_player_move_animation(
+                    self.bike_left_imgs, self.walk_left_imgs, win
+                )
+            elif self.up:
+                self._assign_player_move_animation(
+                    self.bike_up_imgs, self.walk_up_imgs, win
+                )
+            elif self.down:
+                self._assign_player_move_animation(
+                    self.bike_down_imgs, self.walk_down_imgs, win
+                )
 
     def _assign_player_move_animation(
         self,
         bike_imgs: list,
         walk_imgs: list,
-        win: pygame.Surface
+        win: Sprite
     ) -> None:
 
         if self.bike:
@@ -175,9 +178,9 @@ class Player:
 
     def _assign_player_stand_animation(
         self,
-        bike_img: pygame.Surface,
-        stand_img: pygame.Surface,
-        win: pygame.Surface
+        bike_img: Sprite,
+        stand_img: Sprite,
+        win: Sprite
     ) -> None:
 
         if self.bike:
@@ -185,30 +188,46 @@ class Player:
         else:
             self.stand_sprite(stand_img, win)
 
-    def walk_animation(self, direction, win):
-        if not self.hit_slow:
-            if not self.mushroom:
-                win.blit(direction[self.walk_count // 2], (self.x, self.y))
-            else:
-                self.enlarge(direction[self.walk_count // 2], win)
-        else: # We are in grass/water.
-                win.blit(direction[self.walk_count // 2], (self.x, self.y), (0, 0, sync_value_with_grid(self.width), self.height - self.height // 4))
+    def walk_animation(
+        self,
+        player_img: Union[list[Sprite], Sprite],
+        win: Sprite
+    ) -> None:
+
+        if type(player_img) is list:
+            player_img_to_draw = player_img[self.walk_count // 2]
+        else:
+            player_img_to_draw = player_img
+
+        if self.hit_slow:
+            win.blit(
+                player_img_to_draw,
+                (self.x, self.y),
+                (0, 0, sync_value_with_grid(self.width),
+                    self.height - self.height // 4)
+            )
+        else:
+            win.blit(player_img_to_draw, (self.x, self.y))
 
         self.walk_count += 1
 
-    def stand_sprite(self, direction, win):
-        if not self.hit_slow:
-            if not self.mushroom:
-                win.blit(direction, (self.x,self.y))
-            else:
-                self.enlarge(direction, win)
-        else:
-            if not self.mushroom:
-                win.blit(direction, (self.x,self.y), (0,0,sync_value_with_grid(self.width),self.height-self.height//4))
-            else:
-                self.enlarge(direction, win)
+    def stand_sprite(
+        self,
+        player_img: Sprite,
+        win: Sprite
+    ) -> None:
 
-    def enlarge(self, direction, win):
+        if self.hit_slow:
+            win.blit(
+                player_img,
+                (self.x, self.y),
+                (0, 0, sync_value_with_grid(self.width),
+                    self.height - self.height // 4)
+            )
+        else:
+            win.blit(player_img, (self.x, self.y))
+
+    def _enlarge(self, direction, win):
         """Scale up the player size by 2."""
         win.blit(pygame.transform.scale2x(direction), (self.x, self.y))
 
