@@ -131,66 +131,57 @@ class Player:
         """
         if self.standing:
             if self.right:
-                self._assign_player_stand_animation(
-                    self.bike_stand_right_img, self.stand_right_img, win
+                self._assign_player_animation(
+                    self.bike_stand_right_img, self.stand_right_img, win, False
                 )
             elif self.left:
-                self._assign_player_stand_animation(
-                    self.bike_stand_left_img, self.stand_left_img, win
+                self._assign_player_animation(
+                    self.bike_stand_left_img, self.stand_left_img, win, False
                 )
             elif self.up:
-                self._assign_player_stand_animation(
-                    self.bike_stand_up_img, self.stand_up_img, win
+                self._assign_player_animation(
+                    self.bike_stand_up_img, self.stand_up_img, win, False
                 )
             elif self.down:
-                self._assign_player_stand_animation(
-                    self.bike_stand_down_img, self.stand_down_img, win
+                self._assign_player_animation(
+                    self.bike_stand_down_img, self.stand_down_img, win, False
                 )
         else:
             if self.right:
-                self._assign_player_move_animation(
+                self._assign_player_animation(
                     self.bike_right_imgs, self.walk_right_imgs, win
                 )
             elif self.left:
-                self._assign_player_move_animation(
+                self._assign_player_animation(
                     self.bike_left_imgs, self.walk_left_imgs, win
                 )
             elif self.up:
-                self._assign_player_move_animation(
+                self._assign_player_animation(
                     self.bike_up_imgs, self.walk_up_imgs, win
                 )
             elif self.down:
-                self._assign_player_move_animation(
+                self._assign_player_animation(
                     self.bike_down_imgs, self.walk_down_imgs, win
                 )
 
-    def _assign_player_move_animation(
+    def _assign_player_animation(
         self,
-        bike_imgs: list,
-        walk_imgs: list,
-        win: Sprite
+        bike_imgs: Union[list[Sprite], Sprite],
+        walk_imgs: Union[list[Sprite], Sprite],
+        win: Sprite,
+        not_standing: bool = True
     ) -> None:
 
         if self.bike:
-            self.walk_animation(bike_imgs, win)
+            self._animate(bike_imgs, win)
         else:
-            self.walk_animation(walk_imgs, win)
+            self._animate(walk_imgs, win)
 
-        self.walk_count += 1
+        # Cycle through to the next player sprite.
+        if not_standing:
+            self.walk_count += 1
 
-    def _assign_player_stand_animation(
-        self,
-        bike_img: Sprite,
-        stand_img: Sprite,
-        win: Sprite
-    ) -> None:
-
-        if self.bike:
-            self.walk_animation(bike_img, win)
-        else:
-            self.walk_animation(stand_img, win)
-
-    def walk_animation(
+    def _animate(
         self,
         player_imgs: Union[list[Sprite], Sprite],
         win: Sprite
