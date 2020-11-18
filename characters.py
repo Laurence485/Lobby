@@ -262,94 +262,60 @@ class Player:
                 self.strafe = False
             if keys[pygame.K_LEFT]:
                 if self.up and self.strafe:
-                    self.left = False
-                    self.right = False
-                    self.up = True
-                    self.down = False
-                    self.standing = False
+                    self._set_directions("up")
                 elif self.down and self.strafe:
-                    self.left = False
-                    self.right = False
-                    self.up = False
-                    self.down = True
-                    self.standing = False
+                    self._set_directions("down")
                 else:
                     self._set_directions("left")
                 self.x -= self.vel
+
             elif keys[pygame.K_RIGHT]:
                 if self.up and self.strafe:
-                    self.left = False
-                    self.right = False
-                    self.up = True
-                    self.down = False
-                    self.standing = False
+                    self._set_directions("up")
                 elif self.down and self.strafe:
-                    self.left = False
-                    self.right = False
-                    self.up = False
-                    self.down = True
-                    self.standing = False
+                    self._set_directions("down")
                 else:
-                    self.left = False
-                    self.right = True
-                    self.up = False
-                    self.down = False
-                    self.standing = False
+                    self._set_directions("right")
                 self.x += self.vel
+
             elif keys[pygame.K_UP]:
                 if self.left and self.strafe:
-                    self.left = True
-                    self.right = False
-                    self.up = False
-                    self.down = False
-                    self.standing = False
+                    self._set_directions("left")
                 elif self.right and self.strafe:
-                    self.left = False
-                    self.right = True
-                    self.up = False
-                    self.down = False
-                    self.standing = False
+                    self._set_directions("right")
                 else:
-                    self.left = False
-                    self.right = False
-                    self.up = True
-                    self.down = False
-                    self.standing = False
+                    self._set_directions("up")
                 self.y -= self.vel
+
             elif keys[pygame.K_DOWN]:
                 if self.left and self.strafe:
-                    self.left = True
-                    self.right = False
-                    self.up = False
-                    self.down = False
-                    self.standing = False
+                    self._set_directions("left")
                 elif self.right and self.strafe:
-                    self.left = False
-                    self.right = True
-                    self.up = False
-                    self.down = False
-                    self.standing = False
+                    self._set_directions("right")
                 else:
-                    self.left = False
-                    self.right = False
-                    self.up = False
-                    self.down = True
-                    self.standing = False
+                    self._set_directions("down")
                 self.y += self.vel
+
             else:
                 self.standing = True
                 self.walk_count = 0
-        else: #collision
-         #self.standing means either:
-         #1) we respawned s.t bounds is touching an object, triggering hit_wall = True
-         #2) we used mushroom and are not on top of a building
-         # --> so find new node...
+
+        else:
+            # Collision
+            # self.standing means either:
+            #1) we respawned s.t bounds is touching an object, triggering hit_wall = True
+            #2) we used mushroom and are not on top of a building
+            # --> so find new node...
             if self.standing:
                 self.x, self.y = random_xy()
-            if self.left: self.x += self.vel
-            elif self.right: self.x -= self.vel
-            elif self.up: self.y += self.vel
-            elif self.down: self.y -= self.vel
+            if self.left:
+                self.x += self.vel
+            elif self.right:
+                self.x -= self.vel
+            elif self.up:
+                self.y += self.vel
+            elif self.down:
+                self.y -= self.vel
 
     def _set_directions(self, current_direction: str) -> None:
         """Set all other directions to false except the current
@@ -361,7 +327,7 @@ class Player:
         all_directions.remove(current_direction)
 
         for direction in all_directions:
-            self.__dict__['direction'] = False
+            self.__dict__[direction] = False
 
         self.standing = False
 
