@@ -176,6 +176,8 @@ class Player:
         else:
             self.walk_animation(walk_imgs, win)
 
+        self.walk_count += 1
+
     def _assign_player_stand_animation(
         self,
         bike_img: Sprite,
@@ -184,20 +186,20 @@ class Player:
     ) -> None:
 
         if self.bike:
-            self.stand_sprite(bike_img, win)
+            self.walk_animation(bike_img, win)
         else:
-            self.stand_sprite(stand_img, win)
+            self.walk_animation(stand_img, win)
 
     def walk_animation(
         self,
-        player_img: Union[list[Sprite], Sprite],
+        player_imgs: Union[list[Sprite], Sprite],
         win: Sprite
     ) -> None:
 
-        if type(player_img) is list:
-            player_img_to_draw = player_img[self.walk_count // 2]
+        if type(player_imgs) is list:
+            player_img_to_draw = player_imgs[self.walk_count // 2]
         else:
-            player_img_to_draw = player_img
+            player_img_to_draw = player_imgs
 
         if self.hit_slow:
             win.blit(
@@ -208,24 +210,6 @@ class Player:
             )
         else:
             win.blit(player_img_to_draw, (self.x, self.y))
-
-        self.walk_count += 1
-
-    def stand_sprite(
-        self,
-        player_img: Sprite,
-        win: Sprite
-    ) -> None:
-
-        if self.hit_slow:
-            win.blit(
-                player_img,
-                (self.x, self.y),
-                (0, 0, sync_value_with_grid(self.width),
-                    self.height - self.height // 4)
-            )
-        else:
-            win.blit(player_img, (self.x, self.y))
 
     def _enlarge(self, direction, win):
         """Scale up the player size by 2."""

@@ -4,6 +4,7 @@ import pygame.mixer
 
 # from map import nodes
 from random import choice
+from typing_utils import Sprite
 
 
 def random_xy(nodes: list) -> tuple:
@@ -16,7 +17,7 @@ def load_player_img(
     img: str,
     img_dir: str = 'sprites/player',
     player_id: int = 0
-) -> pygame.Surface:
+) -> Sprite:
 
     return pygame.image.load(
         f'{img_dir} {player_id}/{img}.png'
