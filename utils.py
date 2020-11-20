@@ -13,6 +13,15 @@ def random_xy(nodes: list) -> tuple:
     return choice(tuple(nodes))
 
 
+def load_map_img(
+    img: str,
+    img_dir: str = 'sprites/objects',
+    img_format: str = 'png'
+) -> Sprite:
+
+    return pygame.image.load(f'{img_dir}/{img}.{img_format}')
+
+
 def load_player_img(
     img: str,
     img_dir: str = 'sprites/player',

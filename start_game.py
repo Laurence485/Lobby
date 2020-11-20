@@ -9,7 +9,7 @@ from network import Network
 from typing_utils import Sprite
 from utils import random_xy
 
-with open('config.yaml', 'r') as config_file:
+with open('config/base.yaml', 'r') as config_file:
     config = yaml.load(config_file, yaml.Loader)
 
 window_width = config['WINDOW_WIDTH']

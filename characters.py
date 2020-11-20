@@ -5,7 +5,7 @@ from typing import Union
 from typing_utils import Sprite
 from utils import load_player_img, random_xy, sound, sync_value_with_grid
 
-with open('config.yaml', 'r') as config_file:
+with open('config/base.yaml', 'r') as config_file:
     config = yaml.load(config_file, yaml.Loader)
 
 window_width = config['WINDOW_WIDTH']
@@ -314,8 +314,8 @@ class Player:
             self.y -= self.vel
 
     def _set_directions(self, current_direction: str) -> None:
-        """Set all other directions to false except the current
-        direction in which the player is moving.
+        """Set all directions to false except the current direction in
+        which the player is moving.
         """
         self.__dict__[current_direction] = True
 
