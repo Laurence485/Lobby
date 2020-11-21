@@ -1,18 +1,18 @@
 import pickle
 import yaml
 
-from config.sprites import config as sprites_config_dict
+from config.sprites import config as get_sprites_config_dict
 from random import seed
 from typing_utils import Sprite
 from utils import random_xy, sync_value_with_grid
 
-with open('config/base.yaml', 'r') as config_file:
-    config = yaml.load(config_file, yaml.Loader)
+with open('config/base.yaml', 'r') as base_config_file:
+    base_config = yaml.load(base_config_file, yaml.Loader)
 
-window_width = config['WINDOW_WIDTH']
-window_height = config['WINDOW_HEIGHT']
-window_wall_width = config['WINDOW_WALL_WIDTH']
-grid_spacing = config['GRID_SPACING']
+window_width = base_config['WINDOW_WIDTH']
+window_height = base_config['WINDOW_HEIGHT']
+window_wall_width = base_config['WINDOW_WALL_WIDTH']
+grid_spacing = base_config['GRID_SPACING']
 
 
 class Map:
@@ -23,7 +23,7 @@ class Map:
     reduced_speed_nodes = {}  # Nodes in grass or water.
     blocked_nodes = set()  # Non-traversable nodes (in use by objects).
 
-    sprites_config = sprites_config_dict()
+    sprites_config = get_sprites_config_dict()
 
     def __init__(
         self,

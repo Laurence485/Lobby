@@ -2,7 +2,6 @@ import math
 import pygame.image
 import pygame.mixer
 
-# from map import nodes
 from random import choice
 from typing_utils import Sprite
 

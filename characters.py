@@ -1,6 +1,7 @@
 import pygame
 import yaml
 
+from map import Map
 from typing import Union
 from typing_utils import Sprite
 from utils import load_player_img, random_xy, sound, sync_value_with_grid
@@ -303,7 +304,7 @@ class Player:
     def _prevent_movement_into_wall(self) -> None:
         if self.standing:
             print(f'Debug: Frozen on a wall. Reassigning (x,y) position.')
-            self.x, self.y = random_xy()
+            self.x, self.y = random_xy(Map.nodes)
         if self.left:
             self.x += self.vel
         elif self.right:
