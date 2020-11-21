@@ -20,9 +20,12 @@ class Map:
 
     nodes = set()  # All traversable nodes.
     objects = []  # List of game objects and coordinates (nodes).
+    # Attributes (coordinates and dimensions) to calcuate object positions.
+    all_obj_attributes = []
     reduced_speed_nodes = {}  # Nodes in grass or water.
     blocked_nodes = set()  # Non-traversable nodes (in use by objects).
 
+    window_width = window_width - window_wall_width
     sprites_config = get_sprites_config_dict()
 
     def __init__(
@@ -31,12 +34,12 @@ class Map:
         map_name: str = 'random',
         save: bool = False
     ):
-        self.window_width = window_width - window_wall_width
         self.map_name = map_name
         self.save = save
 
-        for x in range(0, self.window_width, grid_spacing):  # col
-            for y in range(0, window_height, grid_spacing):  # row
+        #  All nodes on the screen.
+        for x in range(0, self.window_width, grid_spacing):
+            for y in range(0, window_height, grid_spacing):
                 self.nodes.add((x, y))
 
         if seed_:
@@ -44,93 +47,44 @@ class Map:
 
     def generate_map(self) -> None:
         """Generate and save a map to .pkl from a list of sprites."""
-        # Attributes (coordinates and dimensions) to calcuate object positions.
-        obj_attributes = []
 
         obj_names = self._objects_to_create_from_config()
 
         for obj_name in obj_names:
-            obj = self.sprites_config[obj_name]['img']
+            obj_sprite = self.sprites_config[obj_name]['img']
 
-            # Get object dimensions according to our grid
-            obj_width = sync_value_with_grid(obj.get_width())
-            obj_height = sync_value_with_grid(obj.get_height())
-            square_width = int(obj_width / grid_spacing)
-            square_height = int(obj_height / grid_spacing)
+            obj = Object(obj_name, obj_sprite)
 
-            # Keep objects on the screen.
-            nodes_to_keep_obj_on_screen = set()
-            for x in range(0, self.window_width - obj_width, grid_spacing):
-                for y in range(0, window_height - obj_height, grid_spacing):
-                    nodes_to_keep_obj_on_screen.add((x, y))
+            obj.set_dimensions()
 
             # Ensure the object does not touch any other object.
-            available_nodes = nodes_to_keep_obj_on_screen - self.blocked_nodes
+            available_nodes = obj.avaialable_nodes() - self.blocked_nodes
 
-            rand_xy = random_xy(available_nodes)
-            rand_x, rand_y = rand_xy
+            obj.xy = random_xy(available_nodes)
+            obj.x, obj.y = obj.xy
 
-            colliding = True
-            if len(obj_attributes):
-                while(colliding and len(available_nodes)):
-                    for attributes in obj_attributes:
-                        # The relative position of the new object compared
-                        # to other objects already created.
-                        rules = [
-                            (rand_x + obj_width) < attributes['x'],
-                            rand_x > (attributes['x'] + attributes['width']),
-                            (rand_y + obj_height) < attributes['y'],
-                            rand_y > (attributes['y'] + attributes['height'])
-                        ]
-                        #  This means we are not colliding with anything.
-                        if any(rules):
-                            failed = False
-                        # Colliding: choose a new x,y pair.
-                        else:
-                            failed = True
-                            available_nodes.remove(rand_xy)
-                            if not(len(available_nodes)):
-                                break
-                            rand_xy = random_xy(available_nodes)
-                            rand_x, rand_y = rand_xy
-                            break
+            obj.find_available_position(available_nodes)
 
-                    colliding = False if not failed else True
-
+            # We ran out of nodes to check. There are no more positions
+            # available for the object.
             if not(len(available_nodes)):
                 break
 
-            self.objects.append({'name': obj_name, 'coords': rand_xy})
+            self.objects.append({'name': obj_name, 'coords': obj.xy})
 
-            # Square area used by object
-            obj_coords_x = [
-                rand_x + (i * grid_spacing) for i in range(square_width)
-            ]
-            obj_coords_y = [
-                rand_y + (i * grid_spacing) for i in range(square_height)
-            ]
+            obj.set_perimeter()
+            obj.set_nodes()
 
-            # Coords used by objects are non-traversable or have an
-            # associated movement cost i.e. in grass or water.
-            for x in obj_coords_x:
-                for y in obj_coords_y:
-                    if obj_name == 'grass':
-                        self.reduced_speed_nodes[(x, y)] = 6
-                    elif obj_name == 'water':
-                        self.reduced_speed_nodes[(x, y)] = 4
-                    else:
-                        self.blocked_nodes.add((x, y))
-
-            obj_attributes.append({
-                'x': rand_x,
-                'y': rand_y,
-                'width': obj_width,
-                'height': obj_height
+            self.all_obj_attributes.append({
+                'x': obj.x,
+                'y': obj.y,
+                'width': obj.width,
+                'height': obj.height
             })
 
         self._update_nodes()
 
-        obj_attributes.clear()
+        self.all_obj_attributes.clear()
 
         print('You generated a new map!')
 
@@ -184,3 +138,82 @@ class Map:
             loaded_object = cls.sprites_config[obj['name']]['img']
             x, y = obj['coords']
             win.blit(loaded_object, (x, y))
+
+
+class Object(Map):
+    """Hanlde methods for the objects to be placed on the map."""
+
+    def __init__(self, name: str, sprite: Sprite):
+        self.name = name
+        self.sprite = sprite
+
+    def set_dimensions(self) -> None:
+        """Set object dimensions according to our grid."""
+        self.width = sync_value_with_grid(self.sprite.get_width())
+        self.height = sync_value_with_grid(self.sprite.get_height())
+
+        self.square_width = int(self.width / grid_spacing)
+        self.square_height = int(self.height / grid_spacing)
+
+    def avaialable_nodes(self) -> set[tuple]:
+        """All the nodes we can position the object at in order to
+        keep the object on the screen.
+        """
+        nodes = set()
+        for x in range(0, self.window_width - self.width, grid_spacing):
+            for y in range(0, window_height - self.height, grid_spacing):
+                nodes.add((x, y))
+
+        return nodes
+
+    def set_perimeter(self) -> list[int]:
+        self.perimeter_x = [
+            self.x + (i * grid_spacing) for i in range(self.square_width)
+        ]
+        self.perimeter_y = [
+            self.y + (i * grid_spacing) for i in range(self.square_height)
+        ]
+
+    def set_nodes(self):
+        """Set coords used by objects as non-traversable or set the
+        associated movement cost if we are in grass or water.
+        """
+        for x in self.perimeter_x:
+            for y in self.perimeter_y:
+                if self.name == 'grass':
+                    self.reduced_speed_nodes[(x, y)] = 6
+                elif self.name == 'water':
+                    self.reduced_speed_nodes[(x, y)] = 4
+                else:
+                    self.blocked_nodes.add((x, y))
+
+    def find_available_position(self, available_nodes: set[tuple]) -> None:
+        """Keep looking for new coords until the object no longer
+        touches another object.
+        """
+        colliding = True
+        if len(self.all_obj_attributes):
+            while(colliding and len(available_nodes)):
+                for attributes in self.all_obj_attributes:
+                    # The relative position of the new object compared
+                    # to other objects already created.
+                    rules = [
+                        (self.x + self.width) < attributes['x'],
+                        self.x > (attributes['x'] + attributes['width']),
+                        (self.y + self.height) < attributes['y'],
+                        self.y > (attributes['y'] + attributes['height'])
+                    ]
+                    #  This means we are not colliding with anything.
+                    if any(rules):
+                        failed = False
+                    # Colliding: choose a new x,y pair.
+                    else:
+                        failed = True
+                        available_nodes.remove(self.xy)
+                        if not(len(available_nodes)):
+                            break
+                        self.xy = random_xy(available_nodes)
+                        self.x, self.y = self.xy
+                        break
+
+                colliding = False if not failed else True

@@ -2,7 +2,7 @@ from utils import load_map_img
 
 
 def config() -> dict:
-    """Sprite dictionary used for generating new maps."""
+    """Sprite configuration dictionary used for generating new maps."""
     return {
         'bike shop': {
             'img': load_map_img('bikeShop'),
