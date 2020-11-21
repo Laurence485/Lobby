@@ -22,7 +22,7 @@ def sprites() -> dict:
         },
         'grass': {
             'img': load_map_img('grass_patch', 'jpg'),
-            'quantity': 0
+            'quantity': 3
         },
         'mart': {
             'img': load_map_img('mart'),
@@ -34,11 +34,11 @@ def sprites() -> dict:
         },
         'water': {
             'img': load_map_img('pool'),
-            'quantity': 0
+            'quantity': 2
         },
         'pokemon center': {
             'img': load_map_img('pokemonCenter'),
-            'quantity': 0
+            'quantity': 1
         },
         'purple house': {
             'img': load_map_img('purpleHouse'),
@@ -46,6 +46,6 @@ def sprites() -> dict:
         },
         'tree': {
             'img': load_map_img('tree'),
-            'quantity': 0
+            'quantity': 5
         }
     }

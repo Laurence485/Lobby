@@ -37,7 +37,9 @@ def _start_game_loop(game_window: Sprite) -> None:
     game_is_running = True
     clock = pygame.time.Clock()
 
-    Map.load(game_map)
+    # Map.load(game_map)
+    new_map = Map(341)
+    new_map.generate_map()
     game = NewGame(game_window, _setup_network(_get_username()))
 
     while game_is_running:

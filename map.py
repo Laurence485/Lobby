@@ -31,13 +31,21 @@ class Map:
         if seed_:
             seed(seed_)
 
-    def generate_map(self, map_name='random', save=False):
+    def generate_map(
+        self,
+        map_name: str = 'random',
+        save: bool = False
+    ) -> None:
         """Generate and save a map to .pkl from a list of sprites."""
         obj_features = []
-        items = ['tree']*5+['pokemon center']+['grass']*3+['water']+['door house']
+        object_names = []
 
-        for item in items:
-            obj = sprites[item]
+        for object_name, configs in sprites().items():
+            for quantity in range(configs['quantity']):
+                object_names.append(object_name)
+
+        for object_name in object_names:
+            obj = sprites()[object_name]['img']
 
             # Get obj dimensions according to our grid
             obj_width = sync_value_with_grid(obj.get_width())
@@ -53,7 +61,8 @@ class Map:
 
             # Ensure the object does not touch any other object.
             available_nodes = nodes_on_screen - self.objs_area
-            rand_x, rand_y = random_xy(available_nodes)
+            rand_xy = random_xy(available_nodes)
+            rand_x, rand_y = rand_xy
 
             colliding = True
             if len(obj_features):
@@ -79,7 +88,7 @@ class Map:
 
             if not(len(available_nodes)): break
 
-            self.objects.append([item,rand_xy])
+            self.objects.append([object_name,rand_xy])
 
             obj_coords_x = [rand_x+(i*grid_spacing) for i in range(square_width)]
             obj_coords_y = [rand_y+(i*grid_spacing) for i in range(square_height)]
@@ -87,10 +96,10 @@ class Map:
             #get square area used by object or movement cost if grass/water
             for x in obj_coords_x:
                 for y in obj_coords_y:
-                    if item != 'grass' and item != 'water':
+                    if object_name != 'grass' and object_name != 'water':
                         self.objs_area.add((x,y))
                     else:
-                        self.movement_cost_area[(x,y)] = 6 if item == 'grass' else 4
+                        self.movement_cost_area[(x,y)] = 6 if object_name == 'grass' else 4
             features = {
                 'x': rand_x,
                 'y': rand_y,
@@ -100,7 +109,7 @@ class Map:
             obj_features.append(features)
 
         #update available nodes for pathfinding to exclude nodes used for objects
-        nodes = [n for n in nodes if n not in self.objs_area]
+        self.nodes = [n for n in self.nodes if n not in self.objs_area]
         obj_features.clear()
 
         if save:
@@ -110,7 +119,7 @@ class Map:
         """Save map to maps/ directory."""
         cache_path = f'maps/{map_name}.pkl'
         _map = {
-        'nodes':nodes,
+        'nodes':self.nodes,
         'mca': self.movement_cost_area,
         'objects':self.objects,
         'obj coords':self.objs_area
@@ -134,6 +143,6 @@ class Map:
     @classmethod
     def draw(cls, win):
         for obj in cls.objects:
-            item = sprites()[obj[0]]['img']
+            loaded_object = sprites()[obj[0]]['img']
             x,y = obj[1]
-            win.blit(item, (x,y))
+            win.blit(loaded_object, (x,y))
