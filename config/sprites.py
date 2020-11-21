@@ -1,7 +1,7 @@
 from utils import load_map_img
 
 
-def sprites() -> dict:
+def config() -> dict:
     """Sprite dictionary used for generating new maps."""
     return {
         'bike shop': {

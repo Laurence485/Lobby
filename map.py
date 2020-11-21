@@ -1,7 +1,7 @@
 import pickle
 import yaml
 from random import seed
-from config.sprites import sprites
+from config.sprites import config as sprites_config_dict
 from typing_utils import Sprite
 from utils import random_xy, sync_value_with_grid
 
@@ -18,9 +18,11 @@ class Map:
     """Game map related methods."""
 
     nodes = set()  # All traversable nodes.
-    objects = []
-    movement_cost_area = {}  # Movement has a cost - grass/water
-    objs_area = set()  # Non-traversable nodes.
+    objects = []  # List of game objects and coordinates (nodes).
+    reduced_speed_nodes = {}  # Nodes in grass or water.
+    blocked_nodes = set()  # Non-traversable nodes (in use by objects).
+
+    sprites_config = sprites_config_dict()
 
     def __init__(self, seed_: int = None):
         self.window_width = window_width - window_wall_width
@@ -44,7 +46,7 @@ class Map:
         obj_names = self._objects_to_create_from_config()
 
         for obj_name in obj_names:
-            obj = sprites()[obj_name]['img']
+            obj = self.sprites_config[obj_name]['img']
 
             # Get object dimensions according to our grid
             obj_width = sync_value_with_grid(obj.get_width())
@@ -59,7 +61,7 @@ class Map:
                     nodes_to_keep_obj_on_screen.add((x, y))
 
             # Ensure the object does not touch any other object.
-            available_nodes = nodes_to_keep_obj_on_screen - self.objs_area
+            available_nodes = nodes_to_keep_obj_on_screen - self.blocked_nodes
 
             rand_xy = random_xy(available_nodes)
             rand_x, rand_y = rand_xy
@@ -94,8 +96,9 @@ class Map:
             if not(len(available_nodes)):
                 break
 
-            self.objects.append([obj_name, rand_xy])
+            self.objects.append({'name': obj_name, 'coords': rand_xy})
 
+            # Square area used by object
             obj_coords_x = [
                 rand_x + (i * grid_spacing) for i in range(square_width)
             ]
@@ -103,29 +106,29 @@ class Map:
                 rand_y + (i * grid_spacing) for i in range(square_height)
             ]
 
-            # Get square area used by object or movement cost if grass/water
+            # Coords used by objects are non-traversable or have an
+            # associated movement cost i.e. in grass or water.
             for x in obj_coords_x:
                 for y in obj_coords_y:
                     if obj_name == 'grass':
-                        self.movement_cost_area[(x, y)] = 6
+                        self.reduced_speed_nodes[(x, y)] = 6
                     elif obj_name == 'water':
-                        self.movement_cost_area[(x, y)] = 4
+                        self.reduced_speed_nodes[(x, y)] = 4
                     else:
-                        self.objs_area.add((x, y))
+                        self.blocked_nodes.add((x, y))
 
-            attributes = {
+            obj_attributes.append({
                 'x': rand_x,
                 'y': rand_y,
                 'width': obj_width,
                 'height': obj_height
-            }
-            obj_attributes.append(attributes)
+            })
 
         self._update_nodes()
 
         obj_attributes.clear()
 
-        print('You generated a new map.')
+        print('You generated a new map!')
 
         if save:
             self._save(map_name)
@@ -133,7 +136,7 @@ class Map:
     def _objects_to_create_from_config(self) -> list:
         obj_names = []
 
-        for obj_name, obj_config in sprites().items():
+        for obj_name, obj_config in self.sprites_config.items():
             for quantity in range(obj_config['quantity']):
                 obj_names.append(obj_name)
 
@@ -141,18 +144,18 @@ class Map:
 
     def _update_nodes(self) -> None:
         """Update available nodes for pathfinding to exclude nodes used
-        for objects.
+        by objects (non-traversable).
         """
-        self.nodes = {n for n in self.nodes if n not in self.objs_area}
+        self.nodes = {n for n in self.nodes if n not in self.blocked_nodes}
 
     def _save(self, map_name: str) -> None:
         """Save map to maps/ directory."""
         cache_path = f'maps/{map_name}.pkl'
         map_ = {
             'nodes': self.nodes,
-            'mca': self.movement_cost_area,
+            'reduced speed nodes': self.reduced_speed_nodes,
             'objects': self.objects,
-            'obj coords': self.objs_area
+            'blocked nodes': self.blocked_nodes
         }
         with open(cache_path, 'wb') as path:
             pickle.dump(map_, path)
@@ -165,16 +168,15 @@ class Map:
         with open(f'maps/{map_name}.pkl', 'rb') as path:
             map_ = pickle.load(path)
         cls.nodes = map_['nodes']
-        cls.movement_cost_area = map_['mca']
+        cls.reduced_speed_nodes = map_['reduced speed nodes']
         cls.objects = map_['objects']
-        cls.objs_area = map_['obj coords']
+        cls.blocked_nodes = map_['blocked nodes']
 
         print(f'loaded map: {map_name}.')
-        # print(map_['objects'])
 
     @classmethod
     def draw(cls, win: Sprite) -> None:
         for obj in cls.objects:
-            loaded_object = sprites()[obj[0]]['img']
-            x,y = obj[1]
-            win.blit(loaded_object, (x,y))
+            loaded_object = cls.sprites_config[obj['name']]['img']
+            x, y = obj['coords']
+            win.blit(loaded_object, (x, y))
