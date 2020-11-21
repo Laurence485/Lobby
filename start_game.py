@@ -30,10 +30,10 @@ def setup_pygame() -> None:
         (window_width, window_height)
     )
 
-    start_game_loop(game_window)
+    _start_game_loop(game_window)
 
 
-def start_game_loop(game_window: Sprite) -> None:
+def _start_game_loop(game_window: Sprite) -> None:
     game_is_running = True
     clock = pygame.time.Clock()
 

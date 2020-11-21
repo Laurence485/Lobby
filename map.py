@@ -1,8 +1,8 @@
 import pickle
 import yaml
-# from random import seed
+from random import seed
 from config.sprites import sprites
-from utils import random_xy
+from utils import random_xy, sync_value_with_grid
 
 with open('config/base.yaml', 'r') as config_file:
     config = yaml.load(config_file, yaml.Loader)
@@ -19,18 +19,20 @@ class Map:
     nodes = set()  # All traversable nodes.
     objects = []
     movement_cost_area = {}  # Movement has a cost - grass/water
-    objs_area = set()  # No movement through here - (x,y) area in use by all objects
+    objs_area = set()  # Non-traversable nodes.
 
-    def __init__(self):
+    def __init__(self, seed_: int = None):
         self.window_width = window_width - window_wall_width
 
-        for x in range(0,self.window_width,grid_spacing): #col
-            for y in range(0,window_height,grid_spacing): #row
-                self.nodes.add((x,y))
-        # seed(341)
+        for x in range(0, self.window_width, grid_spacing):  # col
+            for y in range(0, window_height, grid_spacing):  # row
+                self.nodes.add((x, y))
+
+        if seed_:
+            seed(seed_)
 
     def generate_map(self, map_name='random', save=False):
-        """Generate xand save a map to .pkl from a list of sprites."""
+        """Generate and save a map to .pkl from a list of sprites."""
         obj_features = []
         items = ['tree']*5+['pokemon center']+['grass']*3+['water']+['door house']
 
@@ -43,17 +45,15 @@ class Map:
             square_width = int(obj_width / grid_spacing)
             square_height = int(obj_height / grid_spacing)
 
-            #1) Keep obj in bounds
-            #--> x must be in range ~[0, (window width - obj width)] and y in range ~[0, (window height - obj height)]
-            not_oob  = set()
-            for x in range(0,self.window_width-obj_width,grid_spacing):
-                for  y in range(0,window_height-obj_height,grid_spacing):
-                    not_oob.add((x,y))
+            # Keep objects on the screen.
+            nodes_on_screen = set()
+            for x in range(0, self.window_width - obj_width, grid_spacing):
+                for y in range(0, window_height - obj_height, grid_spacing):
+                    nodes_on_screen.add((x, y))
 
-            #2) choose xy from available nodes such that obj doesnt touch any other object
-            available_nodes = not_oob - self.objs_area
-            rand_xy = random_xy(available_nodes)
-            rand_x, rand_y = rand_xy
+            # Ensure the object does not touch any other object.
+            available_nodes = nodes_on_screen - self.objs_area
+            rand_x, rand_y = random_xy(available_nodes)
 
             colliding = True
             if len(obj_features):
@@ -107,7 +107,7 @@ class Map:
             self.save(map_name)
 
     def save(self, map_name):
-        '''save map to maps/ directory'''
+        """Save map to maps/ directory."""
         cache_path = f'maps/{map_name}.pkl'
         _map = {
         'nodes':nodes,
@@ -121,7 +121,7 @@ class Map:
 
     @classmethod
     def load(cls, map_name):
-        '''load map from maps/ directory'''
+        """Load a map from the maps/ directory."""
         with open(f'maps/{map_name}.pkl', 'rb') as path:
             _map = pickle.load(path)
         cls.nodes = _map['nodes']
