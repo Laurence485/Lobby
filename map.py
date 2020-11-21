@@ -37,7 +37,8 @@ class Map:
         save: bool = False
     ) -> None:
         """Generate and save a map to .pkl from a list of sprites."""
-        obj_features = []
+        # Attributes (coordinates and dimensions) to calcuate object positions.
+        obj_attributes = []
         obj_names = []
 
         for obj_name, obj_config in sprites().items():
@@ -66,16 +67,16 @@ class Map:
             rand_x, rand_y = rand_xy
 
             colliding = True
-            if len(obj_features):
+            if len(obj_attributes):
                 while(colliding and len(available_nodes)):
-                    for features in obj_features:
+                    for attributes in obj_attributes:
                         # The relative position of the new object compared
                         # to other objects already created.
                         rules = [
-                            (rand_x + obj_width) < features['x'],
-                            rand_x > (features['x'] + features['width']),
-                            (rand_y + obj_height) < features['y'],
-                            rand_y > (features['y'] + features['height'])
+                            (rand_x + obj_width) < attributes['x'],
+                            rand_x > (attributes['x'] + attributes['width']),
+                            (rand_y + obj_height) < attributes['y'],
+                            rand_y > (attributes['y'] + attributes['height'])
                         ]
                         #  This means we are not colliding with anything.
                         if any(rules):
@@ -97,28 +98,35 @@ class Map:
 
             self.objects.append([obj_name, rand_xy])
 
-            obj_coords_x = [rand_x + (i * grid_spacing) for i in range(square_width)]
-            obj_coords_y = [rand_y + (i*  grid_spacing) for i in range(square_height)]
+            obj_coords_x = [
+                rand_x + (i * grid_spacing) for i in range(square_width)
+            ]
+            obj_coords_y = [
+                rand_y + (i * grid_spacing) for i in range(square_height)
+            ]
 
             # Get square area used by object or movement cost if grass/water
             for x in obj_coords_x:
                 for y in obj_coords_y:
-                    if obj_name != 'grass' and obj_name != 'water':
-                        self.objs_area.add((x,y))
+                    if obj_name == 'grass':
+                        self.movement_cost_area[(x, y)] = 6
+                    elif obj_name == 'water':
+                        self.movement_cost_area[(x, y)] = 4
                     else:
-                        self.movement_cost_area[(x,y)] = 6 if obj_name == 'grass' else 4
-            features = {
+                        self.objs_area.add((x, y))
+
+            attributes = {
                 'x': rand_x,
                 'y': rand_y,
                 'width': obj_width,
                 'height': obj_height
             }
-            obj_features.append(features)
+            obj_attributes.append(attributes)
 
         # Update available nodes for pathfinding to exclude nodes used
         # for objects.
         self.nodes = [n for n in self.nodes if n not in self.objs_area]
-        obj_features.clear()
+        obj_attributes.clear()
 
         if save:
             self.save(map_name)
@@ -126,27 +134,28 @@ class Map:
     def save(self, map_name):
         """Save map to maps/ directory."""
         cache_path = f'maps/{map_name}.pkl'
-        _map = {
-        'nodes':self.nodes,
-        'mca': self.movement_cost_area,
-        'objects':self.objects,
-        'obj coords':self.objs_area
+        map_ = {
+            'nodes': self.nodes,
+            'mca': self.movement_cost_area,
+            'objects': self.objects,
+            'obj coords': self.objs_area
         }
-        with open (cache_path,'wb') as path:
-            pickle.dump(_map, path)
+        with open(cache_path, 'wb') as path:
+            pickle.dump(map_, path)
         print(f'"{map_name}" saved to {cache_path}.')
 
     @classmethod
     def load(cls, map_name):
         """Load a map from the maps/ directory."""
         with open(f'maps/{map_name}.pkl', 'rb') as path:
-            _map = pickle.load(path)
-        cls.nodes = _map['nodes']
-        cls.movement_cost_area = _map['mca']
-        cls.objects = _map['objects']
-        cls.objs_area = _map['obj coords']
+            map_ = pickle.load(path)
+        cls.nodes = map_['nodes']
+        cls.movement_cost_area = map_['mca']
+        cls.objects = map_['objects']
+        cls.objs_area = map_['obj coords']
+
         print(f'loaded map: {map_name}.')
-        # print(_map['objects'])
+        # print(map_['objects'])
 
     @classmethod
     def draw(cls, win):
