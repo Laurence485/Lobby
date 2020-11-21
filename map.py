@@ -1,7 +1,8 @@
 import pickle
 import yaml
-from random import seed
+
 from config.sprites import config as sprites_config_dict
+from random import seed
 from typing_utils import Sprite
 from utils import random_xy, sync_value_with_grid
 
@@ -24,8 +25,15 @@ class Map:
 
     sprites_config = sprites_config_dict()
 
-    def __init__(self, seed_: int = None):
+    def __init__(
+        self,
+        seed_: int = None,
+        map_name: str = 'random',
+        save: bool = False
+    ):
         self.window_width = window_width - window_wall_width
+        self.map_name = map_name
+        self.save = save
 
         for x in range(0, self.window_width, grid_spacing):  # col
             for y in range(0, window_height, grid_spacing):  # row
@@ -34,11 +42,7 @@ class Map:
         if seed_:
             seed(seed_)
 
-    def generate_map(
-        self,
-        map_name: str = 'random',
-        save: bool = False
-    ) -> None:
+    def generate_map(self) -> None:
         """Generate and save a map to .pkl from a list of sprites."""
         # Attributes (coordinates and dimensions) to calcuate object positions.
         obj_attributes = []
@@ -130,8 +134,8 @@ class Map:
 
         print('You generated a new map!')
 
-        if save:
-            self._save(map_name)
+        if self.save:
+            self._save()
 
     def _objects_to_create_from_config(self) -> list:
         obj_names = []
@@ -148,9 +152,9 @@ class Map:
         """
         self.nodes = {n for n in self.nodes if n not in self.blocked_nodes}
 
-    def _save(self, map_name: str) -> None:
+    def _save(self) -> None:
         """Save map to maps/ directory."""
-        cache_path = f'maps/{map_name}.pkl'
+        cache_path = f'maps/{self.map_name}.pkl'
         map_ = {
             'nodes': self.nodes,
             'reduced speed nodes': self.reduced_speed_nodes,
@@ -160,7 +164,7 @@ class Map:
         with open(cache_path, 'wb') as path:
             pickle.dump(map_, path)
 
-        print(f'"{map_name}" saved to {cache_path}.')
+        print(f'"{self.map_name}" saved to {cache_path}.')
 
     @classmethod
     def load(cls, map_name: str) -> None:
