@@ -134,6 +134,6 @@ class Map:
     @classmethod
     def draw(cls, win):
         for obj in cls.objects:
-            item = sprites()[obj[0]]
+            item = sprites()[obj[0]]['img']
             x,y = obj[1]
             win.blit(item, (x,y))
