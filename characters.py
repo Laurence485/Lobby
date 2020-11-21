@@ -200,14 +200,25 @@ class Player:
             player_img_to_draw = player_imgs
 
         if self.in_slow_area:
-            win.blit(
-                player_img_to_draw,
-                (self.x, self.y),
-                (0, 0, sync_value_with_grid(self.width),
-                    self.height - self.height // 4)
-            )
+            self._draw_player_top_half_only(win, player_img_to_draw)
         else:
-            win.blit(player_img_to_draw, (self.x, self.y))
+            self._draw_player(win, player_img_to_draw)
+
+    def _draw_player_top_half_only(
+        self,
+        win: Sprite,
+        player_img_to_draw: Sprite
+    ) -> None:
+
+        win.blit(
+            player_img_to_draw,
+            (self.x, self.y),
+            (0, 0, sync_value_with_grid(self.width),
+                self.height - self.height // 4)
+        )
+
+    def _draw_player(self, win: Sprite, player_img_to_draw: Sprite) -> None:
+        win.blit(player_img_to_draw, (self.x, self.y))
 
     def _enlarge(self, direction, win):
         """Scale up the player size by 2."""
