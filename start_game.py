@@ -25,7 +25,7 @@ if grid_spacing != 10:
 
 def setup_pygame() -> None:
     pygame.init()
-    pygame.display.set_caption("Lobby")
+    pygame.display.set_caption('Lobby')
     game_window = pygame.display.set_mode(
         (window_width, window_height)
     )
