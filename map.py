@@ -38,29 +38,30 @@ class Map:
     ) -> None:
         """Generate and save a map to .pkl from a list of sprites."""
         obj_features = []
-        object_names = []
+        obj_names = []
 
-        for object_name, configs in sprites().items():
-            for quantity in range(configs['quantity']):
-                object_names.append(object_name)
+        for obj_name, obj_config in sprites().items():
+            for quantity in range(obj_config['quantity']):
+                obj_names.append(obj_name)
 
-        for object_name in object_names:
-            obj = sprites()[object_name]['img']
+        for obj_name in obj_names:
+            obj = sprites()[obj_name]['img']
 
-            # Get obj dimensions according to our grid
+            # Get object dimensions according to our grid
             obj_width = sync_value_with_grid(obj.get_width())
             obj_height = sync_value_with_grid(obj.get_height())
             square_width = int(obj_width / grid_spacing)
             square_height = int(obj_height / grid_spacing)
 
             # Keep objects on the screen.
-            nodes_on_screen = set()
+            nodes_to_keep_obj_on_screen = set()
             for x in range(0, self.window_width - obj_width, grid_spacing):
                 for y in range(0, window_height - obj_height, grid_spacing):
-                    nodes_on_screen.add((x, y))
+                    nodes_to_keep_obj_on_screen.add((x, y))
 
             # Ensure the object does not touch any other object.
-            available_nodes = nodes_on_screen - self.objs_area
+            available_nodes = nodes_to_keep_obj_on_screen - self.objs_area
+
             rand_xy = random_xy(available_nodes)
             rand_x, rand_y = rand_xy
 
@@ -68,38 +69,44 @@ class Map:
             if len(obj_features):
                 while(colliding and len(available_nodes)):
                     for features in obj_features:
-                        #if any of these conditions are true for all objects then we are not colliding with anything
-                        #we arent setting <= or >= to keep 1 square distance between objects
-                        rules =[(rand_x + obj_width) < features['x'], #new obj is to the left
-                                rand_x > (features['x']+ features['width']), #new obj is to the right
-                                (rand_y + obj_height) < features['y'], #new obj is above
-                                rand_y > (features['y'] + features['height'])] #new obj is below
+                        # The relative position of the new object compared
+                        # to other objects already created.
+                        rules = [
+                            (rand_x + obj_width) < features['x'],
+                            rand_x > (features['x'] + features['width']),
+                            (rand_y + obj_height) < features['y'],
+                            rand_y > (features['y'] + features['height'])
+                        ]
+                        #  This means we are not colliding with anything.
                         if any(rules):
                             failed = False
-                        else: #colliding, choose a new x,y pair
+                        # Colliding: choose a new x,y pair.
+                        else:
                             failed = True
                             available_nodes.remove(rand_xy)
-                            if not(len(available_nodes)): break
+                            if not(len(available_nodes)):
+                                break
                             rand_xy = random_xy(available_nodes)
                             rand_x, rand_y = rand_xy
                             break
 
                     colliding = False if not failed else True
 
-            if not(len(available_nodes)): break
+            if not(len(available_nodes)):
+                break
 
-            self.objects.append([object_name,rand_xy])
+            self.objects.append([obj_name, rand_xy])
 
-            obj_coords_x = [rand_x+(i*grid_spacing) for i in range(square_width)]
-            obj_coords_y = [rand_y+(i*grid_spacing) for i in range(square_height)]
+            obj_coords_x = [rand_x + (i * grid_spacing) for i in range(square_width)]
+            obj_coords_y = [rand_y + (i*  grid_spacing) for i in range(square_height)]
 
-            #get square area used by object or movement cost if grass/water
+            # Get square area used by object or movement cost if grass/water
             for x in obj_coords_x:
                 for y in obj_coords_y:
-                    if object_name != 'grass' and object_name != 'water':
+                    if obj_name != 'grass' and obj_name != 'water':
                         self.objs_area.add((x,y))
                     else:
-                        self.movement_cost_area[(x,y)] = 6 if object_name == 'grass' else 4
+                        self.movement_cost_area[(x,y)] = 6 if obj_name == 'grass' else 4
             features = {
                 'x': rand_x,
                 'y': rand_y,
@@ -108,7 +115,8 @@ class Map:
             }
             obj_features.append(features)
 
-        #update available nodes for pathfinding to exclude nodes used for objects
+        # Update available nodes for pathfinding to exclude nodes used
+        # for objects.
         self.nodes = [n for n in self.nodes if n not in self.objs_area]
         obj_features.clear()
 
