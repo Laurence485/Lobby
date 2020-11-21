@@ -207,22 +207,22 @@ class Player:
     def _draw_player_top_half_only(
         self,
         win: Sprite,
-        player_img_to_draw: Sprite
+        player_img: Sprite
     ) -> None:
 
         win.blit(
-            player_img_to_draw,
+            player_img,
             (self.x, self.y),
             (0, 0, sync_value_with_grid(self.width),
                 self.height - self.height // 4)
         )
 
-    def _draw_player(self, win: Sprite, player_img_to_draw: Sprite) -> None:
-        win.blit(player_img_to_draw, (self.x, self.y))
+    def _draw_player(self, win: Sprite, player_img: Sprite) -> None:
+        win.blit(player_img, (self.x, self.y))
 
-    def _enlarge(self, direction, win):
+    def _enlarge(self, player_img: Sprite, win: Sprite) -> None:
         """Scale up the player size by 2."""
-        win.blit(pygame.transform.scale2x(direction), (self.x, self.y))
+        win.blit(pygame.transform.scale2x(player_img), (self.x, self.y))
 
     def check_collisions(
         self,
@@ -340,7 +340,6 @@ class Player:
         self.standing = False
 
     def prevent_movement_beyond_screen(self) -> None:
-        """Prevent movement beyond the screen."""
         # We want to be able to navigate the rightmost square.
         if self.x > window_height - window_wall_width - grid_spacing:
             self.x -= self.vel
