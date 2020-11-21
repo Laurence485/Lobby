@@ -2,6 +2,7 @@ import pickle
 import yaml
 from random import seed
 from config.sprites import sprites
+from typing_utils import Sprite
 from utils import random_xy, sync_value_with_grid
 
 with open('config/base.yaml', 'r') as config_file:
@@ -39,11 +40,8 @@ class Map:
         """Generate and save a map to .pkl from a list of sprites."""
         # Attributes (coordinates and dimensions) to calcuate object positions.
         obj_attributes = []
-        obj_names = []
 
-        for obj_name, obj_config in sprites().items():
-            for quantity in range(obj_config['quantity']):
-                obj_names.append(obj_name)
+        obj_names = self._objects_to_create_from_config()
 
         for obj_name in obj_names:
             obj = sprites()[obj_name]['img']
@@ -123,15 +121,31 @@ class Map:
             }
             obj_attributes.append(attributes)
 
-        # Update available nodes for pathfinding to exclude nodes used
-        # for objects.
-        self.nodes = [n for n in self.nodes if n not in self.objs_area]
+        self._update_nodes()
+
         obj_attributes.clear()
 
-        if save:
-            self.save(map_name)
+        print('You generated a new map.')
 
-    def save(self, map_name):
+        if save:
+            self._save(map_name)
+
+    def _objects_to_create_from_config(self) -> list:
+        obj_names = []
+
+        for obj_name, obj_config in sprites().items():
+            for quantity in range(obj_config['quantity']):
+                obj_names.append(obj_name)
+
+        return obj_names
+
+    def _update_nodes(self) -> None:
+        """Update available nodes for pathfinding to exclude nodes used
+        for objects.
+        """
+        self.nodes = {n for n in self.nodes if n not in self.objs_area}
+
+    def _save(self, map_name: str) -> None:
         """Save map to maps/ directory."""
         cache_path = f'maps/{map_name}.pkl'
         map_ = {
@@ -142,10 +156,11 @@ class Map:
         }
         with open(cache_path, 'wb') as path:
             pickle.dump(map_, path)
+
         print(f'"{map_name}" saved to {cache_path}.')
 
     @classmethod
-    def load(cls, map_name):
+    def load(cls, map_name: str) -> None:
         """Load a map from the maps/ directory."""
         with open(f'maps/{map_name}.pkl', 'rb') as path:
             map_ = pickle.load(path)
@@ -158,7 +173,7 @@ class Map:
         # print(map_['objects'])
 
     @classmethod
-    def draw(cls, win):
+    def draw(cls, win: Sprite) -> None:
         for obj in cls.objects:
             loaded_object = sprites()[obj[0]]['img']
             x,y = obj[1]
