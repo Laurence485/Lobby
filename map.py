@@ -1,58 +1,53 @@
-import config
-import pygame
 import pickle
+import yaml
 # from random import seed
+from config.sprites import sprites
 from utils import random_xy
+
+with open('config/base.yaml', 'r') as config_file:
+    config = yaml.load(config_file, yaml.Loader)
+
+window_width = config['WINDOW_WIDTH']
+window_height = config['WINDOW_HEIGHT']
+window_wall_width = config['WINDOW_WALL_WIDTH']
+grid_spacing = config['GRID_SPACING']
 
 
 class Map:
     """Game map related methods."""
 
-    pyg = pygame.image
-    sprites = {'bike shop':pyg.load('sprites/Objects/bikeShop.png'),
-        'department store':pyg.load('sprites/Objects/departmentStore.png'),
-        'door house':pyg.load('sprites/Objects/doorHouse.png'),
-        'game corner':pyg.load('sprites/Objects/gameCorner.png'),
-        'grass':pyg.load('sprites/Objects/grass_patch.jpg'),#72x51
-        'mart':pyg.load('sprites/Objects/mart.png'), #64x62
-        'oaks lab': pyg.load('sprites/Objects/oaksLab.png'), #112x71
-        'water': pyg.load('sprites/Objects/pool.png'), #130,114
-        'pokemon center': pyg.load('sprites/Objects/pokemonCenter.png'), #80x70
-        'purple house':pyg.load('sprites/Objects/purpleHouse.png'),
-        'tree':pyg.load('sprites/Objects/tree.png') #30x45
-    }
-    nodes = set() #all traversable nodes
+    nodes = set()  # All traversable nodes.
     objects = []
-    movement_cost_area = {} #movement has a cost - grass/water
-    objs_area = set() #no movement through here - (x,y) area in use by all objects
+    movement_cost_area = {}  # Movement has a cost - grass/water
+    objs_area = set()  # No movement through here - (x,y) area in use by all objects
+
     def __init__(self):
-        self.window_width = config.window_width-config.window_wall_width
-        self.window_height = config.window_height
-        self.spacing = config.grid_spacing
-        for x in range(0,self.window_width,self.spacing): #col
-            for y in range(0,self.window_height,self.spacing): #row
+        self.window_width = window_width - window_wall_width
+
+        for x in range(0,self.window_width,grid_spacing): #col
+            for y in range(0,window_height,grid_spacing): #row
                 self.nodes.add((x,y))
         # seed(341)
 
     def generate_map(self, map_name='random', save=False):
-        '''generate xand save a map to .pkl from a list of sprites'''
+        """Generate xand save a map to .pkl from a list of sprites."""
         obj_features = []
         items = ['tree']*5+['pokemon center']+['grass']*3+['water']+['door house']
 
         for item in items:
-            obj = self.sprites[item]
+            obj = sprites[item]
 
-            #get obj dimensions according to our grid
+            # Get obj dimensions according to our grid
             obj_width = sync_value_with_grid(obj.get_width())
             obj_height = sync_value_with_grid(obj.get_height())
-            square_width = int(obj_width / self.spacing)
-            square_height = int(obj_height / self.spacing)
+            square_width = int(obj_width / grid_spacing)
+            square_height = int(obj_height / grid_spacing)
 
             #1) Keep obj in bounds
             #--> x must be in range ~[0, (window width - obj width)] and y in range ~[0, (window height - obj height)]
             not_oob  = set()
-            for x in range(0,self.window_width-obj_width,self.spacing):
-                for  y in range(0,self.window_height-obj_height,self.spacing):
+            for x in range(0,self.window_width-obj_width,grid_spacing):
+                for  y in range(0,window_height-obj_height,grid_spacing):
                     not_oob.add((x,y))
 
             #2) choose xy from available nodes such that obj doesnt touch any other object
@@ -86,8 +81,8 @@ class Map:
 
             self.objects.append([item,rand_xy])
 
-            obj_coords_x = [rand_x+(i*self.spacing) for i in range(square_width)]
-            obj_coords_y = [rand_y+(i*self.spacing) for i in range(square_height)]
+            obj_coords_x = [rand_x+(i*grid_spacing) for i in range(square_width)]
+            obj_coords_y = [rand_y+(i*grid_spacing) for i in range(square_height)]
 
             #get square area used by object or movement cost if grass/water
             for x in obj_coords_x:
@@ -139,6 +134,6 @@ class Map:
     @classmethod
     def draw(cls, win):
         for obj in cls.objects:
-            item = cls.sprites[obj[0]]
+            item = sprites()[obj[0]]
             x,y = obj[1]
             win.blit(item, (x,y))
