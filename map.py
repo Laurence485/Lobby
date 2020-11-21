@@ -19,8 +19,8 @@ class Map:
     """Game map related methods."""
 
     nodes = set()  # All traversable nodes.
-    objects = []  # List of game objects and coordinates (nodes).
-    # Attributes (coordinates and dimensions) to calcuate object positions.
+    # Game objects to load and associated attributes to calcuate
+    # object positions.
     all_obj_attributes = []
     reduced_speed_nodes = {}  # Nodes in grass or water.
     blocked_nodes = set()  # Non-traversable nodes (in use by objects).
@@ -32,21 +32,25 @@ class Map:
         self,
         seed_: int = None,
         map_name: str = 'random',
-        save: bool = False
+        save: bool = True
     ):
         self.map_name = map_name
         self.save = save
 
-        #  All nodes on the screen.
+        if seed_:
+            seed(seed_)
+
+        self._set_available_nodes()
+        self._generate_map()
+
+    def _set_available_nodes(self) -> None:
+        """ Available nodes: all nodes on the screen."""
         for x in range(0, self.window_width, grid_spacing):
             for y in range(0, window_height, grid_spacing):
                 self.nodes.add((x, y))
 
-        if seed_:
-            seed(seed_)
-
-    def generate_map(self) -> None:
-        """Generate and save a map to .pkl from a list of sprites."""
+    def _generate_map(self) -> None:
+        """Generate a map from a list of sprites."""
 
         obj_names = self._objects_to_create_from_config()
 
@@ -70,12 +74,11 @@ class Map:
             if not(len(available_nodes)):
                 break
 
-            self.objects.append({'name': obj_name, 'coords': obj.xy})
-
             obj.set_perimeter()
             obj.set_nodes()
 
             self.all_obj_attributes.append({
+                'name': obj_name,
                 'x': obj.x,
                 'y': obj.y,
                 'width': obj.width,
@@ -83,8 +86,6 @@ class Map:
             })
 
         self._update_nodes()
-
-        self.all_obj_attributes.clear()
 
         print('You generated a new map!')
 
@@ -107,18 +108,18 @@ class Map:
         self.nodes = {n for n in self.nodes if n not in self.blocked_nodes}
 
     def _save(self) -> None:
-        """Save map to maps/ directory."""
+        """Save map to .pkl in the maps/ directory."""
         cache_path = f'maps/{self.map_name}.pkl'
         map_ = {
             'nodes': self.nodes,
             'reduced speed nodes': self.reduced_speed_nodes,
-            'objects': self.objects,
+            'objects': self.all_obj_attributes,
             'blocked nodes': self.blocked_nodes
         }
         with open(cache_path, 'wb') as path:
             pickle.dump(map_, path)
 
-        print(f'"{self.map_name}" saved to {cache_path}.')
+        print(f'New map "{self.map_name}" saved to {cache_path}.')
 
     @classmethod
     def load(cls, map_name: str) -> None:
@@ -136,7 +137,7 @@ class Map:
     def draw(cls, win: Sprite) -> None:
         for obj in cls.objects:
             loaded_object = cls.sprites_config[obj['name']]['img']
-            x, y = obj['coords']
+            x, y = obj['x'], obj['y']
             win.blit(loaded_object, (x, y))
 
 
