@@ -139,19 +139,19 @@ class Player:
         if self.standing:
             if self.right:
                 self._assign_player_animation(
-                    self.bike_stand_right_img, self.stand_right_img, win, False
+                    self.bike_stand_right_img, self.stand_right_img, win, True
                 )
             elif self.left:
                 self._assign_player_animation(
-                    self.bike_stand_left_img, self.stand_left_img, win, False
+                    self.bike_stand_left_img, self.stand_left_img, win, True
                 )
             elif self.up:
                 self._assign_player_animation(
-                    self.bike_stand_up_img, self.stand_up_img, win, False
+                    self.bike_stand_up_img, self.stand_up_img, win, True
                 )
             elif self.down:
                 self._assign_player_animation(
-                    self.bike_stand_down_img, self.stand_down_img, win, False
+                    self.bike_stand_down_img, self.stand_down_img, win, True
                 )
         else:
             if self.right:
@@ -176,7 +176,7 @@ class Player:
         bike_imgs: Union[list[Sprite], Sprite],
         walk_imgs: Union[list[Sprite], Sprite],
         win: Sprite,
-        not_standing: bool = True
+        standing: bool = False
     ) -> None:
 
         if self.bike:
@@ -185,7 +185,7 @@ class Player:
             self._animate(walk_imgs, win)
 
         # Cycle through to the next player sprite.
-        if not_standing:
+        if not standing:
             self.walk_count += 1
 
     def _animate(
