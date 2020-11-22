@@ -51,7 +51,6 @@ class Map:
 
     def _generate_map(self) -> None:
         """Generate a map from a list of sprites."""
-
         obj_names = self._objects_to_create_from_config()
 
         for obj_name in obj_names:
@@ -61,7 +60,7 @@ class Map:
 
             obj.set_dimensions()
 
-            # Ensure the object does not touch any other object.
+            # Ensure the object does not touch any other objects.
             available_nodes = obj.avaialable_nodes() - self.blocked_nodes
 
             obj.xy = random_xy(available_nodes)
@@ -172,6 +171,7 @@ class Object(Map):
         return nodes
 
     def set_perimeter(self) -> list[int]:
+        """Set all the coordinates making up the object's permiter."""
         self.perimeter_x = [
             self.x + (i * grid_spacing) for i in range(self.square_width)
         ]
@@ -179,8 +179,8 @@ class Object(Map):
             self.y + (i * grid_spacing) for i in range(self.square_height)
         ]
 
-    def set_nodes(self):
-        """Set coords used by objects as non-traversable or set the
+    def set_nodes(self) -> None:
+        """Set coords used by object as non-traversable or set the
         associated movement cost if we are in grass or water.
         """
         for x in self.perimeter_x:
@@ -211,8 +211,7 @@ class Object(Map):
                     #  This means we are not colliding with anything.
                     if any(rules):
                         failed = False
-                    # Colliding: choose a new x,y pair.
-                    else:
+                    else:  # Colliding: choose a new x,y pair.
                         failed = True
                         available_nodes.remove(self.xy)
                         if not(len(available_nodes)):
