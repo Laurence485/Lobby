@@ -194,9 +194,9 @@ class Player:
         win: Sprite
     ) -> None:
 
-        if type(player_imgs) is list:
+        try:
             player_img_to_draw = player_imgs[self.walk_count // 2]
-        else:
+        except TypeError:
             player_img_to_draw = player_imgs
 
         if self.in_slow_area:
