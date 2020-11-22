@@ -75,14 +75,7 @@ class Map:
 
             obj.set_perimeter()
             obj.set_nodes()
-
-            self.all_obj_attributes.append({
-                'name': obj_name,
-                'x': obj.x,
-                'y': obj.y,
-                'width': obj.width,
-                'height': obj.height
-            })
+            obj.update_all_obj_attributes()
 
         self._update_nodes()
 
@@ -145,7 +138,7 @@ class Map:
 
 
 class Object(Map):
-    """Hanlde methods for the objects to be placed on the map."""
+    """Handle methods for the objects to be placed on the map."""
 
     def __init__(self, name: str, sprite: Sprite):
         self.name = name
@@ -170,7 +163,7 @@ class Object(Map):
 
         return nodes
 
-    def set_perimeter(self) -> list[int]:
+    def set_perimeter(self) -> None:
         """Set all the coordinates making up the object's permiter."""
         self.perimeter_x = [
             self.x + (i * grid_spacing) for i in range(self.square_width)
@@ -221,3 +214,12 @@ class Object(Map):
                         break
 
                 colliding = False if not failed else True
+
+    def update_all_obj_attributes(self) -> None:
+        self.all_obj_attributes.append({
+            'name': self.name,
+            'x': self.x,
+            'y': self.y,
+            'width': self.width,
+            'height': self.height
+        })
