@@ -4,8 +4,8 @@ import yaml
 from characters import Player
 from map import Map
 from menu import Menu
-from multiplayer import Multiplayer
-from network import Network
+from network.multiplayer import Multiplayer
+from network.network import Network
 from typing_utils import Sprite
 from utils import random_xy
 
