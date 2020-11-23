@@ -3,7 +3,7 @@ import pygame.image
 import pygame.mixer
 
 from random import choice
-from typing_utils import Sprite
+from typing_extras import Sprite
 
 
 def random_xy(nodes: list) -> tuple:

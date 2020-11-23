@@ -6,7 +6,7 @@ from map import Map
 from menu import Menu
 from network.multiplayer import Multiplayer
 from network.network import Network
-from typing_utils import Sprite
+from typing_extras import Sprite
 from utils import random_xy
 
 with open('config/base.yaml', 'r') as config_file:
