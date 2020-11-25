@@ -1,10 +1,10 @@
 import pygame
 import yaml
 
-from map import Map
+from game.map import Map
 from typing import Union
-from typing_extras import Sprite
-from utils import load_player_img, random_xy, sound, sync_value_with_grid
+from game.typing import Sprite
+from game.utils import load_player_img, random_xy, sound, sync_value_with_grid
 
 with open('config/base.yaml', 'r') as config_file:
     config = yaml.load(config_file, yaml.Loader)

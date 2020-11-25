@@ -1,5 +1,5 @@
 #  Add verbose, coverage, isort, mypy to tox
-#  For successful testing time should be controlled by the game not the clock
+#  For successful testing, the time should be controlled by the game not the clock
 
 import pygame
 

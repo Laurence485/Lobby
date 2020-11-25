@@ -1,4 +1,4 @@
-from utils import load_map_img
+from game.utils import load_map_img
 
 
 def config() -> dict:

@@ -1,13 +1,13 @@
 import pygame
 import yaml
 
-from characters import Player
-from map import Map
-from menu import Menu
+from game.characters import Player
+from game.map import Map
+from game.menu import Menu
 from network.multiplayer import Multiplayer
 from network.network import Network
-from typing_extras import Sprite
-from utils import random_xy
+from game.typing import Sprite
+from game.utils import random_xy
 
 with open('config/base.yaml', 'r') as config_file:
     config = yaml.load(config_file, yaml.Loader)

@@ -1,5 +1,5 @@
-from characters import Player
-from map import Map
+from game.characters import Player
+from game.map import Map
 
 class Multiplayer:
 	'''class containing functions checking data from the server'''
