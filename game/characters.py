@@ -1,14 +1,17 @@
 from typing import Union
 
 import pygame
-import yaml
 
 from game.map import Map
 from game.typing import Sprite
-from game.utils import load_player_img, random_xy, sound, sync_value_with_grid
+from game.utils import (
+    get_config,
+    load_player_img,
+    random_xy, sound,
+    sync_value_with_grid
+)
 
-with open('config/base.yaml', 'r') as config_file:
-    config = yaml.load(config_file, yaml.Loader)
+config = get_config()
 
 window_width = config['WINDOW_WIDTH']
 window_height = config['WINDOW_HEIGHT']

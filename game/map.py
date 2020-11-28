@@ -1,14 +1,11 @@
 import pickle
 from random import seed
 
-import yaml
-
 from config.sprites import config as get_sprites_config_dict
 from game.typing import Sprite
-from game.utils import random_xy, sync_value_with_grid
+from game.utils import get_config, random_xy, sync_value_with_grid
 
-with open('config/base.yaml', 'r') as base_config_file:
-    base_config = yaml.load(base_config_file, yaml.Loader)
+base_config = get_config()
 
 window_width = base_config['WINDOW_WIDTH']
 window_height = base_config['WINDOW_HEIGHT']
