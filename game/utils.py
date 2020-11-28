@@ -1,5 +1,4 @@
 import math
-import os
 import yaml
 
 from random import choice
@@ -11,10 +10,7 @@ from game.typing import Sprite
 
 
 def get_config(basename: str = 'base') -> dict:
-    project_root = os.path.dirname(os.path.dirname(__file__))
-    file_path = os.path.join(project_root, f'config/{basename}.yaml')
-
-    with open(file_path, 'r') as config_file:
+    with open(f'config/{basename}.yaml', 'r') as config_file:
         return yaml.safe_load(config_file)
 
 
