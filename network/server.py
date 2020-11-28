@@ -1,9 +1,11 @@
+import pickle
 import socket
 from _thread import *
-import pickle
-import config
 from random import shuffle
+
 from leaderboard import Leaderboard
+
+import config
 
 HOST = config.HOST
 PORT = config.PORT

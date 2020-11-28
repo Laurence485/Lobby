@@ -1,5 +1,6 @@
 import config
 
+
 class centerItem:
 	'''center item on screen - center along the horiziontal axis by default'''
 	@staticmethod

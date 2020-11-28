@@ -1,5 +1,6 @@
-import socket
 import pickle
+import socket
+
 import yaml
 
 with open('config/base.yaml', 'r') as config_file:

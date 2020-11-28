@@ -1,5 +1,8 @@
 import pygame
+
 import config
+
+
 class Menu:
 	@classmethod
 	def __init__(cls, win, player, enemy):

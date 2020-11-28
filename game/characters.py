@@ -1,8 +1,9 @@
+from typing import Union
+
 import pygame
 import yaml
 
 from game.map import Map
-from typing import Union
 from game.typing import Sprite
 from game.utils import load_player_img, random_xy, sound, sync_value_with_grid
 

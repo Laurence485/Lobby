@@ -4,10 +4,10 @@ import yaml
 from game.characters import Player
 from game.map import Map
 from game.menu import Menu
-from network.multiplayer import Multiplayer
-from network.network import Network
 from game.typing import Sprite
 from game.utils import random_xy
+from network.multiplayer import Multiplayer
+from network.network import Network
 
 with open('config/base.yaml', 'r') as config_file:
     config = yaml.load(config_file, yaml.Loader)

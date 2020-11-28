@@ -1,8 +1,9 @@
 import pickle
+from random import seed
+
 import yaml
 
 from config.sprites import config as get_sprites_config_dict
-from random import seed
 from game.typing import Sprite
 from game.utils import random_xy, sync_value_with_grid
 

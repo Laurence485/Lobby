@@ -1,8 +1,9 @@
 import math
+from random import choice
+
 import pygame.image
 import pygame.mixer
 
-from random import choice
 from game.typing import Sprite
 
 

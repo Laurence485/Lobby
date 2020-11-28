@@ -1,8 +1,10 @@
-import config
 import pygame
+from start_game import StartGame
+
+import config
 from center_item import centerItem
 from network import Network
-from start_game import StartGame
+
 
 def main(username):
 	'''init pygame and set up homescreen objects'''
