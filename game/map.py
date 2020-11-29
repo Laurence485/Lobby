@@ -188,8 +188,8 @@ class Object(Map):
         touches another object.
         """
         colliding = True
-        if len(self.all_obj_attributes):
-            while(colliding and len(available_nodes)):
+        if self.all_obj_attributes:
+            while(colliding and available_nodes):
                 for attributes in self.all_obj_attributes:
                     # The relative position of the new object compared
                     # to other objects already created.
@@ -205,7 +205,7 @@ class Object(Map):
                     else:  # Colliding: choose a new x,y pair.
                         failed = True
                         available_nodes.remove(self.xy)
-                        if not(len(available_nodes)):
+                        if not available_nodes:
                             break
                         self.xy = random_xy(available_nodes)
                         self.x, self.y = self.xy
