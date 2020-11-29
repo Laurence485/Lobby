@@ -68,7 +68,7 @@ class Map:
 
             # We ran out of nodes to check. There are no more positions
             # available for the object.
-            if not(len(available_nodes)):
+            if not available_nodes:
                 break
 
             obj.set_perimeter()
