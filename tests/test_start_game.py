@@ -1,6 +1,8 @@
+from unittest.mock import Mock, call, patch
+
 import pytest
+
 from game.utils import get_config
-from unittest.mock import call, Mock, patch
 
 
 @pytest.fixture(scope='session')
@@ -42,7 +44,7 @@ def mock_config():
 
 def test_invalid_grid_spacing(mock_config):
     with pytest.raises(NotImplementedError) as err:
-        import start_game # noqa
+        import start_game  # noqa
 
     err.match('Do not adjust the grid spacing.')
 
@@ -64,7 +66,6 @@ class TestNewGame:
         pass
 
     # Time should be controlled by the game not the clock
-    # 2) Add test configs: verbose, coverage, isort, mypy, py versions to tox
     # Where should tests for the nested methods e.g. game.player.xyz() go?
     #  these should be tested in their own files... also only test
     #  stuff which can break...no need to test everything

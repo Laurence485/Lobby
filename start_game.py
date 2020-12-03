@@ -1,8 +1,8 @@
 import pygame
 
-from game.player import Player
 from game.map import Map
 from game.menu import Menu
+from game.player import Player
 from game.typing import Sprite
 from game.utils import get_config, random_xy
 from network.multiplayer import Multiplayer
