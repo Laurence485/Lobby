@@ -1,9 +1,6 @@
-#  For successful testing, the time should be controlled by the game not the clock
-
 import pytest
-
 from game.utils import get_config
-from unittest.mock import call, Mock
+from unittest.mock import call, Mock, patch
 
 
 @pytest.fixture(scope='session')
@@ -22,6 +19,37 @@ def pygame(base_config):
     return pygame
 
 
+@pytest.fixture
+def mock_config():
+    with patch('game.utils.get_config') as config:
+        config.return_value = {
+            'WINDOW_WIDTH': 400,
+            'WINDOW_HEIGHT': 400,
+            'GRID_SPACING': 400,
+            'FRAMERATE': 10,
+            'MAP': 10,
+            'BACKGROUND_IMG': 10,
+            'PLAYER_VELOCITY': 10,
+            'BIKE_SOUND': 10,
+            'MUSHROOM_SOUND': 10,
+            'HOST': "localhost",
+            'PORT': 12345,
+            'BUFFER_SIZE': 2048,
+            'NUM_PLAYERS': 5,
+        }
+        yield config
+
+
+def test_invalid_grid_spacing(mock_config):
+    with pytest.raises(NotImplementedError) as err:
+        import start_game # noqa
+
+    err.match('Do not adjust the grid spacing.')
+
+    grid_spacing = mock_config.return_value['GRID_SPACING']
+    assert grid_spacing != 10
+
+
 def test_setup_pygame(pygame):
     assert pygame.init.call_args == call()
     assert pygame.get_caption.return_value == ('Lobby', 'Lobby')
@@ -30,13 +58,13 @@ def test_setup_pygame(pygame):
 
 class TestNewGame:
 
-    # Test instance vars
+    # 1) Test instance vars ?
 
     def test_check_keyboard_input(self):
         pass
 
-    # Add values from config file
-    #  Add test configs: verbose, coverage, isort, mypy, py versions to tox
+    # Time should be controlled by the game not the clock
+    # 2) Add test configs: verbose, coverage, isort, mypy, py versions to tox
     # Where should tests for the nested methods e.g. game.player.xyz() go?
     #  these should be tested in their own files... also only test
     #  stuff which can break...no need to test everything
