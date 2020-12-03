@@ -2,27 +2,31 @@
 
 import pytest
 
-from pytest_testconfig import config
+from game.utils import get_config
+from unittest.mock import call, Mock
 
-from unittest.mock import Mock
 
-# We dont actually need (or want) to Mock here. We should use yield to setup and teardown pygame
-# We can mock tests for the db and server though
+@pytest.fixture(scope='session')
+def base_config():
+    return get_config('base')
+
+
 @pytest.fixture
-def pygame():
+def pygame(base_config):
     pygame = Mock()
     pygame.init()
-    pygame.get_init.return_value = True
     pygame.get_caption.return_value = ('Lobby', 'Lobby')
-    pygame.get_window_size.return_value = (400, 400)
+    pygame.get_window_size.return_value = (
+        base_config['WINDOW_WIDTH'], base_config['WINDOW_HEIGHT']
+    )
     return pygame
 
 
-def test_setup_pygame(self, pygame):
-    pygame.init.assert_called_once()
-    assert pygame.get_init.return_value
+def test_setup_pygame(pygame):
+    assert pygame.init.call_args == call()
     assert pygame.get_caption.return_value == ('Lobby', 'Lobby')
     assert pygame.get_window_size.return_value == (400, 400)
+
 
 class TestNewGame:
 

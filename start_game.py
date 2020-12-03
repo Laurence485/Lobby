@@ -1,6 +1,6 @@
 import pygame
 
-from game.characters import Player
+from game.player import Player
 from game.map import Map
 from game.menu import Menu
 from game.typing import Sprite

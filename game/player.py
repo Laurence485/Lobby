@@ -2,6 +2,7 @@ from typing import Union
 
 import pygame
 
+from enums.base import Base
 from game.map import Map
 from game.typing import Sprite
 from game.utils import (
@@ -15,11 +16,11 @@ config = get_config()
 
 window_width = config['WINDOW_WIDTH']
 window_height = config['WINDOW_HEIGHT']
-window_wall_width = config['WINDOW_WALL_WIDTH']
+window_wall_width = Base.WINDOW_WALL_WIDTH.value
 grid_spacing = config['GRID_SPACING']
 
-player_width = config['PLAYER_WIDTH']
-player_height = config['PLAYER_HEIGHT']
+player_width = Base.PLAYER_WIDTH.value
+player_height = Base.PLAYER_HEIGHT.value
 player_vel = config['PLAYER_VELOCITY']
 
 bike_sound = config['BIKE_SOUND']

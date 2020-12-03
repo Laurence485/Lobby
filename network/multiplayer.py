@@ -1,4 +1,4 @@
-from game.characters import Player
+from game.player import Player
 from game.map import Map
 
 

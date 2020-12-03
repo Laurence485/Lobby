@@ -1,13 +1,11 @@
 WINDOW_WIDTH: 400
 WINDOW_HEIGHT: 400
-WINDOW_WALL_WIDTH: 70
 GRID_SPACING: &grid_spacing 10
 FRAMERATE: 10
+
 BACKGROUND_IMG: 'sprites/background.jpg'
 MAP: 'myfirstmap'
 
-PLAYER_WIDTH: 15   # Used for collision detection.
-PLAYER_HEIGHT: 19  # Used for collision detection.
 PLAYER_VELOCITY: *grid_spacing
 
 BIKE_SOUND: 'sounds/bike.wav'
