@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 
 import pygame
 
@@ -178,8 +178,8 @@ class Player:
 
     def _assign_player_animation(
         self,
-        bike_imgs: Union[list[Sprite], Sprite],
-        walk_imgs: Union[list[Sprite], Sprite],
+        bike_imgs: Union[List[Sprite], Sprite],
+        walk_imgs: Union[List[Sprite], Sprite],
         win: Sprite,
         standing: bool = False
     ) -> None:
@@ -195,7 +195,7 @@ class Player:
 
     def _animate(
         self,
-        player_imgs: Union[list[Sprite], Sprite],
+        player_imgs: Union[List[Sprite], Sprite],
         win: Sprite
     ) -> None:
 

@@ -14,7 +14,7 @@ def get_config(basename: str = 'base') -> dict:
         return yaml.safe_load(config_file)
 
 
-def random_xy(nodes: list) -> tuple:
+def random_xy(nodes: set) -> tuple:
     if not nodes:
         print('Warning: no nodes supplied.')
     return choice(tuple(nodes))

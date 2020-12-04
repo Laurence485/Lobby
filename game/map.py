@@ -5,6 +5,7 @@ from config.sprites import config as get_sprites_config_dict
 from enums.base import Base
 from game.typing import Sprite
 from game.utils import get_config, random_xy, sync_value_with_grid
+from typing import Set
 
 base_config = get_config()
 
@@ -151,7 +152,7 @@ class Object(Map):
         self.square_width = int(self.width / grid_spacing)
         self.square_height = int(self.height / grid_spacing)
 
-    def avaialable_nodes(self) -> set[tuple]:
+    def avaialable_nodes(self) -> Set[tuple]:
         """All the nodes we can position the object at in order to
         keep the object on the screen.
         """
@@ -184,7 +185,7 @@ class Object(Map):
                 else:
                     self.blocked_nodes.add((x, y))
 
-    def find_available_position(self, available_nodes: set[tuple]) -> None:
+    def find_available_position(self, available_nodes: Set[tuple]) -> None:
         """Keep looking for new coords until the object no longer
         touches another object.
         """

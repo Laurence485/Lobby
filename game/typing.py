@@ -1,3 +1,3 @@
 import pygame.surface
 
-Sprite = pygame.Surface
+Sprite = pygame.surface.Surface
