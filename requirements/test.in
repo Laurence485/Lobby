@@ -1,6 +1,0 @@
-isort
-pytest
-pytest-cov
-pytest-flake8
-pytest-mypy
-pytest-isort
