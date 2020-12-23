@@ -1,5 +1,6 @@
 import pygame
 
+from enums.base import Window
 from game.map import Map
 from game.menu import Menu
 from game.player import Player
@@ -12,6 +13,7 @@ config = get_config()
 window_width = config['WINDOW_WIDTH']
 window_height = config['WINDOW_HEIGHT']
 grid_spacing = config['GRID_SPACING']
+grid_colour = Window.GRID_COLOUR.value
 framerate = config['FRAMERATE']
 game_map = config['MAP']
 background = config['BACKGROUND_IMG']
@@ -143,7 +145,9 @@ class NewGame:
                 for y in range(0, window_height, grid_spacing):
                     pygame.draw.rect(
                         self.window,
-                        (125, 125, 125),
+                        (
+                            grid_colour, grid_colour, grid_colour
+                        ),
                         (x, y, grid_spacing, grid_spacing),
                         1
                     )

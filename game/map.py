@@ -2,7 +2,7 @@ import pickle
 from random import seed
 
 from config.sprites import config as get_sprites_config_dict
-from enums.base import Base
+from enums.base import Window
 from game.typing import Sprite
 from game.utils import get_config, random_xy, sync_value_with_grid
 from typing import Set
@@ -11,7 +11,7 @@ base_config = get_config()
 
 window_width = base_config['WINDOW_WIDTH']
 window_height = base_config['WINDOW_HEIGHT']
-window_wall_width = Base.WINDOW_WALL_WIDTH.value
+window_wall_width = Window.WALL_WIDTH.value
 grid_spacing = base_config['GRID_SPACING']
 
 grass_speed = base_config['GRASS_SPEED']
