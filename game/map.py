@@ -14,6 +14,9 @@ window_height = base_config['WINDOW_HEIGHT']
 window_wall_width = Base.WINDOW_WALL_WIDTH.value
 grid_spacing = base_config['GRID_SPACING']
 
+grass_speed = base_config['GRASS_SPEED']
+water_speed = base_config['WATER_SPEED']
+
 
 class Map:
     """Game map related methods."""
@@ -179,9 +182,9 @@ class Object(Map):
         for x in self.perimeter_x:
             for y in self.perimeter_y:
                 if self.name == 'grass':
-                    self.reduced_speed_nodes[(x, y)] = 6
+                    self.reduced_speed_nodes[(x, y)] = grass_speed
                 elif self.name == 'water':
-                    self.reduced_speed_nodes[(x, y)] = 4
+                    self.reduced_speed_nodes[(x, y)] = water_speed
                 else:
                     self.blocked_nodes.add((x, y))
 

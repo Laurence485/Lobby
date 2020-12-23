@@ -5,8 +5,7 @@ from game.menu import Menu
 from game.player import Player
 from game.typing import Sprite
 from game.utils import get_config, random_xy
-from network.multiplayer import Multiplayer
-from network.network import Network
+from network.network import Network, fetch_player_data
 
 config = get_config()
 
@@ -119,7 +118,7 @@ class NewGame:
 
     def fetch_player_data(self) -> None:
         """get data from server."""
-        Multiplayer.fetch_player_data(self.player, self.net)
+        fetch_player_data(self.player, self.net)
 
     def draw_game_objects(self) -> None:
         """Draw objects onto the screen."""

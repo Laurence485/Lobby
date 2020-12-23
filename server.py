@@ -2,13 +2,14 @@ import pickle
 import socket
 
 from game.utils import get_config
-from _thread import *
+from _thread import start_new_thread
 
 config = get_config()
 
 HOST = config['HOST']
 PORT = config['PORT']
-buffer_size = config['BUFFER_SIZE']
+BUFFER_SIZE = config['BUFFER_SIZE']
+CONNECTIONS = 2
 
 attributes = {
     'x': 0,
@@ -24,17 +25,17 @@ attributes = {
     'id': 1,
     'username': 'Noob',
 }
-players = [attributes] * 2
+players = [attributes] * CONNECTIONS
 
 
-def client(conn, player_id: int):
+def client(conn, player_id: int) -> None:
     with conn:
         conn.send(pickle.dumps(player_id))
 
         while True:
             try:
-                # received player attrs
-                data = pickle.loads(conn.recv(buffer_size))
+                # received player attributes.
+                data = pickle.loads(conn.recv(BUFFER_SIZE))
 
                 players[player_id] = data
 
@@ -58,7 +59,7 @@ player = 0  # Player ID
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
     s.bind((HOST, PORT))
-    s.listen(2)
+    s.listen(CONNECTIONS)
     print("Server started, waiting for connection...")
 
     while True:
