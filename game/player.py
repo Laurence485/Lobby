@@ -107,8 +107,9 @@ class Player:
     def attributes(self) -> dict:
         """Send these attributes from the server to the client for
             multiplayer.
+            * LOAD FROM ENUM FILE
         """
-        attrs = {
+        return {
             'x': self.x,
             'y': self.y,
             'L': self.left,
@@ -119,12 +120,9 @@ class Player:
             'walk count': self.walk_count,
             'hit slow': self.in_slow_area,
             'bike': self.bike,
-            'mushroom': self.mushroom,
-            'ID': self.id,
+            'id': self.id,
             'username': self.username,
-            'map': self.map
         }
-        return attrs
 
     def animation_loop(self):
         """A simple counter to loop through the players' sprites.

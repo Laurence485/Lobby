@@ -47,7 +47,7 @@ def _start_game_loop(game_window: Sprite) -> None:
             game.check_keyboard_input(event)
 
         _refresh_game(clock)
-        # game.fetch_data()
+        game.fetch_player_data()
         game.player.check_collisions(
             Map.blocked_nodes, Map.reduced_speed_nodes
         )
@@ -94,10 +94,9 @@ class NewGame:
         )
 
         # Other player objects
-        p2, p3, p4, p5 = None, None, None, None
-        self.players = [p2, p3, p4, p5]
+        self.player.p2 = None
 
-        self.player.ID = 0
+        self.player.id = 0
 
     def check_keyboard_input(self, event: pygame.event.Event) -> None:
         """Check for keyboard input.
@@ -118,12 +117,9 @@ class NewGame:
                     self.player.bike = True
                     self.player.bike_sound.play()
 
-    def fetch_data(self) -> None:
-        """get data from server, player positions, stats, kill status etc"""
-        Multiplayer.get_player_data(
-            self.player, self.net, self.players, self.bikes, self.mushrooms
-        )
-        Multiplayer.check_death_status(self.player, self.players)
+    def fetch_player_data(self) -> None:
+        """get data from server."""
+        Multiplayer.fetch_player_data(self.player, self.net)
 
     def draw_game_objects(self) -> None:
         """Draw objects onto the screen."""
@@ -134,9 +130,8 @@ class NewGame:
         self.player.draw(self.window)
 
         # Draw all players.
-        for p in self.players:
-            if p and p.ID is not None:
-                p.draw(self.window)
+        if self.player.p2 and self.player.p2.id is not None:
+            self.player.p2.draw(self.window)
 
         if self.menu:
             self._show_menu()

@@ -1,60 +1,32 @@
 from game.player import Player
-from game.map import Map
+from network.network import Network
 
 
 class Multiplayer:
-	'''class containing functions checking data from the server'''
-	@staticmethod
-	def get_player_data(ash, net, players, bikes, mushrooms):
-			'''get player data from server and map data to local player objects'''
-			attrs = net.send(ash.attributes()) #return attributes of other players
+    """Handle methods for checking data from the server."""
+    @staticmethod
+    def fetch_player_data(this_player, net: Network):
+        """Get player data from server and map data to local
+        player objects."""
 
-			for i in range(len(players)):
-				'''ith player should map to ith attribute on server as players are
-				added in order which clients connect. If client DCs and reconnects, they are
-				issued the same player id'''
-				a = attrs[i]
+        # Get attributes of other players
+        fetched_player_data = net.send(this_player.attributes())
+        f = fetched_player_data
+        p2 = this_player.p2
 
-				#create new player instance if:
-				#1) we haven't already created an instance
-				#2) they have an ID (they are connected to server)
-				if not players[i] and a['ID'] != None:
-					print(f'{a["username"]} connected.')
-					players[i] = Player((a['x'],a['y']),a['ID'])
+        # create new player instance if:
+        # 1) we haven't already created an instance
+        # 2) they have an ID (they are connected to server)
+        if p2 is None:
+            print(f'{f["username"]} connected.')
+            this_player.p2 = Player((f['x'], f['y']), f['id'])
 
-				#update (in place) the ith player from server
-				elif players[i]:
-					players[i].x, players[i].y = a['x'], a['y']
-					players[i].left, players[i].right, players[i].up, players[i].down = a['L'], a['R'], a['U'], a['D']
-					players[i].standing, players[i].walk_count = a['standing'], a['walk count']
-					players[i].hit_slow, players[i].bike, players[i].mushroom = a['hit slow'], a['bike'], a['mushroom']
-					players[i].inventory = a['inventory']
-					players[i].stats = a['stats']
-					players[i].killed = a['killed']
-					players[i].dead = a['dead']
-					players[i].ID = a['ID']
-					players[i].username = a['username']
-					players[i].map = a['map']
+        # Update player from server
+        else:
+            p2.x, p2.y = f['x'], f['y']
+            p2.left, p2.right, p2.up, p2.down = f['L'], f['R'], f['U'], f['D']
+            p2.standing, p2.walk_count = f['standing'], f['walk count']
+            p2.hit_slow, p2.bike = f['hit slow'], f['bike']
+            p2.id = f['id']
+            p2.username = f['username']
 
-					#change local map if the host has changed the map
-					if players[i].ID == 0 and players[i].map!=ash.map:
-						ash.map = players[i].map
-						Map.load(net.maps[players[i].map])
-
-	@staticmethod
-	def check_death_status(ash, players):
-		'''check if we have died or if another player has been killed by us through ash.check_kill().
-		call ash.die() and set our death and kill status accordingly.'''
-		for p in players:
-			if p:
-				#another player killed us and we are not already dead
-				if p.killed == ash.ID and not ash.dead:
-					ash.die(p.username)
-					ash.dead = True
-				# #we've killed another player and they are dead so reset killed
-				elif p.dead and ash.killed == p.ID:
-					ash.killed = None
-
-		#we are dead and no one else has killed us so reset dead
-		if ash.dead and all(p.killed != ash.ID for p in players if p):
-			ash.dead = False
