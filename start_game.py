@@ -63,7 +63,22 @@ def _get_username() -> str:
 
 
 def _setup_network(username: str) -> Network:
-    net = Network(username.lower())
+    net = Network(
+        {
+            'x': 0,
+            'y': 0,
+            'L': False,
+            'R': False,
+            'U': False,
+            'D': True,
+            'standing': True,
+            'walk count': 0,
+            'hit slow': False,
+            'bike': False,
+            'id': 0,
+            'username': username.lower(),
+            }
+        )
 
     if net.data is None:
         print('cannot connect to server.')
@@ -97,7 +112,7 @@ class NewGame:
         # Other player objects
         self.player.p2 = None
 
-        self.player.id = 0
+        self.player.id = self.net.player_id
 
     def check_keyboard_input(self, event: pygame.event.Event) -> None:
         """Check for keyboard input.
@@ -131,7 +146,7 @@ class NewGame:
         self.player.draw(self.window)
 
         # Draw all players.
-        if self.player.p2 and self.player.p2.id is not None:
+        if self.player.p2:
             self.player.p2.draw(self.window)
 
         if self.menu:

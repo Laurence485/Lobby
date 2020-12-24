@@ -34,9 +34,7 @@ class Player:
         self,
         xy=(50, 70),
         player_id=0,
-        username='Noob',
-        width=15,
-        height=19
+        username='Noob'
     ):
         self.x, self. y = xy
         self.id = player_id
@@ -58,6 +56,34 @@ class Player:
         self._setup_bike_sprites()
         self._setup_bike_attributes()
         self._setup_mushroom_attributes()
+
+    @property
+    def attributes(self) -> dict:
+        """Send these attributes from the server to the client for
+            multiplayer.
+            * LOAD FROM ENUM FILE
+        """
+        return {
+            'x': self.x,
+            'y': self.y,
+            'L': self.left,
+            'R': self.right,
+            'U': self.up,
+            'D': self.down,
+            'standing': self.standing,
+            # We add the current step here instead of the walk count as the
+            # step may be ahead of the walk count at the time the attributes
+            # are sent to the server.
+            'walk count': self._current_step,
+            'hit slow': self.in_slow_area,
+            'bike': self.bike,
+            'id': self.id,
+            'username': self.username,
+        }
+
+    @property
+    def _current_step(self) -> int:
+        return self.animation_loop()
 
     def _setup_player_sprites(self) -> None:
         self.stand_left_img = load_player_img('left1')
@@ -104,27 +130,7 @@ class Player:
         self.mushroom = False
         self.mushroom_sound = sound(mushroom_sound)
 
-    def attributes(self) -> dict:
-        """Send these attributes from the server to the client for
-            multiplayer.
-            * LOAD FROM ENUM FILE
-        """
-        return {
-            'x': self.x,
-            'y': self.y,
-            'L': self.left,
-            'R': self.right,
-            'U': self.up,
-            'D': self.down,
-            'standing': self.standing,
-            'walk count': self.walk_count,
-            'hit slow': self.in_slow_area,
-            'bike': self.bike,
-            'id': self.id,
-            'username': self.username,
-        }
-
-    def animation_loop(self):
+    def animation_loop(self) -> int:
         """A simple counter to loop through the players' sprites.
 
         The numbers are important here as each direction has 2 possible
@@ -134,6 +140,8 @@ class Player:
         """
         if self.walk_count + 1 > 4:
             self.walk_count = 0
+
+        return self.walk_count
 
     def draw(self, win: Sprite) -> None:
         """Draw player onto the screen according to the player's
@@ -201,6 +209,9 @@ class Player:
             player_img_to_draw = player_imgs[self.walk_count // 2]
         except TypeError:
             player_img_to_draw = player_imgs
+        except IndexError:
+            # 'Debug: Walk count is ahead when player 2 calls _animate.'
+            player_img_to_draw = player_imgs[1]
 
         if self.in_slow_area:
             self._draw_player_top_half_only(win, player_img_to_draw)
