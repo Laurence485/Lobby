@@ -60,5 +60,5 @@ def fetch_player_data(this_player: Player, net: Network) -> None:
     else:
         p2.x, p2.y = f['x'], f['y']
         p2.left, p2.right, p2.up, p2.down = f['L'], f['R'], f['U'], f['D']
-        p2.standing, p2.walk_count = f['standing'], f['walk count']
+        p2.standing, p2.walk_count = f['standing'], f['current_step']
         p2.hit_slow, p2.bike = f['hit slow'], f['bike']

@@ -74,7 +74,7 @@ class Player:
             # We add the current step here instead of the walk count as the
             # step may be ahead of the walk count at the time the attributes
             # are sent to the server.
-            'walk count': self._current_step,
+            'current_step': self._current_step,
             'hit slow': self.in_slow_area,
             'bike': self.bike,
             'id': self.id,

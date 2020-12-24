@@ -72,7 +72,7 @@ def _setup_network(username: str) -> Network:
             'U': False,
             'D': True,
             'standing': True,
-            'walk count': 0,
+            'current_step': 0,
             'hit slow': False,
             'bike': False,
             'id': 0,
