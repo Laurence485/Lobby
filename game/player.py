@@ -2,14 +2,16 @@ from typing import List, Union
 
 import pygame
 
-from enums.base import Player, Window
+from enums.base import Player_, Window
 from game.map import Map
 from game.typing import Sprite
 from game.utils import (
     get_config,
     load_player_img,
-    random_xy, sound,
-    sync_value_with_grid
+    random_xy,
+    sound,
+    sync_value_with_grid,
+    network_data
 )
 
 config = get_config()
@@ -19,8 +21,8 @@ window_height = config['WINDOW_HEIGHT']
 window_wall_width = Window.WALL_WIDTH.value
 grid_spacing = config['GRID_SPACING']
 
-player_width = Player.WIDTH.value
-player_height = Player.HEIGHT.value
+player_width = Player_.WIDTH.value
+player_height = Player_.HEIGHT.value
 player_vel = config['PLAYER_VELOCITY']
 
 bike_sound = config['BIKE_SOUND']
@@ -38,6 +40,7 @@ class Player:
     ):
         self.x, self. y = xy
         self.id = player_id
+        self.base_attributes = network_data()
         self.username = username
         self.width = player_width
         self.height = player_height
@@ -61,25 +64,46 @@ class Player:
     def attributes(self) -> dict:
         """Send these attributes from the server to the client for
             multiplayer.
-            * LOAD FROM ENUM FILE
         """
-        return {
-            'x': self.x,
-            'y': self.y,
-            'L': self.left,
-            'R': self.right,
-            'U': self.up,
-            'D': self.down,
-            'standing': self.standing,
+        try:
+            self.base_attributes['x'] = self.x
+            self.base_attributes['y'] = self.y
+            self.base_attributes['L'] = self.left
+            self.base_attributes['R'] = self.right
+            self.base_attributes['U'] = self.up
+            self.base_attributes['D'] = self.down
+            self.base_attributes['standing'] = self.standing
             # We add the current step here instead of the walk count as the
             # step may be ahead of the walk count at the time the attributes
             # are sent to the server.
-            'current_step': self._current_step,
-            'hit slow': self.in_slow_area,
-            'bike': self.bike,
-            'id': self.id,
-            'username': self.username,
-        }
+            self.base_attributes['current_step'] = self._current_step
+            self.base_attributes['hit slow'] = self.in_slow_area
+            self.base_attributes['bike'] = self.bike
+            self.base_attributes['id'] = self.id
+            self.base_attributes['username'] = self.username
+        except AttributeError:
+            raise AttributeError(
+                'Expected base player attributes do not match.'
+            )
+        else:
+            return self.base_attributes
+        # return {
+        #     'x': self.x,
+        #     'y': self.y,
+        #     'L': self.left,
+        #     'R': self.right,
+        #     'U': self.up,
+        #     'D': self.down,
+        #     'standing': self.standing,
+        #     # We add the current step here instead of the walk count as the
+        #     # step may be ahead of the walk count at the time the attributes
+        #     # are sent to the server.
+        #     'current_step': self._current_step,
+        #     'hit slow': self.in_slow_area,
+        #     'bike': self.bike,
+        #     'id': self.id,
+        #     'username': self.username,
+        # }
 
     @property
     def _current_step(self) -> int:

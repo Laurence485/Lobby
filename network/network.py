@@ -50,9 +50,7 @@ def fetch_player_data(this_player: Player, net: Network) -> None:
     f = fetched_player_data
     p2 = getattr(this_player, 'p2', None)
 
-    # create new player instance if:
-    # 1) we haven't already created an instance
-    # 2) they have an ID (they are connected to server)
+    # Create new player instance if we haven't done so yet.
     if p2 is None:
         print(f'{f["username"]} connected.')
         this_player.p2 = Player((f['x'], f['y']), f['id'], f['username'])

@@ -1,6 +1,8 @@
 import math
 import yaml
 
+from copy import copy
+from enums.base import Network_
 from random import choice
 
 import pygame.image
@@ -37,6 +39,12 @@ def load_player_img(
     return pygame.image.load(
         f'{img_dir} {player_id}/{img}.png'
     ).convert_alpha()
+
+
+def network_data() -> dict:
+    """The player data that gets sent back and forth from the server.
+    """
+    return copy(Network_.PLAYER_ATTRIBUTES.value)
 
 
 def sound(path_to_sound_file: str) -> pygame.mixer.Sound:

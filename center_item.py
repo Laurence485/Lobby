@@ -1,4 +1,4 @@
-import config
+asdf34import config
 
 
 class centerItem:

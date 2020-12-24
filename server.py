@@ -1,8 +1,7 @@
 import pickle
 import socket
 
-from copy import deepcopy
-from game.utils import get_config
+from game.utils import get_config, network_data
 from _thread import start_new_thread
 
 config = get_config()
@@ -10,23 +9,9 @@ config = get_config()
 HOST = config['HOST']
 PORT = config['PORT']
 BUFFER_SIZE = config['BUFFER_SIZE']
-CONNECTIONS = 2
+CONNECTIONS = config['MAX_CONNECTIONS']
 
-attributes = {
-    'x': 0,
-    'y': 0,
-    'L': False,
-    'R': False,
-    'U': False,
-    'D': True,
-    'standing': True,
-    'current_step': 0,
-    'hit slow': False,
-    'bike': False,
-    'id': 1,
-    'username': 'Noob',
-}
-players = [deepcopy(attributes), deepcopy(attributes)]  # * CONNECTIONS
+players = {0: network_data(), 1: network_data()}
 
 
 def client(conn, player_id: int) -> None:

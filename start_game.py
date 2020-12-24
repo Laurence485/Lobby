@@ -5,7 +5,7 @@ from game.map import Map
 from game.menu import Menu
 from game.player import Player
 from game.typing import Sprite
-from game.utils import get_config, random_xy
+from game.utils import get_config, random_xy, network_data
 from network.network import Network, fetch_player_data
 
 config = get_config()
@@ -13,10 +13,10 @@ config = get_config()
 window_width = config['WINDOW_WIDTH']
 window_height = config['WINDOW_HEIGHT']
 grid_spacing = config['GRID_SPACING']
-grid_colour = Window.GRID_COLOUR.value
 framerate = config['FRAMERATE']
 game_map = config['MAP']
 background = config['BACKGROUND_IMG']
+grid_colour = Window.GRID_COLOUR.value
 
 if grid_spacing != 10:
     raise NotImplementedError('Do not adjust the grid spacing.')
@@ -63,22 +63,10 @@ def _get_username() -> str:
 
 
 def _setup_network(username: str) -> Network:
-    net = Network(
-        {
-            'x': 0,
-            'y': 0,
-            'L': False,
-            'R': False,
-            'U': False,
-            'D': True,
-            'standing': True,
-            'current_step': 0,
-            'hit slow': False,
-            'bike': False,
-            'id': 0,
-            'username': username.lower(),
-            }
-        )
+    data = network_data()
+    data['username'] = username.lower()
+
+    net = Network(data)
 
     if net.data is None:
         print('cannot connect to server.')
