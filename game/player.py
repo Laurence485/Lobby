@@ -48,7 +48,7 @@ class Player:
         self.walk_count = 0
         self.hitbox = (self.x, self.y, self.width, self.height)
         self.hit_wall = False
-        self.in_slow_area = False  # Slow the players movement in grass/water.
+        self.in_slow_area = False  # Slow the player's movement in grass/water.
         self.left = False
         self.right = False
         self.up = False
@@ -67,7 +67,7 @@ class Player:
 
     @property
     def attributes(self) -> dict:
-        """Attributes to send from the client to the server."""
+        """Attributes to send to/from the client and server."""
         for attribute in self.base_attributes.keys():
             self.base_attributes[attribute] = getattr(self, attribute)
 
@@ -327,7 +327,7 @@ class Player:
 
     def _prevent_movement_into_wall(self) -> None:
         if self.standing:
-            print(f'Debug: Frozen on a wall. Reassigning (x,y) position.')
+            print('Debug: Frozen on a wall. Reassigning (x,y) position.')
             self.x, self.y = random_xy(Map.nodes)
         if self.left:
             self.x += self.vel
@@ -342,13 +342,13 @@ class Player:
         """Set all directions to false except the current direction in
         which the player is moving.
         """
-        self.__dict__[current_direction] = True
+        setattr(self, current_direction, True)
 
         all_directions = {'left', 'right', 'up', 'down'}
         all_directions.remove(current_direction)
 
         for direction in all_directions:
-            self.__dict__[direction] = False
+            setattr(self, direction, False)
 
         self.standing = False
 
