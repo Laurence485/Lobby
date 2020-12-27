@@ -12,7 +12,7 @@ BUFFER_SIZE = config['BUFFER_SIZE']
 CONNECTIONS = config['MAX_CONNECTIONS']
 
 current_player_id = 0
-players = {0: network_data(), 1: network_data()}
+players = {}
 
 
 def number_of_players() -> int:

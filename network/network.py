@@ -42,8 +42,11 @@ class Network:
 def fetch_player_data(this_player: Player, net: Network) -> None:
     """Send and receive player data from the server."""
 
-    # Attributes of other players
     received_data = net.send(this_player.attributes)
+
+    # The other player has not yet connected.
+    if received_data['id'] is None:
+        return None
 
     p2 = getattr(this_player, 'p2', None)
 
