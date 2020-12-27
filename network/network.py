@@ -27,7 +27,7 @@ class Network:
         try:
             self.client.connect(self.addr)
             self.client.send(pickle.dumps(player_attributes))
-            self.player_id = pickle.loads(self.client.recv(BUFFER_SIZE))  # ???
+            self.player_id = pickle.loads(self.client.recv(BUFFER_SIZE))
             return True
         except socket.error:
             # raise ServerError("Could not connect to server.")
@@ -45,18 +45,25 @@ class Network:
 def fetch_player_data(this_player: Player, net: Network) -> None:
     """Send and receive player data from the server."""
 
-    # Get attributes of other players
-    fetched_player_data = net.send(this_player.attributes)
-    f = fetched_player_data
+    # Attributes of other players
+    received_data = net.send(this_player.attributes)
+
     p2 = getattr(this_player, 'p2', None)
 
     # Create new player instance if we haven't done so yet.
     if p2 is None:
-        print(f'{f["username"]} connected.')
-        this_player.p2 = Player((f['x'], f['y']), f['id'], f['username'])
-    # Update player from server
+        print(f'{received_data["username"]} connected.')
+        this_player.p2 = Player(
+            (received_data['x'], received_data['y']),
+            received_data['id'],
+            received_data['username']
+        )
+    # Update player data from server
     else:
-        p2.x, p2.y = f['x'], f['y']
-        p2.left, p2.right, p2.up, p2.down = f['L'], f['R'], f['U'], f['D']
-        p2.standing, p2.walk_count = f['standing'], f['current_step']
-        p2.hit_slow, p2.bike = f['hit slow'], f['bike']
+        for attribute, value in received_data.items():
+            if attribute == 'in_slow_area':
+                setattr(p2, 'hit_slow', value)
+            elif attribute == '_current_step':
+                setattr(p2, 'walk_count', value)
+            else:
+                setattr(p2, attribute, value)

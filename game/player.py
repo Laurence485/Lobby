@@ -59,55 +59,19 @@ class Player:
         self._setup_bike_sprites()
         self._setup_bike_attributes()
         self._setup_mushroom_attributes()
-
-    @property
-    def attributes(self) -> dict:
-        """Send these attributes from the server to the client for
-            multiplayer.
-        """
-        try:
-            self.base_attributes['x'] = self.x
-            self.base_attributes['y'] = self.y
-            self.base_attributes['L'] = self.left
-            self.base_attributes['R'] = self.right
-            self.base_attributes['U'] = self.up
-            self.base_attributes['D'] = self.down
-            self.base_attributes['standing'] = self.standing
-            # We add the current step here instead of the walk count as the
-            # step may be ahead of the walk count at the time the attributes
-            # are sent to the server.
-            self.base_attributes['current_step'] = self._current_step
-            self.base_attributes['hit slow'] = self.in_slow_area
-            self.base_attributes['bike'] = self.bike
-            self.base_attributes['id'] = self.id
-            self.base_attributes['username'] = self.username
-        except AttributeError:
-            raise AttributeError(
-                'Expected base player attributes do not match.'
-            )
-        else:
-            return self.base_attributes
-        # return {
-        #     'x': self.x,
-        #     'y': self.y,
-        #     'L': self.left,
-        #     'R': self.right,
-        #     'U': self.up,
-        #     'D': self.down,
-        #     'standing': self.standing,
-        #     # We add the current step here instead of the walk count as the
-        #     # step may be ahead of the walk count at the time the attributes
-        #     # are sent to the server.
-        #     'current_step': self._current_step,
-        #     'hit slow': self.in_slow_area,
-        #     'bike': self.bike,
-        #     'id': self.id,
-        #     'username': self.username,
-        # }
+        self._setup_network_attributes()
 
     @property
     def _current_step(self) -> int:
         return self.animation_loop()
+
+    @property
+    def attributes(self) -> dict:
+        """Attributes to send from the client to the server."""
+        for attribute in self.base_attributes.keys():
+            self.base_attributes[attribute] = getattr(self, attribute)
+
+        return self.base_attributes
 
     def _setup_player_sprites(self) -> None:
         self.stand_left_img = load_player_img('left1')
@@ -153,6 +117,20 @@ class Player:
         self.start_mushroom_ticks = 0
         self.mushroom = False
         self.mushroom_sound = sound(mushroom_sound)
+
+    def _setup_network_attributes(self) -> None:
+        for expected_attr in self.base_attributes.keys():
+            try:
+                getattr(self, expected_attr)
+            except AttributeError as e:
+                raise AttributeError(
+                    (
+                        'Expected base player attributes to send to the'
+                        ' network do not match the attributes in the'
+                        ' Player class. \n'
+                        f'Error: {e}.'
+                    )
+                )
 
     def animation_loop(self) -> int:
         """A simple counter to loop through the players' sprites.
@@ -233,9 +211,6 @@ class Player:
             player_img_to_draw = player_imgs[self.walk_count // 2]
         except TypeError:
             player_img_to_draw = player_imgs
-        except IndexError:
-            # 'Debug: Walk count is ahead when player 2 calls _animate.'
-            player_img_to_draw = player_imgs[1]
 
         if self.in_slow_area:
             self._draw_player_top_half_only(win, player_img_to_draw)

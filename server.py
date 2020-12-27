@@ -36,7 +36,7 @@ def client(conn, player_id: int) -> None:
                     else:
                         raise Exception(f'UNEXPECTED PLAYER ID: {player_id}')
 
-                print(reply, player_id)
+                # print(reply, player_id)
                 conn.sendall(pickle.dumps(reply))
             except socket.error as e:
                 print(e)
