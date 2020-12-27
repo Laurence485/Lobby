@@ -61,9 +61,7 @@ def fetch_player_data(this_player: Player, net: Network) -> None:
     # Update player data from server
     else:
         for attribute, value in received_data.items():
-            if attribute == 'in_slow_area':
-                setattr(p2, 'hit_slow', value)
-            elif attribute == '_current_step':
+            if attribute == '_current_step':
                 setattr(p2, 'walk_count', value)
             else:
                 setattr(p2, attribute, value)
