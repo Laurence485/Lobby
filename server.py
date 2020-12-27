@@ -11,16 +11,22 @@ PORT = config['PORT']
 BUFFER_SIZE = config['BUFFER_SIZE']
 CONNECTIONS = config['MAX_CONNECTIONS']
 
+current_player_id = 0
 players = {0: network_data(), 1: network_data()}
+
+
+def number_of_players() -> int:
+    return current_player_id
 
 
 def client(conn, player_id: int) -> None:
     with conn:
-        conn.send(pickle.dumps(player_id))
+        conn.send(pickle.dumps((player_id)))
+
+        players[player_id] = network_data()
 
         while True:
             try:
-                # received player attributes.
                 player_attributes = pickle.loads(conn.recv(BUFFER_SIZE))
 
                 players[player_id] = player_attributes
@@ -46,8 +52,6 @@ def client(conn, player_id: int) -> None:
         print(f'Connection dropped ({current_player}, ID: {player_id}).')
 
 
-player_id = 0
-
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
     s.bind((HOST, PORT))
@@ -56,7 +60,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
     while True:
         conn, addr = s.accept()
-        print('Connected by:', addr, f'Player id: {player_id}')
+        print('Connected by:', addr, f'Player id: {current_player_id}')
 
-        start_new_thread(client, (conn, player_id))
-        player_id += 1
+        start_new_thread(client, (conn, current_player_id))
+        current_player_id += 1

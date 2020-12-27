@@ -21,7 +21,7 @@ class Network_(Enum):
         '_current_step': 0,
         'in_slow_area': False,
         'bike': False,
-        'id': 0,
+        'id': None,
         'username': 'defaultuser',
     }
 
