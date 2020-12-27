@@ -14,19 +14,16 @@ BUFFER_SIZE = config['BUFFER_SIZE']
 
 
 class Network:
-    def __init__(self, player_attributes: dict):
+    def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.HOST = HOST
         self.PORT = PORT
         self.addr = (self.HOST, self.PORT)
-        self.player_attributes = player_attributes
-        self.username = self.player_attributes['username']
-        self.data = self.connect(player_attributes)
+        self.data = self.connect()
 
-    def connect(self, player_attributes: dict) -> Union[bool, None]:
+    def connect(self) -> Union[bool, None]:
         try:
             self.client.connect(self.addr)
-            self.client.send(pickle.dumps(player_attributes))
             self.player_id = pickle.loads(self.client.recv(BUFFER_SIZE))
             return True
         except socket.error:

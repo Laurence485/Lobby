@@ -5,7 +5,7 @@ from game.map import Map
 from game.menu import Menu
 from game.player import Player
 from game.typing import Sprite
-from game.utils import get_config, random_xy, network_data
+from game.utils import get_config, random_xy
 from network.network import Network, fetch_player_data
 
 config = get_config()
@@ -38,7 +38,7 @@ def _start_game_loop(game_window: Sprite) -> None:
 
     Map.load(game_map)
     # Map(341)
-    game = NewGame(game_window, _setup_network(_get_username()))
+    game = NewGame(game_window, _setup_network(), _get_username())
 
     while game_is_running:
         for event in pygame.event.get():
@@ -62,11 +62,8 @@ def _get_username() -> str:
     return 'testUser'
 
 
-def _setup_network(username: str) -> Network:
-    data = network_data()
-    data['username'] = username.lower()
-
-    net = Network(data)
+def _setup_network() -> Network:
+    net = Network()
 
     if net.data is None:
         print('cannot connect to server.')
@@ -83,11 +80,11 @@ def _refresh_game(clock: pygame.time.Clock) -> int:
 class NewGame:
     """Setup a new game and handle game loop methods."""
 
-    def __init__(self, game_window: Sprite, net: Network):
+    def __init__(self, game_window: Sprite, net: Network, username: str):
         self.background = pygame.image.load(background).convert()
         self.window = game_window
         self.net = net
-        self.username = self.net.username
+        self.username = username
         self.menu = False
         self.grid = False
 
