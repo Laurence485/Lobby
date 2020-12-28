@@ -16,20 +16,19 @@ current_player_id = 0
 players = {}
 
 
-def number_of_players() -> int:
-    return current_player_id
-
-
 def client(conn, player_id: int) -> None:
     with conn:
-        conn.send(pickle.dumps((player_id)))
+        conn.send(pickle.dumps(player_id))
 
         players[player_id] = network_data()
 
         while True:
             try:
                 player_attributes = pickle.loads(conn.recv(BUFFER_SIZE))
-
+            except EOFError:
+                disconnect_player(player_id)
+                break
+            else:
                 players[player_id] = player_attributes
 
                 if not player_attributes:
@@ -39,14 +38,13 @@ def client(conn, player_id: int) -> None:
                     responses = deepcopy(players)
                     del responses[player_id]
 
-                # print(reply, player_id)
                 conn.sendall(pickle.dumps(responses))
-            except socket.error as e:
-                print(e)
-                break
 
-        current_player = players[player_id]['username']
-        print(f'Connection dropped ({current_player}, ID: {player_id}).')
+
+def disconnect_player(player_id) -> None:
+    username = players[player_id]['username']
+    players[player_id]['x'] = None
+    print(f'Connection dropped ({username}, Player id: {player_id}).')
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

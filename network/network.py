@@ -39,26 +39,39 @@ class Network:
             print(f'Could not send data to server. Error: {e}.')
 
 
-def fetch_player_data(this_player: Player, net: Network, all_players) -> None:
+def fetch_player_data(
+    this_player: Player,
+    other_players: dict[int, Player],
+    net: Network
+) -> None:
     """Send and receive player data from the server."""
 
-    responses = net.send(this_player.attributes)
+    response = net.send(this_player.attributes)
 
-    for data in responses.values():
-        # The other player has not yet connected.
-        if data['id'] is None:
+    for data in response.values():
+        # No players have connected yet.
+        if data['username'] is None:
             return None
-
+        # Xpos was set to None, so this player has disconnected.
+        elif data['x'] is None:
+            try:
+                del other_players[data['id']]
+            except KeyError:
+                pass
+            else:
+                print(f'{data["username"]} disconnected.')
+            finally:
+                return None
         try:
-            player = all_players[data['id']]
+            player = other_players[data['id']]
         # Create new player instance if we haven't done so yet.
         except KeyError:
-            print(f'{data["username"]} connected.')
-            all_players[data['id']] = Player(
+            other_players[data['id']] = Player(
                 (data['x'], data['y']),
                 data['id'],
                 data['username']
             )
+            print(f'{data["username"]} connected.')
         # Update player data from server.
         else:
             for attribute, value in data.items():

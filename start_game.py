@@ -18,8 +18,8 @@ game_map = config['MAP']
 background = config['BACKGROUND_IMG']
 grid_colour = Window.GRID_COLOUR.value
 
-# Dict to hold attributes for all players on network.
-all_players = {}
+# Dict to hold id:attributes for all the other players on the network.
+other_players = {}
 
 if grid_spacing != 10:
     raise NotImplementedError('Do not adjust the grid spacing.')
@@ -120,7 +120,7 @@ class NewGame:
 
     def fetch_player_data(self) -> None:
         """get data from server."""
-        fetch_player_data(self.player, self.net, all_players)
+        fetch_player_data(self.player, other_players, self.net)
 
     def draw_game_objects(self) -> None:
         """Draw objects onto the screen."""
@@ -130,8 +130,8 @@ class NewGame:
         Map.draw(self.window)
         self.player.draw(self.window)
 
-        if all_players:
-            for player in all_players.values():
+        if other_players:
+            for player in other_players.values():
                 player.draw(self.window)
 
         if self.menu:
