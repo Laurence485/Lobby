@@ -1,6 +1,7 @@
 import pickle
 import socket
 
+from copy import deepcopy
 from game.utils import get_config, network_data
 from _thread import start_new_thread
 
@@ -12,7 +13,7 @@ BUFFER_SIZE = config['BUFFER_SIZE']
 CONNECTIONS = config['MAX_CONNECTIONS']
 
 current_player_id = 0
-players = {0: network_data(), 1: network_data()}
+players = {}
 
 
 def number_of_players() -> int:
@@ -22,6 +23,8 @@ def number_of_players() -> int:
 def client(conn, player_id: int) -> None:
     with conn:
         conn.send(pickle.dumps((player_id)))
+
+        players[player_id] = network_data()
 
         while True:
             try:
@@ -33,15 +36,11 @@ def client(conn, player_id: int) -> None:
                     print('Disconnected from server.')
                     break
                 else:
-                    if player_id == 0:
-                        reply = players[1]
-                    elif player_id == 1:
-                        reply = players[0]
-                    else:
-                        raise Exception(f'UNEXPECTED PLAYER ID: {player_id}')
+                    responses = deepcopy(players)
+                    del responses[player_id]
 
                 # print(reply, player_id)
-                conn.sendall(pickle.dumps(reply))
+                conn.sendall(pickle.dumps(responses))
             except socket.error as e:
                 print(e)
                 break

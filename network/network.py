@@ -42,26 +42,27 @@ class Network:
 def fetch_player_data(this_player: Player, net: Network, all_players) -> None:
     """Send and receive player data from the server."""
 
-    received_data = net.send(this_player.attributes)
+    responses = net.send(this_player.attributes)
 
-    # The other player has not yet connected.
-    if received_data['id'] is None:
-        return None
+    for data in responses.values():
+        # The other player has not yet connected.
+        if data['id'] is None:
+            return None
 
-    try:
-        player = all_players[received_data['id']]
-    # Create new player instance if we haven't done so yet.
-    except KeyError:
-        print(f'{received_data["username"]} connected.')
-        all_players[received_data['id']] = Player(
-            (received_data['x'], received_data['y']),
-            received_data['id'],
-            received_data['username']
-        )
-    # Update player data from server.
-    else:
-        for attribute, value in received_data.items():
-            if attribute == '_current_step':
-                setattr(player, 'walk_count', value)
-            else:
-                setattr(player, attribute, value)
+        try:
+            player = all_players[data['id']]
+        # Create new player instance if we haven't done so yet.
+        except KeyError:
+            print(f'{data["username"]} connected.')
+            all_players[data['id']] = Player(
+                (data['x'], data['y']),
+                data['id'],
+                data['username']
+            )
+        # Update player data from server.
+        else:
+            for attribute, value in data.items():
+                if attribute == '_current_step':
+                    setattr(player, 'walk_count', value)
+                else:
+                    setattr(player, attribute, value)
