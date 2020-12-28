@@ -18,6 +18,9 @@ game_map = config['MAP']
 background = config['BACKGROUND_IMG']
 grid_colour = Window.GRID_COLOUR.value
 
+# Dict to hold attributes for all players on network.
+all_players = {}
+
 if grid_spacing != 10:
     raise NotImplementedError('Do not adjust the grid spacing.')
 
@@ -94,9 +97,6 @@ class NewGame:
             username=self.username,
         )
 
-        # Other player objects
-        self.player.p2 = None
-
         self.player.id = self.net.player_id
 
     def check_keyboard_input(self, event: pygame.event.Event) -> None:
@@ -120,7 +120,7 @@ class NewGame:
 
     def fetch_player_data(self) -> None:
         """get data from server."""
-        fetch_player_data(self.player, self.net)
+        fetch_player_data(self.player, self.net, all_players)
 
     def draw_game_objects(self) -> None:
         """Draw objects onto the screen."""
@@ -130,9 +130,9 @@ class NewGame:
         Map.draw(self.window)
         self.player.draw(self.window)
 
-        # Draw all players.
-        if self.player.p2:
-            self.player.p2.draw(self.window)
+        if all_players:
+            for player in all_players.values():
+                player.draw(self.window)
 
         if self.menu:
             self._show_menu()

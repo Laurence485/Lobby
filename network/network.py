@@ -39,7 +39,7 @@ class Network:
             print(f'Could not send data to server. Error: {e}.')
 
 
-def fetch_player_data(this_player: Player, net: Network) -> None:
+def fetch_player_data(this_player: Player, net: Network, all_players) -> None:
     """Send and receive player data from the server."""
 
     received_data = net.send(this_player.attributes)
@@ -48,20 +48,20 @@ def fetch_player_data(this_player: Player, net: Network) -> None:
     if received_data['id'] is None:
         return None
 
-    p2 = getattr(this_player, 'p2', None)
-
+    try:
+        player = all_players[received_data['id']]
     # Create new player instance if we haven't done so yet.
-    if p2 is None:
+    except KeyError:
         print(f'{received_data["username"]} connected.')
-        this_player.p2 = Player(
+        all_players[received_data['id']] = Player(
             (received_data['x'], received_data['y']),
             received_data['id'],
             received_data['username']
         )
-    # Update player data from server
+    # Update player data from server.
     else:
         for attribute, value in received_data.items():
             if attribute == '_current_step':
-                setattr(p2, 'walk_count', value)
+                setattr(player, 'walk_count', value)
             else:
-                setattr(p2, attribute, value)
+                setattr(player, attribute, value)

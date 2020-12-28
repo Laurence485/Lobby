@@ -12,7 +12,7 @@ BUFFER_SIZE = config['BUFFER_SIZE']
 CONNECTIONS = config['MAX_CONNECTIONS']
 
 current_player_id = 0
-players = {}
+players = {0: network_data(), 1: network_data()}
 
 
 def number_of_players() -> int:
@@ -22,8 +22,6 @@ def number_of_players() -> int:
 def client(conn, player_id: int) -> None:
     with conn:
         conn.send(pickle.dumps((player_id)))
-
-        players[player_id] = network_data()
 
         while True:
             try:
