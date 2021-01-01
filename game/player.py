@@ -2,7 +2,7 @@ from typing import List, Union
 
 import pygame
 
-from enums.base import Player_, Window
+from enums.base import Base, Player_, Window
 from game.map import Map
 from game.typing import Sprite
 from game.utils import (
@@ -13,6 +13,9 @@ from game.utils import (
     sync_value_with_grid,
     network_data
 )
+from functools import partial
+from random import randint
+from typing import Callable
 
 config = get_config()
 
@@ -55,6 +58,7 @@ class Player:
         self.down = True
         self.standing = True
         self.strafe = False
+        self._set_player_img_id()
         self._setup_player_sprites()
         self._setup_bike_sprites()
         self._setup_bike_attributes()
@@ -73,40 +77,63 @@ class Player:
 
         return self.base_attributes
 
+    def _set_player_img_id(self) -> int:
+        if self.id < Base.PLAYER_COLOURS.value:
+            img_id = self.id
+        else:
+            img_id = randint(0, Base.PLAYER_COLOURS.value - 1)
+
+        setattr(self, 'img_id', img_id)
+
+    def _load_player_img(self, img: str) -> Callable:
+        return partial(
+            load_player_img, img_id=getattr(self, 'img_id', 0)
+        )(img)
+
     def _setup_player_sprites(self) -> None:
-        self.stand_left_img = load_player_img('left1')
-        self.stand_right_img = load_player_img('right1')
-        self.stand_up_img = load_player_img('up1')
-        self.stand_down_img = load_player_img('down1')
+        self.stand_left_img = self._load_player_img('left1')
+        self.stand_right_img = self._load_player_img('right1')
+        self.stand_up_img = self._load_player_img('up1')
+        self.stand_down_img = self._load_player_img('down1')
 
         self.walk_left_imgs = [
-            load_player_img('left2'), load_player_img('left3')
+            self._load_player_img('left2'),
+            self._load_player_img('left3')
         ]
         self.walk_right_imgs = [
-            load_player_img('right2'), load_player_img('right3')
+            self._load_player_img('right2'),
+            self._load_player_img('right3')
         ]
-        self.walk_up_imgs = [load_player_img('up2'), load_player_img('up3')]
+        self.walk_up_imgs = [
+            self._load_player_img('up2'),
+            self._load_player_img('up3')
+        ]
         self.walk_down_imgs = [
-            load_player_img('down2'), load_player_img('down3')
+            self._load_player_img('down2'),
+            self._load_player_img('down3')
         ]
 
     def _setup_bike_sprites(self) -> None:
-        self.bike_stand_left_img = load_player_img('bike_left1')
-        self.bike_stand_right_img = load_player_img('bike_right1')
-        self.bike_stand_up_img = load_player_img('bike_up1')
-        self.bike_stand_down_img = load_player_img('bike_down1')
+        self.bike_stand_left_img = self._load_player_img('bike_left1')
+        self.bike_stand_right_img = self._load_player_img('bike_right1')
+        self.bike_stand_up_img = self._load_player_img('bike_up1')
+        self.bike_stand_down_img = self._load_player_img('bike_down1')
 
         self.bike_left_imgs = [
-            load_player_img('bike_left2'), load_player_img('bike_left3')
+            self._load_player_img('bike_left2'),
+            self._load_player_img('bike_left3')
         ]
         self.bike_right_imgs = [
-            load_player_img('bike_right2'), load_player_img('bike_right3')
+            self._load_player_img('bike_right2'),
+            self._load_player_img('bike_right3')
         ]
         self.bike_up_imgs = [
-            load_player_img('bike_up2'), load_player_img('bike_up3')
+            self._load_player_img('bike_up2'),
+            self._load_player_img('bike_up3')
         ]
         self.bike_down_imgs = [
-            load_player_img('bike_down2'), load_player_img('bike_down3')
+            self._load_player_img('bike_down2'),
+            self._load_player_img('bike_down3')
         ]
 
     def _setup_bike_attributes(self) -> None:

@@ -33,10 +33,10 @@ def load_map_img(
 def load_player_img(
     img: str,
     img_dir: str = 'sprites/player',
-    player_id: int = 0
+    img_id: int = 0
 ) -> Sprite:
     return pygame.image.load(
-        f'{img_dir} {player_id}/{img}.png'
+        f'{img_dir} {img_id}/{img}.png'
     ).convert_alpha()
 
 

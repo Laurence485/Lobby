@@ -1,6 +1,9 @@
 from enum import Enum
 
 
+class Base(Enum):
+    PLAYER_COLOURS = 6  # Total number of different player colours.
+
 class Player_(Enum):
     WIDTH = 15   # Used for collision detection.
     HEIGHT = 19  # Used for collision detection.

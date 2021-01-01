@@ -93,11 +93,9 @@ class NewGame:
 
         self.player = Player(
             xy=random_xy(Map.nodes),
-            player_id=0,
+            player_id=self.net.player_id,
             username=self.username,
         )
-
-        self.player.id = self.net.player_id
 
     def check_keyboard_input(self, event: pygame.event.Event) -> None:
         """Check for keyboard input.
