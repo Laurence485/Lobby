@@ -1,7 +1,6 @@
 import pickle
 import socket
 
-from copy import deepcopy
 from game.utils import get_config, network_data
 from _thread import start_new_thread
 
@@ -14,6 +13,7 @@ CONNECTIONS = config['MAX_CONNECTIONS']
 
 current_player_id = 0
 players = {}
+disconnected_player_ids = []
 
 
 def client(conn, player_id: int) -> None:
@@ -26,7 +26,7 @@ def client(conn, player_id: int) -> None:
             try:
                 player_attributes = pickle.loads(conn.recv(BUFFER_SIZE))
             except EOFError:
-                disconnect_player(player_id)
+                _disconnect_player(player_id)
                 break
             else:
                 players[player_id] = player_attributes
@@ -34,17 +34,33 @@ def client(conn, player_id: int) -> None:
                 if not player_attributes:
                     print('Disconnected from server.')
                     break
-                else:
-                    responses = deepcopy(players)
-                    del responses[player_id]
 
-                conn.sendall(pickle.dumps(responses))
+                conn.sendall(pickle.dumps(players))
+
+                if disconnected_player_ids:
+                    delete_disconnected_players()
 
 
-def disconnect_player(player_id) -> None:
-    username = players[player_id]['username']
+def _disconnect_player(player_id) -> None:
+    # Indicate that this player should be deleted locally.
     players[player_id]['x'] = None
-    print(f'Connection dropped ({username}, Player id: {player_id}).')
+    disconnected_player_ids.append(player_id)
+    print(
+        f'Connection dropped ({players[player_id]["username"]},'
+        f' Player id: {player_id}).'
+    )
+
+
+def delete_disconnected_players() -> None:
+    for id_ in disconnected_player_ids:
+        try:
+            del players[id_]
+        except KeyError:
+            print(
+                f'Could not delete player ({players[id_]["username"]},'
+                f' id: {id_})  from server.'
+            )
+        disconnected_player_ids.remove(id_)
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

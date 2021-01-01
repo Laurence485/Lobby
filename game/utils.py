@@ -35,7 +35,6 @@ def load_player_img(
     img_dir: str = 'sprites/player',
     player_id: int = 0
 ) -> Sprite:
-
     return pygame.image.load(
         f'{img_dir} {player_id}/{img}.png'
     ).convert_alpha()

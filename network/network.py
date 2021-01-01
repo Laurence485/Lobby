@@ -37,6 +37,7 @@ class Network:
             return pickle.loads(self.client.recv(BUFFER_SIZE))
         except socket.error as e:
             print(f'Could not send data to server. Error: {e}.')
+            return None
 
 
 def fetch_player_data(
@@ -49,33 +50,50 @@ def fetch_player_data(
     response = net.send(this_player.attributes)
 
     for data in response.values():
+        if data['id'] == this_player.id:
+            continue
         # No players have connected yet.
         if data['username'] is None:
             return None
         # Xpos was set to None, so this player has disconnected.
-        elif data['x'] is None:
-            try:
-                del other_players[data['id']]
-            except KeyError:
-                pass
+        if data['x'] is None:
+            _delete_player(other_players, data)
+            return None
+
+        _update_player(other_players, data)
+
+
+def _delete_player(other_players: dict[int, Player], data: dict) -> None:
+    try:
+        del other_players[data['id']]
+    except KeyError:
+        print(
+            f'Could not delete player ({data["username"]},'
+            f' id: {data["id"]}).'
+        )
+    else:
+        print(f'{data["username"]} disconnected.')
+
+
+def _update_player(other_players: dict[int, Player], data: dict) -> None:
+    """Update player data from the server if player has been created,
+    otherwise create the player."""
+    try:
+        player = other_players[data['id']]
+    except KeyError:
+        _create_player(other_players, data)
+        print(f'{data["username"]} connected.')
+    else:
+        for attribute, value in data.items():
+            if attribute == '_current_step':
+                setattr(player, 'walk_count', value)
             else:
-                print(f'{data["username"]} disconnected.')
-            finally:
-                return None
-        try:
-            player = other_players[data['id']]
-        # Create new player instance if we haven't done so yet.
-        except KeyError:
-            other_players[data['id']] = Player(
-                (data['x'], data['y']),
-                data['id'],
-                data['username']
-            )
-            print(f'{data["username"]} connected.')
-        # Update player data from server.
-        else:
-            for attribute, value in data.items():
-                if attribute == '_current_step':
-                    setattr(player, 'walk_count', value)
-                else:
-                    setattr(player, attribute, value)
+                setattr(player, attribute, value)
+
+
+def _create_player(other_players: dict[int, Player], data: dict) -> None:
+    other_players[data['id']] = Player(
+        (data['x'], data['y']),
+        data['id'],
+        data['username']
+    )
