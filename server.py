@@ -17,7 +17,6 @@ disconnected_player_ids = []
 
 
 def client(conn: socket, player_id: int) -> None:
-    breakpoint()
     with conn:
         conn.send(pickle.dumps(player_id))
 
@@ -28,6 +27,12 @@ def client(conn: socket, player_id: int) -> None:
                 player_attributes = pickle.loads(conn.recv(BUFFER_SIZE))
             except EOFError:
                 _disconnect_player(player_id)
+                # There are no players playing.
+                # The last player is not yet removed from the server
+                # as no data is received until another player connects.
+                if len(players) == 1:
+                    _delete_disconnected_players()
+                    _reset_players()
                 break
             else:
                 players[player_id] = player_attributes
@@ -63,6 +68,17 @@ def _delete_disconnected_players() -> None:
                 f' id: {id_})  from server.'
             )
         disconnected_player_ids.remove(id_)
+
+
+def _reset_players() -> None:
+    """Reset global player variables."""
+    if players:
+        players.clear()
+
+    global current_player_id
+    current_player_id = 0
+
+    print('All players reset.')
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
