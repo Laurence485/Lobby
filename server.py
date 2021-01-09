@@ -2,7 +2,7 @@ import pickle
 import socket
 
 from game.utils import get_config, network_data
-from _thread import start_new_thread
+import threading
 
 config = get_config()
 
@@ -16,7 +16,8 @@ players = {}
 disconnected_player_ids = []
 
 
-def client(conn, player_id: int) -> None:
+def client(conn: socket, player_id: int) -> None:
+    breakpoint()
     with conn:
         conn.send(pickle.dumps(player_id))
 
@@ -38,10 +39,10 @@ def client(conn, player_id: int) -> None:
                 conn.sendall(pickle.dumps(players))
 
                 if disconnected_player_ids:
-                    delete_disconnected_players()
+                    _delete_disconnected_players()
 
 
-def _disconnect_player(player_id) -> None:
+def _disconnect_player(player_id: int) -> None:
     # Indicate that this player should be deleted locally.
     players[player_id]['x'] = None
     disconnected_player_ids.append(player_id)
@@ -51,10 +52,11 @@ def _disconnect_player(player_id) -> None:
     )
 
 
-def delete_disconnected_players() -> None:
+def _delete_disconnected_players() -> None:
     for id_ in disconnected_player_ids:
         try:
             del players[id_]
+            print(f'Deleted player with id {id_} from server.')
         except KeyError:
             print(
                 f'Could not delete player ({players[id_]["username"]},'
@@ -73,5 +75,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         conn, addr = s.accept()
         print('Connected by:', addr, f'Player id: {current_player_id}')
 
-        start_new_thread(client, (conn, current_player_id))
+        threading.Thread(target=client, args=(conn, current_player_id)).start()
+
         current_player_id += 1

@@ -66,6 +66,7 @@ def fetch_player_data(
 def _delete_player(other_players: dict[int, Player], data: dict) -> None:
     try:
         del other_players[data['id']]
+        print(f'Deleted player with id {data["id"]}.')
     except KeyError:
         print(
             f'Could not delete player ({data["username"]},'
