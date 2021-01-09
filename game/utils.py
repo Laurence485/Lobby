@@ -1,4 +1,5 @@
 import math
+import os
 import yaml
 
 from copy import copy
@@ -8,7 +9,22 @@ from random import choice
 import pygame.image
 import pygame.mixer
 
+from game.errors import ConfigError
 from game.typing import Sprite
+
+
+def check_os_config(env_var: str, attribute: str = None) -> str:
+    if attribute:
+        return attribute
+
+    try:
+        return os.environ[env_var]
+    except KeyError:
+        error = (
+            f'Environment variable {env_var} not set'
+            ' or not passed to Server.'
+            )
+        raise ConfigError(error)
 
 
 def get_config(basename: str = 'base') -> dict:

@@ -1,13 +1,11 @@
 import pickle
 import socket
 
-from game.utils import get_config, network_data
+from game.utils import check_os_config, get_config, network_data
 import threading
 
 config = get_config()
 
-HOST = config['HOST']
-PORT = config['PORT']
 BUFFER_SIZE = config['BUFFER_SIZE']
 CONNECTIONS = config['MAX_CONNECTIONS']
 
@@ -17,10 +15,15 @@ class Server:
     and from the server."""
 
     current_player_id = 0
+    host = None
+    port = None
 
-    def __init__(self) -> None:
+    def __init__(self, host: int = None, port: int = None):
         self.players = {}
         self.disconnected_player_ids = []
+
+        Server.host = check_os_config('HOST', host)
+        Server.port = check_os_config('PORT', port)
 
     def client(self, conn: socket, player_id: int) -> None:
         with conn:
@@ -35,7 +38,8 @@ class Server:
                     self._disconnect_player(player_id)
                     # There are no players playing.
                     # The last player is not yet removed from the server
-                    # as no data is received until another player connects.
+                    # as the disconnected players are only checked for
+                    # if there is more than 1 player playing.
                     if len(self.players) == 1:
                         self._delete_disconnected_players()
                         self._reset_players()
@@ -65,37 +69,41 @@ class Server:
         for id_ in self.disconnected_player_ids:
             try:
                 del self.players[id_]
-                print(f'Deleted player with id {id_} from server.')
             except KeyError:
                 print(
                     f'Could not delete player ({self.players[id_]["username"]},'
                     f' id: {id_})  from server.'
                 )
+            else:
+                print(f'Deleted player with id {id_} from server.')
+
             self.disconnected_player_ids.remove(id_)
 
     def _reset_players(self) -> None:
         if self.players:
             self.players.clear()
 
-        self.current_player_id = 0
+        Server.current_player_id = 0
 
         print('All players reset.')
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
-    s.bind((HOST, PORT))
-    s.listen(CONNECTIONS)
-    server = Server()
-    print('Server started, waiting for connection...')
+    if __name__ == '__main__':
+        server = Server('localhost', 12345)
+        s.bind((server.host, server.port))
+        s.listen(CONNECTIONS)
 
-    while True:
-        conn, addr = s.accept()
-        print('Connected by:', addr, f'Player id: {server.current_player_id}')
+        print('Server started, waiting for connection...')
 
-        threading.Thread(
-            target=server.client,
-            args=(conn, server.current_player_id)
-        ).start()
+        while True:
+            conn, addr = s.accept()
+            print('Connected by:', addr, f'Player id: {server.current_player_id}')
 
-        server.current_player_id += 1
+            threading.Thread(
+                target=server.client,
+                args=(conn, server.current_player_id)
+            ).start()
+
+            server.current_player_id += 1

@@ -3,21 +3,19 @@ import socket
 
 from game.player import Player
 # from game.errors import ServerError
-from game.utils import get_config
+from game.utils import check_os_config, get_config
 from typing import Union
 
 config = get_config()
 
-HOST = config['HOST']
-PORT = config['PORT']
 BUFFER_SIZE = config['BUFFER_SIZE']
 
 
 class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.HOST = HOST
-        self.PORT = PORT
+        self.HOST = check_os_config('HOST', 'localhost')
+        self.PORT = check_os_config('PORT', 12345)
         self.addr = (self.HOST, self.PORT)
         self.data = self.connect()
 
@@ -66,13 +64,13 @@ def fetch_player_data(
 def _delete_player(other_players: dict[int, Player], data: dict) -> None:
     try:
         del other_players[data['id']]
-        print(f'Deleted player with id {data["id"]}.')
     except KeyError:
         print(
             f'Could not delete player ({data["username"]},'
             f' id: {data["id"]}).'
         )
     else:
+        print(f'Deleted player with id {data["id"]}.')
         print(f'{data["username"]} disconnected.')
 
 
