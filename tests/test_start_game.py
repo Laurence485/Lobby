@@ -34,10 +34,9 @@ def mock_config():
             'PLAYER_VELOCITY': 10,
             'BIKE_SOUND': 10,
             'MUSHROOM_SOUND': 10,
-            'HOST': "localhost",
-            'PORT': 12345,
-            'BUFFER_SIZE': 2048,
-            'NUM_PLAYERS': 5,
+            'GRASS_SPEED': 6,
+            'WATER_SPEED': 4,
+            'MAX_CONNECTIONS': 5,
         }
         yield config
 

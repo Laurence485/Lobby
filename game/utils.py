@@ -27,8 +27,8 @@ def check_os_config(env_var: str, attribute: str = None) -> str:
         raise ConfigError(error)
 
 
-def get_config(basename: str = 'base') -> dict:
-    with open(f'config/{basename}.yaml', 'r') as config_file:
+def get_config(filename: str = 'base') -> dict:
+    with open(f'config/{filename}.yaml', 'r') as config_file:
         return yaml.safe_load(config_file)
 
 

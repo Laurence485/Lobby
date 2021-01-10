@@ -14,5 +14,4 @@ BIKE_SOUND: 'sounds/bike.wav'
 MUSHROOM_SOUND: 'sounds/mushroom.wav'
 
 
-BUFFER_SIZE : 2048
 MAX_CONNECTIONS: 3

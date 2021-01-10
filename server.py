@@ -1,13 +1,12 @@
 import pickle
 import socket
 
-from game.utils import check_os_config, get_config, network_data
+from enums.base import Network_, Server_
+from game.utils import check_os_config, network_data
 import threading
 
-config = get_config()
-
-BUFFER_SIZE = config['BUFFER_SIZE']
-CONNECTIONS = config['MAX_CONNECTIONS']
+BUFFER_SIZE = Network_.BUFFER_SIZE.value
+CONNECTIONS = Server_.MAX_CONNECTIONS.value
 
 
 class Server:

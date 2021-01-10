@@ -1,14 +1,14 @@
 import pickle
 import socket
 
+from enums.base import Network_
 from game.player import Player
 # from game.errors import ServerError
-from game.utils import check_os_config, get_config
+from game.utils import check_os_config
 from typing import Union
 
-config = get_config()
 
-BUFFER_SIZE = config['BUFFER_SIZE']
+BUFFER_SIZE = Network_.BUFFER_SIZE.value
 
 
 class Network:

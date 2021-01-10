@@ -4,6 +4,7 @@ from enum import Enum
 class Base(Enum):
     PLAYER_COLOURS = 6  # Total number of different player colours.
 
+
 class Player_(Enum):
     WIDTH = 15   # Used for collision detection.
     HEIGHT = 19  # Used for collision detection.
@@ -27,6 +28,11 @@ class Network_(Enum):
         'id': -1,
         'username': None,
     }
+    BUFFER_SIZE = 2048
+
+
+class Server_(Enum):
+    MAX_CONNECTIONS = 50
 
 
 class Window(Enum):
