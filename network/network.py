@@ -14,8 +14,8 @@ BUFFER_SIZE = Network_.BUFFER_SIZE.value
 class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.HOST = check_os_config('HOST', 'localhost')
-        self.PORT = check_os_config('PORT', 12345)
+        self.HOST = check_os_config('HOST')
+        self.PORT = check_os_config('PORT')
         self.addr = (self.HOST, self.PORT)
         self.data = self.connect()
 

@@ -11,6 +11,7 @@ import pygame.mixer
 
 from game.errors import ConfigError
 from game.typing import Sprite
+from typing import Set
 
 
 def check_os_config(env_var: str, attribute: str = None) -> str:
@@ -18,7 +19,10 @@ def check_os_config(env_var: str, attribute: str = None) -> str:
         return attribute
 
     try:
-        return os.environ[env_var]
+        if env_var == 'HOST':
+            return os.environ[env_var]
+        elif env_var == 'PORT':
+            return int(os.environ[env_var])
     except KeyError:
         error = (
             f'Environment variable {env_var} not set'
@@ -32,9 +36,7 @@ def get_config(filename: str = 'base') -> dict:
         return yaml.safe_load(config_file)
 
 
-def random_xy(nodes: set) -> tuple:
-    if not nodes:
-        print('Warning: no nodes supplied.')
+def random_xy(nodes: Set[tuple]) -> tuple:
     return choice(tuple(nodes))
 
 

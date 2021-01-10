@@ -55,16 +55,3 @@ def test_setup_pygame(pygame):
     assert pygame.init.call_args == call()
     assert pygame.get_caption.return_value == ('Lobby', 'Lobby')
     assert pygame.get_window_size.return_value == (400, 400)
-
-
-class TestNewGame:
-
-    # 1) Test instance vars ?
-
-    def test_check_keyboard_input(self):
-        pass
-
-    # Time should be controlled by the game not the clock
-    # Where should tests for the nested methods e.g. game.player.xyz() go?
-    #  these should be tested in their own files... also only test
-    #  stuff which can break...no need to test everything
