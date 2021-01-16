@@ -3,7 +3,7 @@ import socket
 
 from enums.base import Network_
 from game.player import Player
-# from game.errors import ServerError
+from game.errors import ServerError
 from game.utils import check_os_config
 from typing import Union
 
@@ -14,22 +14,20 @@ BUFFER_SIZE = Network_.BUFFER_SIZE.value
 class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.HOST = check_os_config('HOST')
-        self.PORT = check_os_config('PORT')
+        self.HOST = check_os_config('HOST', 'localhost')
+        self.PORT = check_os_config('PORT', 12345)
         self.addr = (self.HOST, self.PORT)
-        self.data = self.connect()
+        self.data = self._connect()
 
-    def connect(self) -> Union[bool, None]:
+    def _connect(self) -> bool:
         try:
             self.client.connect(self.addr)
             self.player_id = pickle.loads(self.client.recv(BUFFER_SIZE))
             return True
         except socket.error:
-            # raise ServerError("Could not connect to server.")
-            print('Could not connect to server.')
-            return None
+            raise ServerError('Could not connect to server.')
 
-    def send(self, player_attributes: dict) -> Union[dict, None]:
+    def _send(self, player_attributes: dict) -> Union[dict, None]:
         try:
             self.client.send(pickle.dumps(player_attributes))
             return pickle.loads(self.client.recv(BUFFER_SIZE))
@@ -45,7 +43,7 @@ def fetch_player_data(
 ) -> None:
     """Send and receive player data from the server."""
 
-    response = net.send(this_player.attributes)
+    response = net._send(this_player.attributes)
 
     for data in response.values():
         if data['id'] == this_player.id:

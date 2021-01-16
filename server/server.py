@@ -1,12 +1,11 @@
 import pickle
 import socket
 
-from enums.base import Network_, Server_
+from enums.base import Network_
 from game.utils import check_os_config, network_data
-import threading
+
 
 BUFFER_SIZE = Network_.BUFFER_SIZE.value
-CONNECTIONS = Server_.MAX_CONNECTIONS.value
 
 
 class Server:
@@ -70,8 +69,8 @@ class Server:
                 del self.players[id_]
             except KeyError:
                 print(
-                    f'Could not delete player ({self.players[id_]["username"]},'
-                    f' id: {id_})  from server.'
+                    f'Could not delete player ({self.players[id_]["username"]}'
+                    f', id: {id_})  from server.'
                 )
             else:
                 print(f'Deleted player with id {id_} from server.')
@@ -85,24 +84,3 @@ class Server:
         Server.current_player_id = 0
 
         print('All players reset.')
-
-
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-
-    if __name__ == '__main__':
-        server = Server('localhost', 12345)
-        s.bind((server.host, server.port))
-        s.listen(CONNECTIONS)
-
-        print('Server started, waiting for connection...')
-
-        while True:
-            conn, addr = s.accept()
-            print('Connected by:', addr, f'Player id: {server.current_player_id}')
-
-            threading.Thread(
-                target=server.client,
-                args=(conn, server.current_player_id)
-            ).start()
-
-            server.current_player_id += 1
