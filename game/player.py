@@ -39,7 +39,7 @@ class Player:
         self,
         xy=(50, 70),
         player_id=0,
-        username='Noob'
+        username='DefaultUser'
     ):
         self.x, self. y = xy
         self.id = player_id
