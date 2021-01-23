@@ -7,8 +7,8 @@ from server.server import Server
 
 
 @pytest.fixture
-def mock_connection(mock_player):
-    def _mock_connection(*args, **kwargs):
+def mock_connection_interrupt(mock_player):
+    def _mock_connection_interrupt(*args, **kwargs):
         with patch('socket.socket') as mock_socket:
             mock_socket.recv.return_value = pickle.dumps(
                 mock_player(*args, **kwargs).attributes
@@ -18,7 +18,21 @@ def mock_connection(mock_player):
                 side_effect=InterruptedError
             )
             return mock_socket
-    return _mock_connection
+    return _mock_connection_interrupt
+
+
+@pytest.fixture
+def mock_connection():
+    with patch('socket.socket') as mock_socket:
+        mock_socket.recv.return_value = pickle.dumps('test')
+        yield mock_socket
+
+
+@pytest.fixture
+def mock_delete_disconnected_players_interrupt():
+    with patch.object(Server, '_delete_disconnected_players') as mock_method:
+        mock_method.side_effect = Mock(side_effect=InterruptedError)
+        yield mock_method
 
 
 @pytest.fixture
@@ -36,16 +50,18 @@ def test_init(mock_os_config):
     assert Server.port == port
 
 
-def test_client_adds_player_attributes(mock_os_config, mock_connection):
+def test_client_adds_player_attributes(
+    mock_os_config, mock_connection_interrupt
+):
     server = Server()
     with pytest.raises(InterruptedError):
-        server.client(mock_connection(), 0)
+        server.client(mock_connection_interrupt(), 0)
 
     with pytest.raises(InterruptedError):
-        server.client(mock_connection(), 1)
+        server.client(mock_connection_interrupt(), 1)
 
     with pytest.raises(InterruptedError):
-        server.client(mock_connection(), 2)
+        server.client(mock_connection_interrupt(), 2)
 
     assert len(server.players) == 3
 
@@ -56,13 +72,13 @@ def test_client_adds_player_attributes(mock_os_config, mock_connection):
     (2, 'TEST_USER_3', 23, 22)
     ])
 def test_client_updates_player_attributes(
-    mock_os_config, mock_connection, test_user
+    mock_os_config, mock_connection_interrupt, test_user
 ):
     server = Server()
     player_id, username, x, y = test_user
 
     with pytest.raises(InterruptedError):
-        server.client(mock_connection(*test_user), player_id)
+        server.client(mock_connection_interrupt(*test_user), player_id)
 
     assert server.players[player_id]['username'] == username
     assert server.players[player_id]['x'] == x
@@ -74,10 +90,16 @@ def test_client_player_disconnected(mock_os_config, mock_connection_no_data):
     server.client(mock_connection_no_data, 0)
 
 
-def test_server_has_disconnected_players(mock_os_config):
+def test_server_has_disconnected_players(
+    mock_os_config,
+    mock_connection,
+    mock_delete_disconnected_players_interrupt
+):
     server = Server()
     server.disconnected_player_ids = [4, 2]
-    pass
+    with pytest.raises(InterruptedError):
+        server.client(mock_connection, 0)
+
 
 def test_disconnect_player(mock_os_config, mock_other_players_attributes):
     server = Server()

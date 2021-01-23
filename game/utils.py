@@ -17,7 +17,6 @@ from typing import Set
 def check_os_config(env_var: str, attribute: str = None) -> str:
     if attribute:
         return attribute
-
     try:
         if env_var == 'HOST':
             return os.environ[env_var]
