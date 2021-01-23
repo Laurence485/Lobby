@@ -74,6 +74,11 @@ def test_client_player_disconnected(mock_os_config, mock_connection_no_data):
     server.client(mock_connection_no_data, 0)
 
 
+def test_server_has_disconnected_players(mock_os_config):
+    server = Server()
+    server.disconnected_player_ids = [4, 2]
+    pass
+
 def test_disconnect_player(mock_os_config, mock_other_players_attributes):
     server = Server()
     server.players = mock_other_players_attributes
@@ -92,5 +97,28 @@ def test_delete_disconnected_players(
     server.disconnected_player_ids = list(mock_other_players_attributes.keys())
     server._delete_disconnected_players()
 
-    assert not server.players
-    assert not server.disconnected_player_ids
+    assert server.players == {}
+    assert server.disconnected_player_ids == []
+
+
+def test_delete_disconnected_players_player_not_found(
+    mock_os_config, mock_player
+):
+    server = Server()
+    test_player = {1: mock_player().attributes}
+    server.players = test_player
+    server.disconnected_player_ids = [4, 8]
+    server._delete_disconnected_players()
+
+    assert server.players == test_player
+    assert server.disconnected_player_ids == []
+
+
+def test_reset_players(mock_os_config, mock_other_players_attributes):
+    server = Server()
+    server.players = mock_other_players_attributes
+    Server.current_player_id = 99
+    server._reset_players()
+
+    assert server.players == {}
+    assert Server.current_player_id == 0

@@ -45,10 +45,6 @@ class Server:
                 else:
                     self.players[player_id] = player_attributes
 
-                    if not player_attributes:
-                        print('Disconnected from server.')
-                        break
-
                     conn.sendall(pickle.dumps(self.players))
 
                     if self.disconnected_player_ids:
@@ -69,8 +65,7 @@ class Server:
                 del self.players[id_]
             except KeyError:
                 print(
-                    f'Could not delete player ({self.players[id_]["username"]}'
-                    f', id: {id_})  from server.'
+                    f'Could not delete player with id {id_} from server.'
                 )
             else:
                 print(f'Deleted player with id {id_} from server.')
