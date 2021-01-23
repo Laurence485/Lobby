@@ -4,7 +4,7 @@ from enums.base import Server_
 from server.server import Server
 import threading
 
-CONNECTIONS = Server_.MAX_CONNECTIONS.value
+MAX_CONNECTIONS = Server_.MAX_CONNECTIONS.value
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -12,7 +12,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     if __name__ == '__main__':
         server = Server('localhost', 12345)
         sock.bind((server.host, server.port))
-        sock.listen(CONNECTIONS)
+        sock.listen(MAX_CONNECTIONS)
 
         print('Server started, waiting for connection...')
 
