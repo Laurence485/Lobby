@@ -33,18 +33,6 @@ def mock_other_players(mock_player):
 
 
 @pytest.fixture
-def mock_other_players_attributes(mock_player):
-    players = {
-                1: mock_player(player_id=1).attributes,
-                2: mock_player(player_id=2).attributes,
-                3: mock_player(player_id=3).attributes,
-                4: mock_player(player_id=4).attributes,
-                5: mock_player(player_id=5).attributes
-    }
-    return players
-
-
-@pytest.fixture
 def mock_recv_player_data(mock_os_config, mock_other_players_attributes):
     def _mock_recv_player_data(players=mock_other_players_attributes):
         with patch('socket.socket') as mock_socket:

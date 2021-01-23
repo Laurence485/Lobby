@@ -45,3 +45,15 @@ def mock_player():
                 }
         return Player(player_id)
     return _mock_player
+
+
+@pytest.fixture
+def mock_other_players_attributes(mock_player):
+    players = {
+                1: mock_player(player_id=1).attributes,
+                2: mock_player(player_id=2).attributes,
+                3: mock_player(player_id=3).attributes,
+                4: mock_player(player_id=4).attributes,
+                5: mock_player(player_id=5).attributes
+    }
+    return players

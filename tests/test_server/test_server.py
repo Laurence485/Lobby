@@ -21,6 +21,13 @@ def mock_connection(mock_player):
     return _mock_connection
 
 
+@pytest.fixture
+def mock_connection_no_data():
+    with patch('socket.socket') as mock_socket:
+        mock_socket.recv.return_value = b''
+        yield mock_socket
+
+
 def test_init(mock_os_config):
     host, port = mock_os_config
     server = Server()
@@ -62,5 +69,16 @@ def test_client_updates_player_attributes(
     assert server.players[player_id]['y'] == y
 
 
-def test_client_player_disconnected(mock_os_config, mock_connection):
-    pass
+def test_client_player_disconnected(mock_os_config, mock_connection_no_data):
+    server = Server()
+    server.client(mock_connection_no_data, 0)
+
+
+def test_disconnect_player(mock_os_config, mock_other_players_attributes):
+    server = Server()
+    server.players = mock_other_players_attributes
+    id_to_disconnect = 2
+    server._disconnect_player(player_id=id_to_disconnect)
+
+    assert server.players[id_to_disconnect]['x'] is None
+    assert id_to_disconnect in server.disconnected_player_ids
