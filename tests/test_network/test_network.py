@@ -23,11 +23,11 @@ def mock_player_attributes(mock_player):
 @pytest.fixture
 def mock_other_players(mock_player):
     players = {
-                1: mock_player(player_id=1),
-                2: mock_player(player_id=2),
-                3: mock_player(player_id=3),
-                4: mock_player(player_id=4),
-                5: mock_player(player_id=5)
+        1: mock_player(player_id=1),
+        2: mock_player(player_id=2),
+        3: mock_player(player_id=3),
+        4: mock_player(player_id=4),
+        5: mock_player(player_id=5)
     }
     return players
 

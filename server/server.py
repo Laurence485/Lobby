@@ -64,7 +64,7 @@ class Server:
         )
 
     def _delete_disconnected_players(self) -> None:
-        for id_ in self.disconnected_player_ids:
+        for id_ in reversed(self.disconnected_player_ids):
             try:
                 del self.players[id_]
             except KeyError:
@@ -74,8 +74,8 @@ class Server:
                 )
             else:
                 print(f'Deleted player with id {id_} from server.')
-
-            self.disconnected_player_ids.remove(id_)
+            finally:
+                self.disconnected_player_ids.remove(id_)
 
     def _reset_players(self) -> None:
         if self.players:

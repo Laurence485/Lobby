@@ -30,10 +30,10 @@ def mock_connection_no_data():
 
 def test_init(mock_os_config):
     host, port = mock_os_config
-    server = Server()
+    Server()
 
-    assert server.host == host
-    assert server.port == port
+    assert Server.host == host
+    assert Server.port == port
 
 
 def test_client_adds_player_attributes(mock_os_config, mock_connection):
@@ -82,3 +82,15 @@ def test_disconnect_player(mock_os_config, mock_other_players_attributes):
 
     assert server.players[id_to_disconnect]['x'] is None
     assert id_to_disconnect in server.disconnected_player_ids
+
+
+def test_delete_disconnected_players(
+    mock_os_config, mock_other_players_attributes
+):
+    server = Server()
+    server.players = mock_other_players_attributes
+    server.disconnected_player_ids = list(mock_other_players_attributes.keys())
+    server._delete_disconnected_players()
+
+    assert not server.players
+    assert not server.disconnected_player_ids
