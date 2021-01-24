@@ -10,7 +10,7 @@ MAX_CONNECTIONS = Server_.MAX_CONNECTIONS.value
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 
     if __name__ == '__main__':
-        server = Server('localhost', 12345)
+        server = Server()
         sock.bind((server.host, server.port))
         sock.listen(MAX_CONNECTIONS)
 
@@ -27,4 +27,4 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 args=(conn, server.current_player_id)
             ).start()
 
-            server.current_player_id += 1
+            Server.current_player_id += 1

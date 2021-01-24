@@ -1,6 +1,7 @@
 import pygame
 
 from enums.base import Window
+from game.chat_box import ChatBox
 from game.map import Map
 from game.menu import Menu
 from game.player import Player
@@ -30,7 +31,7 @@ class NewGame:
         self.username = username
         self.menu = False
         self.grid = False
-
+        self.chat_box = ChatBox()
         self.player = Player(
             xy=random_xy(Map.nodes),
             player_id=self.net.player_id,
@@ -66,6 +67,7 @@ class NewGame:
 
         self._draw_grid()
         Map.draw(self.window)
+        self.chat_box.draw(self.window)
         self.player.draw(self.window)
 
         if other_players:

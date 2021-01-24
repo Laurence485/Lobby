@@ -10,6 +10,7 @@ config = get_config()
 
 window_width = config['WINDOW_WIDTH']
 window_height = config['WINDOW_HEIGHT']
+chat_window_height = config['CHAT_WINDOW_HEIGHT']
 grid_spacing = config['GRID_SPACING']
 framerate = config['FRAMERATE']
 game_map = config['MAP']
@@ -22,7 +23,7 @@ def setup_pygame() -> None:
     pygame.init()
     pygame.display.set_caption('Lobby')
     game_window = pygame.display.set_mode(
-        (window_width, window_height)
+        (window_width, window_height + chat_window_height)
     )
 
     _start_game_loop(game_window)
