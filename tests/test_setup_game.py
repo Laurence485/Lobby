@@ -27,6 +27,7 @@ def mock_config():
         config.return_value = {
             'WINDOW_WIDTH': 400,
             'WINDOW_HEIGHT': 400,
+            'CHAT_WINDOW_HEIGHT': 80,
             'GRID_SPACING': 400,
             'FRAMERATE': 10,
             'MAP': 10,

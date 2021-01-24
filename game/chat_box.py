@@ -1,4 +1,5 @@
 import pygame
+import pygame_textinput
 
 from game.typing import Sprite
 from game.utils import get_config
@@ -16,7 +17,7 @@ class ChatBox:
         self.height = chat_window_height
         self.x = 0
         self.y = window_height
-        self.img = pygame.Surface((self.width, self.height)).convert_alpha()
+        self.img = pygame.Surface((self.width, self.height))
         self.img.fill((210, 210, 210, 210))
 
     def draw(self, window: Sprite) -> None:
