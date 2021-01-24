@@ -77,8 +77,6 @@ class NewGame:
         if self.menu:
             self._show_menu()
 
-        pygame.display.update()
-
     def _draw_grid(self) -> None:
         if self.grid:
             for x in range(0, window_width, grid_spacing):

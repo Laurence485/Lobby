@@ -42,6 +42,7 @@ def _start_game_loop(game_window: Sprite) -> None:
             if event.type == pygame.QUIT:
                 game_is_running = False
             game.check_keyboard_input(event)
+            game.chat_box.check_text_input(event)
 
         _refresh_game(clock)
 
@@ -53,6 +54,9 @@ def _start_game_loop(game_window: Sprite) -> None:
         game.player.prevent_movement_beyond_screen()
         game.player.animation_loop()
         game.draw_game_objects()
+        game.chat_box.draw_text_input(game_window)
+
+        pygame.display.update()
 
 
 def _get_username() -> str:
