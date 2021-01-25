@@ -42,7 +42,8 @@ def _start_game_loop(game_window: Sprite) -> None:
             if event.type == pygame.QUIT:
                 game_is_running = False
             game.check_keyboard_input(event)
-            game.chat_box.text_input.check_input(event)
+            if game.is_typing:
+                game.chat_box.text_input.check_input(event)
 
         _refresh_game(clock)
 

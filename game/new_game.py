@@ -31,6 +31,7 @@ class NewGame:
         self.username = username
         self.menu = False
         self.grid = False
+        self.is_typing = False
         self.chat_box = ChatBox()
         self.player = Player(
             xy=random_xy(Map.nodes),
@@ -41,16 +42,19 @@ class NewGame:
     def check_keyboard_input(self, event: pygame.event.Event) -> None:
         """Check for keyboard input.
 
+        Press Enter to type.
         Press Z for menu.
         Press X to show the grid.
         Press B to use the bike.
         """
         if event.type == pygame.KEYUP:
+            if event.key == pygame.K_RETURN:
+                self.is_typing = True if not self.is_typing else False
             if event.key == pygame.K_z:
                 self.menu = True if not self.menu else False
-            if event.key == pygame.K_x:
+            if event.key == pygame.K_x and not self.is_typing:
                 self.grid = True if not self.grid else False
-            if event.key == pygame.K_b:
+            if event.key == pygame.K_b and not self.is_typing:
                 if self.player.bike:
                     self.player.bike = False
                 else:

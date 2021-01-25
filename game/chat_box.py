@@ -18,8 +18,9 @@ class ChatBox:
     def __init__(self):
         self.width = window_width
         self.height = chat_window_height
+        self.colour = (210, 210, 210, 210)
         self.box = pygame.Surface((self.width, self.height))
-        self.box.fill((210, 210, 210, 210))
+        self.box.fill(self.colour)
         self.text_input = TextInput()
 
     def draw(self, window: Sprite) -> None:
