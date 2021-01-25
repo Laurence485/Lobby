@@ -12,28 +12,34 @@ chat_window_height = config['CHAT_WINDOW_HEIGHT']
 
 
 class ChatBox:
+    x = 0
+    y = window_height
+
     def __init__(self):
         self.width = window_width
         self.height = chat_window_height
-        self.x = 0
-        self.y = window_height
         self.box = pygame.Surface((self.width, self.height))
         self.box.fill((210, 210, 210, 210))
-
-        self.GRAY = (200, 200, 200)
-        self.text = 'this text is editable'
-        self.font = pygame.font.SysFont(None, 48)
-        self.img = self.font.render(self.text, True, self.GRAY)
-
-        self.rect = self.img.get_rect()
-        self.rect.topleft = (20, 20)
-        self.cursor = pygame.Rect(self.rect.topright, (3, self.rect.height))
+        self.text_input = TextInput()
 
     def draw(self, window: Sprite) -> None:
         """Draw chat box at bottom of screen."""
         window.blit(self.box, (self.x, self. y))
 
-    def check_text_input(self, event: pygame.event.Event) -> None:
+
+class TextInput(ChatBox):
+    def __init__(self):
+        self.colour = (0, 0, 0)
+        self.text = 'this text is editable'
+        self.font = pygame.font.SysFont(None, 15)
+        self.text_img = self.font.render(self.text, True, self.colour)
+
+        self.rect = self.text_img.get_rect()
+        self.y_ = self.y + chat_window_height - self.text_img.get_height()
+        self.rect.topleft = (self.x, self.y_)
+        self.cursor = pygame.Rect(self.rect.topright, (3, self.rect.height))
+
+    def check_input(self, event: pygame.event.Event) -> None:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_BACKSPACE:
                 if len(self.text) > 0:
@@ -41,15 +47,12 @@ class ChatBox:
             else:
                 self.text += event.unicode
 
-            self.img = self.font.render(self.text, True, self.GRAY)
-            self.rect.size = self.img.get_size()
+            self.text_img = self.font.render(self.text, True, self.colour)
+            self.rect.size = self.text_img.get_size()
             self.cursor.topleft = self.rect.topright
 
-    def draw_text_input(self, window: Sprite) -> None:
-        window.blit(self.img, self.rect)
+    def draw(self, window: Sprite) -> None:
+        """Draw text onto screen and flash cursor every 0.5 seconds."""
+        window.blit(self.text_img, self.rect)
         if time.time() % 1 > 0.5:
-            pygame.draw.rect(window, self.GRAY, self.cursor)
-
-
-class TextInput(ChatBox):
-    pass
+            pygame.draw.rect(window, self.colour, self.cursor)

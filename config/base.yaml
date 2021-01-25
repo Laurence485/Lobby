@@ -2,7 +2,7 @@ WINDOW_WIDTH: 400
 WINDOW_HEIGHT: 400
 CHAT_WINDOW_HEIGHT: 80
 GRID_SPACING: &grid_spacing 10
-FRAMERATE: 10
+FRAMERATE: 20
 
 BACKGROUND_IMG: 'sprites/background.jpg'
 MAP: 'myfirstmap'
@@ -15,4 +15,4 @@ BIKE_SOUND: 'sounds/bike.wav'
 MUSHROOM_SOUND: 'sounds/mushroom.wav'
 
 
-MAX_CONNECTIONS: 3
+MAX_CONNECTIONS: 10
