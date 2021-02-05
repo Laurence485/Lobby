@@ -14,10 +14,10 @@ chat_window_height = config['CHAT_WINDOW_HEIGHT']
 class ChatBox:
     x = 0
     y = window_height
+    width = window_width
+    height = chat_window_height
 
     def __init__(self):
-        self.width = window_width
-        self.height = chat_window_height
         self.colour = (210, 210, 210, 210)
         self.box = pygame.Surface((self.width, self.height))
         self.box.fill(self.colour)
@@ -36,7 +36,7 @@ class TextInput(ChatBox):
         self.text_img = self.font.render(self.text, True, self.colour)
 
         self.rect = self.text_img.get_rect()
-        self.y_ = self.y + chat_window_height - self.text_img.get_height()
+        self.y_ = self.y + chat_window_height - self.rect.height
         self.rect.topleft = (self.x, self.y_)
         self.cursor = pygame.Rect(self.rect.topright, (3, self.rect.height))
 
@@ -46,7 +46,8 @@ class TextInput(ChatBox):
                 if len(self.text) > 0:
                     self.text = self.text[:-1]
             else:
-                self.text += event.unicode
+                if not self.rect.width >= self.width:
+                    self.text += event.unicode
 
             self.text_img = self.font.render(self.text, True, self.colour)
             self.rect.size = self.text_img.get_size()

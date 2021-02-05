@@ -3,7 +3,6 @@ import pygame
 from enums.base import Window
 from game.chat_box import ChatBox
 from game.map import Map
-from game.menu import Menu
 from game.player import Player
 from game.typing import Sprite
 from game.utils import get_config, random_xy
@@ -50,8 +49,6 @@ class NewGame:
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_RETURN:
                 self.is_typing = True if not self.is_typing else False
-            if event.key == pygame.K_z:
-                self.menu = True if not self.menu else False
             if event.key == pygame.K_x and not self.is_typing:
                 self.grid = True if not self.grid else False
             if event.key == pygame.K_b and not self.is_typing:
@@ -78,9 +75,6 @@ class NewGame:
             for player in other_players.values():
                 player.draw(self.window)
 
-        if self.menu:
-            self._show_menu()
-
     def _draw_grid(self) -> None:
         if self.grid:
             for x in range(0, window_width, grid_spacing):
@@ -93,10 +87,3 @@ class NewGame:
                         (x, y, grid_spacing, grid_spacing),
                         1
                     )
-
-    def _show_menu(self) -> None:
-        Menu(
-            self.window,
-            [self.player.stats, self.player.username],
-            [[p.stats, p.username] for p in self.players if p]
-        )
