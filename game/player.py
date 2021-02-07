@@ -165,7 +165,7 @@ class Player:
         The numbers are important here as each direction has 2 possible
         animations. They help determine not only the speed of the
         animation cycle but also which sprite is selected in the
-        _animate method.
+        _select_img_to_draw method.
         """
         if self.walk_count + 1 > 4:
             self.walk_count = 0
@@ -173,84 +173,74 @@ class Player:
         return self.walk_count
 
     def draw(self, win: Sprite, dt: float) -> None:
-        """Draw player onto the screen according to the player's
-            direction.
+        """Assign direction in which the player will be drawn.
         """
-        if self.standing:
-            if self.right:
-                self._assign_player_animation(
-                    dt, self.bike_stand_right_img, self.stand_right_img, win, True
-                )
-            elif self.left:
-                self._assign_player_animation(
-                    dt, self.bike_stand_left_img, self.stand_left_img, win, True
-                )
-            elif self.up:
-                self._assign_player_animation(
-                    dt, self.bike_stand_up_img, self.stand_up_img, win, True
-                )
-            elif self.down:
-                self._assign_player_animation(
-                    dt, self.bike_stand_down_img, self.stand_down_img, win, True
-                )
-        else:
-            if self.right:
-                self._assign_player_animation(
-                    dt, self.bike_right_imgs, self.walk_right_imgs, win
-                )
-            elif self.left:
-                self._assign_player_animation(
-                    dt, self.bike_left_imgs, self.walk_left_imgs, win
-                )
-            elif self.up:
-                self._assign_player_animation(
-                    dt, self.bike_up_imgs, self.walk_up_imgs, win
-                )
-            elif self.down:
-                self._assign_player_animation(
-                    dt, self.bike_down_imgs, self.walk_down_imgs, win
-                )
+        if self.right:
+            self._assign_player_imgs_to_draw(
+                dt, win, direction='right'
+            )
+        elif self.left:
+            self._assign_player_imgs_to_draw(
+                dt, win, direction='left'
+            )
+        elif self.up:
+            self._assign_player_imgs_to_draw(
+                dt, win, direction='up'
+            )
+        elif self.down:
+            self._assign_player_imgs_to_draw(
+                dt, win, direction='down'
+            )
 
-    def _assign_player_animation(
-        self,
-        dt: float,
-        bike_imgs: Union[List[Sprite], Sprite],
-        walk_imgs: Union[List[Sprite], Sprite],
-        win: Sprite,
-        standing: bool = False,
-    ) -> None:
-
-        if self.bike:
-            self._animate(bike_imgs, win)
-        else:
-            self._animate(walk_imgs, win)
-
-        # Cycle through to the next player sprite.
-        if not standing:
+    def animate(self, dt: float) -> None:
+        """ Cycle through to the next player sprite."""
+        if not self.standing:
             self.walk_count += (1 * dt)
 
-    def _animate(
+    def _assign_player_imgs_to_draw(
+        self,
+        dt: float,
+        win: Sprite,
+        direction: str,
+    ) -> None:
+        """Get player images to be drawn according to the player's
+            direction and state.
+        """
+        if self.standing:
+            bike_imgs = getattr(self, f'bike_stand_{direction}_img')
+            walk_imgs = getattr(self, f'stand_{direction}_img')
+        else:
+            bike_imgs = getattr(self, f'bike_{direction}_imgs')
+            walk_imgs = getattr(self, f'walk_{direction}_imgs')
+
+        if self.bike:
+            self._select_img_to_draw(bike_imgs, win)
+        else:
+            self._select_img_to_draw(walk_imgs, win)
+
+    def _select_img_to_draw(
         self,
         player_imgs: Union[List[Sprite], Sprite],
         win: Sprite
     ) -> None:
-
+        """Select the specific player image to be drawn."""
         try:
-            player_img_to_draw = player_imgs[int(self.walk_count // 2)]
+            img_to_draw = int(self.walk_count // 2)
+            img = player_imgs[img_to_draw]
         except TypeError:
-            player_img_to_draw = player_imgs
+            img = player_imgs
 
         if self.in_slow_area:
-            self._draw_player_top_half_only(win, player_img_to_draw)
+            self._draw_player_top_half_only(win, img)
         else:
-            self._draw_player(win, player_img_to_draw)
+            self._draw_player(win, img)
 
     def _draw_player_top_half_only(
         self,
         win: Sprite,
         player_img: Sprite
     ) -> None:
-
+        """Player is in grass or water."""
         win.blit(
             player_img,
             (self.x, self.y),
@@ -304,7 +294,7 @@ class Player:
             # longer to the nearest square.
             # self._sync_player_pos()
 
-    def move(self, dt) -> None:
+    def move(self, dt: float) -> None:
         """Move the player with the arrow keys."""
         keys = pygame.key.get_pressed()
 
@@ -339,7 +329,6 @@ class Player:
                 else:
                     self._set_directions("up")
                 self.y -= self.vel * dt
-                print(dt)
 
             elif keys[pygame.K_DOWN]:
                 if self.left and self.strafe:

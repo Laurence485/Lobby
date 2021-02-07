@@ -50,8 +50,8 @@ def _start_game_loop(game_window: Sprite) -> None:
         )
         dt = clock.tick() * 0.01
         game.player.move(dt)
+        game.player.animate(dt)
         game.player.prevent_movement_beyond_screen(dt)
-        # _refresh_game(clock, 100)
         game.draw_game_objects(dt)
         game.chat_box.text_input.draw(game_window)
         game.player.animation_loop()
@@ -71,10 +71,6 @@ def _setup_network() -> Network:
         print('successfully connected to server.')
 
     return net
-
-
-def _refresh_game(clock: pygame.time.Clock, framerate=0) -> int:
-    return clock.tick(framerate)
 
 
 if __name__ == '__main__':
