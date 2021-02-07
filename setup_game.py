@@ -36,7 +36,6 @@ def _start_game_loop(game_window: Sprite) -> None:
     Map.load(game_map)
     # Map(341)
     game = NewGame(game_window, _setup_network(), _get_username())
-
     while game_is_running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -45,18 +44,17 @@ def _start_game_loop(game_window: Sprite) -> None:
             if game.is_typing:
                 game.chat_box.text_input.check_input(event)
 
-        _refresh_game(clock)
-
         game.fetch_player_data()
         game.player.check_collisions(
             Map.blocked_nodes, Map.reduced_speed_nodes
         )
-        game.player.move()
-        game.player.prevent_movement_beyond_screen()
-        game.player.animation_loop()
-        game.draw_game_objects()
+        dt = clock.tick() * 0.01
+        game.player.move(dt)
+        game.player.prevent_movement_beyond_screen(dt)
+        # _refresh_game(clock, 100)
+        game.draw_game_objects(dt)
         game.chat_box.text_input.draw(game_window)
-
+        game.player.animation_loop()
         pygame.display.update()
 
 
@@ -75,7 +73,7 @@ def _setup_network() -> Network:
     return net
 
 
-def _refresh_game(clock: pygame.time.Clock) -> int:
+def _refresh_game(clock: pygame.time.Clock, framerate=0) -> int:
     return clock.tick(framerate)
 
 

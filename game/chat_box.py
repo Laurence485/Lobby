@@ -31,7 +31,7 @@ class ChatBox:
 class TextInput(ChatBox):
     def __init__(self):
         self.colour = (0, 0, 0)
-        self.text = 'this text is editable'
+        self.text = ''
         self.font = pygame.font.SysFont(None, 15)
         self.text_img = self.font.render(self.text, True, self.colour)
 

@@ -62,14 +62,14 @@ class NewGame:
         """get data from server."""
         fetch_player_data(self.player, other_players, self.net)
 
-    def draw_game_objects(self) -> None:
+    def draw_game_objects(self, dt) -> None:
         """Draw objects onto the screen."""
         self.window.blit(self.background, (0, 0))
 
         self._draw_grid()
         Map.draw(self.window)
         self.chat_box.draw(self.window)
-        self.player.draw(self.window)
+        self.player.draw(self.window, dt)
 
         if other_players:
             for player in other_players.values():

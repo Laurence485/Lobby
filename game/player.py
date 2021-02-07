@@ -172,51 +172,52 @@ class Player:
 
         return self.walk_count
 
-    def draw(self, win: Sprite) -> None:
+    def draw(self, win: Sprite, dt: float) -> None:
         """Draw player onto the screen according to the player's
             direction.
         """
         if self.standing:
             if self.right:
                 self._assign_player_animation(
-                    self.bike_stand_right_img, self.stand_right_img, win, True
+                    dt, self.bike_stand_right_img, self.stand_right_img, win, True
                 )
             elif self.left:
                 self._assign_player_animation(
-                    self.bike_stand_left_img, self.stand_left_img, win, True
+                    dt, self.bike_stand_left_img, self.stand_left_img, win, True
                 )
             elif self.up:
                 self._assign_player_animation(
-                    self.bike_stand_up_img, self.stand_up_img, win, True
+                    dt, self.bike_stand_up_img, self.stand_up_img, win, True
                 )
             elif self.down:
                 self._assign_player_animation(
-                    self.bike_stand_down_img, self.stand_down_img, win, True
+                    dt, self.bike_stand_down_img, self.stand_down_img, win, True
                 )
         else:
             if self.right:
                 self._assign_player_animation(
-                    self.bike_right_imgs, self.walk_right_imgs, win
+                    dt, self.bike_right_imgs, self.walk_right_imgs, win
                 )
             elif self.left:
                 self._assign_player_animation(
-                    self.bike_left_imgs, self.walk_left_imgs, win
+                    dt, self.bike_left_imgs, self.walk_left_imgs, win
                 )
             elif self.up:
                 self._assign_player_animation(
-                    self.bike_up_imgs, self.walk_up_imgs, win
+                    dt, self.bike_up_imgs, self.walk_up_imgs, win
                 )
             elif self.down:
                 self._assign_player_animation(
-                    self.bike_down_imgs, self.walk_down_imgs, win
+                    dt, self.bike_down_imgs, self.walk_down_imgs, win
                 )
 
     def _assign_player_animation(
         self,
+        dt: float,
         bike_imgs: Union[List[Sprite], Sprite],
         walk_imgs: Union[List[Sprite], Sprite],
         win: Sprite,
-        standing: bool = False
+        standing: bool = False,
     ) -> None:
 
         if self.bike:
@@ -226,7 +227,7 @@ class Player:
 
         # Cycle through to the next player sprite.
         if not standing:
-            self.walk_count += 1
+            self.walk_count += (1 * dt)
 
     def _animate(
         self,
@@ -235,7 +236,7 @@ class Player:
     ) -> None:
 
         try:
-            player_img_to_draw = player_imgs[self.walk_count // 2]
+            player_img_to_draw = player_imgs[int(self.walk_count // 2)]
         except TypeError:
             player_img_to_draw = player_imgs
 
@@ -301,14 +302,14 @@ class Player:
             self.vel = player_vel
             # We must re-sync with the grid as the player position is no
             # longer to the nearest square.
-            self._sync_player_pos()
+            # self._sync_player_pos()
 
-    def move(self) -> None:
+    def move(self, dt) -> None:
         """Move the player with the arrow keys."""
         keys = pygame.key.get_pressed()
 
         if self.hit_wall:
-            self._prevent_movement_into_wall()
+            self._prevent_movement_into_wall(dt)
         else:
             self.strafe = True if keys[pygame.K_s] else False
 
@@ -319,7 +320,7 @@ class Player:
                     self._set_directions("down")
                 else:
                     self._set_directions("left")
-                self.x -= self.vel
+                self.x -= self.vel * dt
 
             elif keys[pygame.K_RIGHT]:
                 if self.up and self.strafe:
@@ -328,7 +329,7 @@ class Player:
                     self._set_directions("down")
                 else:
                     self._set_directions("right")
-                self.x += self.vel
+                self.x += self.vel * dt
 
             elif keys[pygame.K_UP]:
                 if self.left and self.strafe:
@@ -337,7 +338,8 @@ class Player:
                     self._set_directions("right")
                 else:
                     self._set_directions("up")
-                self.y -= self.vel
+                self.y -= self.vel * dt
+                print(dt)
 
             elif keys[pygame.K_DOWN]:
                 if self.left and self.strafe:
@@ -346,24 +348,24 @@ class Player:
                     self._set_directions("right")
                 else:
                     self._set_directions("down")
-                self.y += self.vel
+                self.y += self.vel * dt
 
             else:
                 self.standing = True
                 self.walk_count = 0
 
-    def _prevent_movement_into_wall(self) -> None:
+    def _prevent_movement_into_wall(self, dt) -> None:
         if self.standing:
             print('Debug: Frozen on a wall. Reassigning (x,y) position.')
             self.x, self.y = random_xy(Map.nodes)
         if self.left:
-            self.x += self.vel
+            self.x += self.vel * dt
         elif self.right:
-            self.x -= self.vel
+            self.x -= self.vel * dt
         elif self.up:
-            self.y += self.vel
+            self.y += self.vel * dt
         elif self.down:
-            self.y -= self.vel
+            self.y -= self.vel * dt
 
     def _set_directions(self, current_direction: str) -> None:
         """Set all directions to false except the current direction in
@@ -371,24 +373,25 @@ class Player:
         """
         setattr(self, current_direction, True)
 
-        all_directions = {'left', 'right', 'up', 'down'}
-        all_directions.remove(current_direction)
+        other_directions = (
+            {'left', 'right', 'up', 'down'} - {current_direction}
+        )
 
-        for direction in all_directions:
+        for direction in other_directions:
             setattr(self, direction, False)
 
         self.standing = False
 
-    def prevent_movement_beyond_screen(self) -> None:
+    def prevent_movement_beyond_screen(self, dt) -> None:
         # We want to be able to navigate the rightmost square.
         if self.x > window_height - window_wall_width - grid_spacing:
-            self.x -= self.vel
+            self.x -= self.vel * dt
         elif self.x < 0:
-            self.x += self.vel
+            self.x += self.vel * dt
         elif self.y < 0:
-            self.y += self.vel
+            self.y += self.vel * dt
         elif self.y > window_height - self.height:
-            self.y -= self.vel
+            self.y -= self.vel * dt
 
     def _sync_player_pos(self) -> None:
         """Sync player x,y with grid."""
