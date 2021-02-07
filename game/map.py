@@ -9,13 +9,13 @@ from typing import Set
 
 base_config = get_config()
 
-window_width = base_config['WINDOW_WIDTH']
-window_height = base_config['WINDOW_HEIGHT']
-window_wall_width = Window.WALL_WIDTH.value
-grid_spacing = base_config['GRID_SPACING']
+WINDOW_WIDTH = base_config['WINDOW_WIDTH']
+WINDOW_HEIGHT = base_config['WINDOW_HEIGHT']
+WINDOW_WALL_WIDTH = Window.WALL_WIDTH.value
+GRID_SPACING = base_config['GRID_SPACING']
 
-grass_speed = base_config['GRASS_SPEED']
-water_speed = base_config['WATER_SPEED']
+GRASS_SPEED = base_config['GRASS_SPEED']
+WATER_SPEED = base_config['WATER_SPEED']
 
 
 class Map:
@@ -28,7 +28,7 @@ class Map:
     reduced_speed_nodes = {}  # Nodes in grass or water.
     blocked_nodes = set()  # Non-traversable nodes (in use by objects).
 
-    window_width = window_width - window_wall_width
+    window_width = WINDOW_WIDTH - WINDOW_WALL_WIDTH
     sprites_config = get_sprites_config_dict()
 
     def __init__(
@@ -48,8 +48,8 @@ class Map:
 
     def _set_available_nodes(self) -> None:
         """ Available nodes: all nodes on the screen."""
-        for x in range(0, self.window_width, grid_spacing):
-            for y in range(0, window_height, grid_spacing):
+        for x in range(0, self.window_width, GRID_SPACING):
+            for y in range(0, WINDOW_HEIGHT, GRID_SPACING):
                 self.nodes.add((x, y))
 
     def _generate_map(self) -> None:
@@ -152,16 +152,16 @@ class Object(Map):
         self.width = sync_value_with_grid(self.sprite.get_width())
         self.height = sync_value_with_grid(self.sprite.get_height())
 
-        self.square_width = int(self.width / grid_spacing)
-        self.square_height = int(self.height / grid_spacing)
+        self.square_width = int(self.width / GRID_SPACING)
+        self.square_height = int(self.height / GRID_SPACING)
 
     def avaialable_nodes(self) -> Set[tuple]:
         """All the nodes we can position the object at in order to
         keep the object on the screen.
         """
         nodes = set()
-        for x in range(0, self.window_width - self.width, grid_spacing):
-            for y in range(0, window_height - self.height, grid_spacing):
+        for x in range(0, self.window_width - self.width, GRID_SPACING):
+            for y in range(0, WINDOW_HEIGHT - self.height, GRID_SPACING):
                 nodes.add((x, y))
 
         return nodes
@@ -169,10 +169,10 @@ class Object(Map):
     def set_perimeter(self) -> None:
         """Set all the coordinates making up the object's permiter."""
         self.perimeter_x = [
-            self.x + (i * grid_spacing) for i in range(self.square_width)
+            self.x + (i * GRID_SPACING) for i in range(self.square_width)
         ]
         self.perimeter_y = [
-            self.y + (i * grid_spacing) for i in range(self.square_height)
+            self.y + (i * GRID_SPACING) for i in range(self.square_height)
         ]
 
     def set_nodes(self) -> None:
@@ -182,9 +182,9 @@ class Object(Map):
         for x in self.perimeter_x:
             for y in self.perimeter_y:
                 if self.name == 'grass':
-                    self.reduced_speed_nodes[(x, y)] = grass_speed
+                    self.reduced_speed_nodes[(x, y)] = GRASS_SPEED
                 elif self.name == 'water':
-                    self.reduced_speed_nodes[(x, y)] = water_speed
+                    self.reduced_speed_nodes[(x, y)] = WATER_SPEED
                 else:
                     self.blocked_nodes.add((x, y))
 

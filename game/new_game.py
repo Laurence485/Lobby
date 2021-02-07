@@ -10,11 +10,11 @@ from network.network import Network, fetch_player_data
 
 config = get_config()
 
-window_width = config['WINDOW_WIDTH']
-window_height = config['WINDOW_HEIGHT']
-grid_spacing = config['GRID_SPACING']
-background = config['BACKGROUND_IMG']
-grid_colour = Window.GRID_COLOUR.value
+WINDOW_WIDTH = config['WINDOW_WIDTH']
+WINDOW_HEIGHT = config['WINDOW_HEIGHT']
+GRID_SPACING = config['GRID_SPACING']
+BACKGROUND = config['BACKGROUND_IMG']
+GRID_COLOUR = Window.GRID_COLOUR.value
 
 # Dict to hold id:attributes for all the other players on the network.
 other_players = {}
@@ -24,7 +24,7 @@ class NewGame:
     """Setup a new game and handle game loop methods."""
 
     def __init__(self, game_window: Sprite, net: Network, username: str):
-        self.background = pygame.image.load(background).convert()
+        self.background = pygame.image.load(BACKGROUND).convert()
         self.window = game_window
         self.net = net
         self.username = username
@@ -77,13 +77,13 @@ class NewGame:
 
     def _draw_grid(self) -> None:
         if self.grid:
-            for x in range(0, window_width, grid_spacing):
-                for y in range(0, window_height, grid_spacing):
+            for x in range(0, WINDOW_WIDTH, GRID_SPACING):
+                for y in range(0, WINDOW_HEIGHT, GRID_SPACING):
                     pygame.draw.rect(
                         self.window,
                         (
-                            grid_colour, grid_colour, grid_colour
+                            GRID_COLOUR, GRID_COLOUR, GRID_COLOUR
                         ),
-                        (x, y, grid_spacing, grid_spacing),
+                        (x, y, GRID_SPACING, GRID_SPACING),
                         1
                     )

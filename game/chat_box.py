@@ -6,16 +6,16 @@ from game.utils import get_config
 
 config = get_config()
 
-window_width = config['WINDOW_WIDTH']
-window_height = config['WINDOW_HEIGHT']
-chat_window_height = config['CHAT_WINDOW_HEIGHT']
+WINDOW_WIDTH = config['WINDOW_WIDTH']
+WINDOW_HEIGHT = config['WINDOW_HEIGHT']
+CHAT_WINDOW_HEIGHT = config['CHAT_WINDOW_HEIGHT']
 
 
 class ChatBox:
     x = 0
-    y = window_height
-    width = window_width
-    height = chat_window_height
+    y = WINDOW_HEIGHT
+    width = WINDOW_WIDTH
+    height = CHAT_WINDOW_HEIGHT
 
     def __init__(self):
         self.colour = (210, 210, 210, 210)
@@ -36,7 +36,7 @@ class TextInput(ChatBox):
         self.text_img = self.font.render(self.text, True, self.colour)
 
         self.rect = self.text_img.get_rect()
-        self.y_ = self.y + chat_window_height - self.rect.height
+        self.y_ = self.y + CHAT_WINDOW_HEIGHT - self.rect.height
         self.rect.topleft = (self.x, self.y_)
         self.cursor = pygame.Rect(self.rect.topright, (3, self.rect.height))
 

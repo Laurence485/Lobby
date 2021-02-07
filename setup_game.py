@@ -1,5 +1,6 @@
 import pygame
 
+from enums.base import Base
 from game.map import Map
 from game.new_game import NewGame
 from game.typing import Sprite
@@ -8,14 +9,14 @@ from network.network import Network
 
 config = get_config()
 
-window_width = config['WINDOW_WIDTH']
-window_height = config['WINDOW_HEIGHT']
-chat_window_height = config['CHAT_WINDOW_HEIGHT']
-grid_spacing = config['GRID_SPACING']
-framerate = config['FRAMERATE']
-game_map = config['MAP']
+TIME_DIFF_MULTIPLYER = Base.TIME_DIFF_MULTIPLYER.value
+WINDOW_WIDTH = config['WINDOW_WIDTH']
+WINDOW_HEIGHT = config['WINDOW_HEIGHT']
+CHAT_WINDOW_HEIGHT = config['CHAT_WINDOW_HEIGHT']
+GRID_SPACING = config['GRID_SPACING']
+GAME_MAP = config['MAP']
 
-if grid_spacing != 10:
+if GRID_SPACING != 10:
     raise NotImplementedError('Do not adjust the grid spacing.')
 
 
@@ -23,7 +24,7 @@ def setup_pygame() -> None:
     pygame.init()
     pygame.display.set_caption('Lobby')
     game_window = pygame.display.set_mode(
-        (window_width, window_height + chat_window_height)
+        (WINDOW_WIDTH, WINDOW_HEIGHT + CHAT_WINDOW_HEIGHT)
     )
 
     _start_game_loop(game_window)
@@ -33,7 +34,7 @@ def _start_game_loop(game_window: Sprite) -> None:
     game_is_running = True
     clock = pygame.time.Clock()
 
-    Map.load(game_map)
+    Map.load(GAME_MAP)
     # Map(341)
     game = NewGame(game_window, _setup_network(), _get_username())
     while game_is_running:
@@ -44,7 +45,7 @@ def _start_game_loop(game_window: Sprite) -> None:
             if event.type == pygame.QUIT:
                 game_is_running = False
 
-        dt = clock.tick() * 0.01
+        dt = clock.tick() * TIME_DIFF_MULTIPLYER
 
         game.fetch_player_data()
 

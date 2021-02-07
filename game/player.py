@@ -19,17 +19,16 @@ from typing import Callable
 
 config = get_config()
 
-window_width = config['WINDOW_WIDTH']
-window_height = config['WINDOW_HEIGHT']
-window_wall_width = Window.WALL_WIDTH.value
-grid_spacing = config['GRID_SPACING']
+WINDOW_HEIGHT = config['WINDOW_HEIGHT']
+WINDOW_WALL_WIDTH = Window.WALL_WIDTH.value
+GRID_SPACING = config['GRID_SPACING']
 
-player_width = Player_.WIDTH.value
-player_height = Player_.HEIGHT.value
-player_vel = config['PLAYER_VELOCITY']
+PLAYER_WIDTH = Player_.WIDTH.value
+PLAYER_HEIGHT = Player_.HEIGHT.value
+PLAYER_VEL = config['PLAYER_VELOCITY']
 
-bike_sound = config['BIKE_SOUND']
-mushroom_sound = config['MUSHROOM_SOUND']
+BIKE_SOUND = config['BIKE_SOUND']
+MUSHROOM_SOUND = config['MUSHROOM_SOUND']
 
 
 class Player:
@@ -45,9 +44,9 @@ class Player:
         self.id = player_id
         self.base_attributes = network_data()
         self.username = username
-        self.width = player_width
-        self.height = player_height
-        self.vel = player_vel
+        self.width = PLAYER_WIDTH
+        self.height = PLAYER_HEIGHT
+        self.vel = PLAYER_VEL
         self.walk_count = 0
         self.hitbox = (self.x, self.y, self.width, self.height)
         self.hit_wall = False
@@ -138,12 +137,12 @@ class Player:
 
     def _setup_bike_attributes(self) -> None:
         self.bike = False
-        self.bike_sound = sound(bike_sound)
+        self.bike_sound = sound(BIKE_SOUND)
 
     def _setup_mushroom_attributes(self) -> None:
         self.start_mushroom_ticks = 0
         self.mushroom = False
-        self.mushroom_sound = sound(mushroom_sound)
+        self.mushroom_sound = sound(MUSHROOM_SOUND)
 
     def _setup_network_attributes(self) -> None:
         for expected_attr in self.base_attributes.keys():
@@ -286,9 +285,9 @@ class Player:
         """Assign player speed according to player location."""
         if self.in_slow_area:
             reduced_speed = reduced_speed_nodes[player_pos]
-            self.vel = player_vel - reduced_speed
+            self.vel = PLAYER_VEL - reduced_speed
         else:
-            self.vel = player_vel
+            self.vel = PLAYER_VEL
 
     def move(self, dt: float) -> None:
         """Move the player with the arrow keys."""
@@ -369,11 +368,11 @@ class Player:
 
     def prevent_movement_beyond_screen(self, dt) -> None:
         # We want to be able to navigate the rightmost square.
-        if self.x > window_height - window_wall_width - grid_spacing:
+        if self.x > WINDOW_HEIGHT - WINDOW_WALL_WIDTH - GRID_SPACING:
             self.x -= self.vel * dt
         elif self.x < 0:
             self.x += self.vel * dt
         elif self.y < 0:
             self.y += self.vel * dt
-        elif self.y > window_height - self.height:
+        elif self.y > WINDOW_HEIGHT - self.height:
             self.y -= self.vel * dt

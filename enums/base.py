@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class Base(Enum):
+    TIME_DIFF_MULTIPLYER = 0.01
     PLAYER_COLOURS = 6  # Total number of different player colours.
 
 
