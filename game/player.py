@@ -172,6 +172,11 @@ class Player:
 
         return self.walk_count
 
+    def animate(self, dt: float) -> None:
+        """ Cycle through to the next player sprite."""
+        if not self.standing:
+            self.walk_count += (1 * dt)
+
     def draw(self, win: Sprite, dt: float) -> None:
         """Assign direction in which the player will be drawn.
         """
@@ -191,11 +196,6 @@ class Player:
             self._assign_player_imgs_to_draw(
                 dt, win, direction='down'
             )
-
-    def animate(self, dt: float) -> None:
-        """ Cycle through to the next player sprite."""
-        if not self.standing:
-            self.walk_count += (1 * dt)
 
     def _assign_player_imgs_to_draw(
         self,
@@ -287,12 +287,8 @@ class Player:
         if self.in_slow_area:
             reduced_speed = reduced_speed_nodes[player_pos]
             self.vel = player_vel - reduced_speed
-
         else:
             self.vel = player_vel
-            # We must re-sync with the grid as the player position is no
-            # longer to the nearest square.
-            # self._sync_player_pos()
 
     def move(self, dt: float) -> None:
         """Move the player with the arrow keys."""
@@ -381,9 +377,3 @@ class Player:
             self.y += self.vel * dt
         elif self.y > window_height - self.height:
             self.y -= self.vel * dt
-
-    def _sync_player_pos(self) -> None:
-        """Sync player x,y with grid."""
-        self.x, self.y = (
-            sync_value_with_grid(self.x), sync_value_with_grid(self.y)
-        )

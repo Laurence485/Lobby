@@ -38,23 +38,28 @@ def _start_game_loop(game_window: Sprite) -> None:
     game = NewGame(game_window, _setup_network(), _get_username())
     while game_is_running:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                game_is_running = False
             game.check_keyboard_input(event)
             if game.is_typing:
                 game.chat_box.text_input.check_input(event)
+            if event.type == pygame.QUIT:
+                game_is_running = False
+
+        dt = clock.tick() * 0.01
 
         game.fetch_player_data()
+
         game.player.check_collisions(
             Map.blocked_nodes, Map.reduced_speed_nodes
         )
-        dt = clock.tick() * 0.01
+
         game.player.move(dt)
+        game.player.animation_loop()
         game.player.animate(dt)
         game.player.prevent_movement_beyond_screen(dt)
+
         game.draw_game_objects(dt)
         game.chat_box.text_input.draw(game_window)
-        game.player.animation_loop()
+
         pygame.display.update()
 
 
