@@ -5,8 +5,10 @@ from game.map import Map
 from game.new_game import NewGame
 from game.typing import Sprite
 from game.utils import get_config
+from logger import get_logger
 from network.network import Network
 
+log = get_logger(__name__)
 config = get_config()
 
 TIME_DIFF_MULTIPLYER = Base.TIME_DIFF_MULTIPLYER.value
@@ -72,9 +74,9 @@ def _setup_network() -> Network:
     net = Network()
 
     if net.data is None:
-        print('cannot connect to server.')
+        log.info('cannot connect to server.')
     else:
-        print('successfully connected to server.')
+        log.info('successfully connected to server.')
 
     return net
 

@@ -5,8 +5,10 @@ from config.sprites import config as get_sprites_config_dict
 from enums.base import Window
 from game.typing import Sprite
 from game.utils import get_config, random_xy, sync_value_with_grid
+from logger import get_logger
 from typing import Set
 
+log = get_logger(__name__,  file_log_level='INFO')
 base_config = get_config()
 
 WINDOW_WIDTH = base_config['WINDOW_WIDTH']
@@ -82,7 +84,7 @@ class Map:
 
         self._update_nodes()
 
-        print('You generated a new map!')
+        log.info('You generated a new map!')
 
         if self.save:
             self._save()
@@ -118,7 +120,7 @@ class Map:
         with open(cache_path, 'wb') as path:
             pickle.dump(map_, path)
 
-        print(f'New map "{self.map_name}" saved to {cache_path}.')
+        log.info(f'New map "{self.map_name}" saved to {cache_path}.')
 
     @classmethod
     def load(cls, map_name: str) -> None:
@@ -130,7 +132,7 @@ class Map:
         cls.objects = map_['objects']
         cls.blocked_nodes = map_['blocked nodes']
 
-        print(f'loaded map: {map_name}.')
+        log.debug(f'loaded map: {map_name}.')
 
     @classmethod
     def draw(cls, win: Sprite) -> None:

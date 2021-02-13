@@ -13,10 +13,12 @@ from game.utils import (
     sync_value_with_grid,
     network_data
 )
+from logger import get_logger
 from functools import partial
 from random import randint
 from typing import Callable
 
+log = get_logger(__name__)
 config = get_config()
 
 WINDOW_HEIGHT = config['WINDOW_HEIGHT']
@@ -340,7 +342,7 @@ class Player:
 
     def _prevent_movement_into_wall(self, dt) -> None:
         if self.standing:
-            print('Debug: Frozen on a wall. Reassigning (x,y) position.')
+            log.debug('Frozen on a wall. Reassigning (x,y) position.')
             self.x, self.y = random_xy(Map.nodes)
         if self.left:
             self.x += self.vel * dt

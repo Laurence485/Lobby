@@ -6,8 +6,10 @@ from game.map import Map
 from game.player import Player
 from game.typing import Sprite
 from game.utils import get_config, random_xy
+from logger import get_logger
 from network.network import Network, fetch_player_data
 
+log = get_logger(__name__)
 config = get_config()
 
 WINDOW_WIDTH = config['WINDOW_WIDTH']
@@ -37,6 +39,8 @@ class NewGame:
             player_id=self.net.player_id,
             username=self.username,
         )
+
+        log.debug('Created a new game.')
 
     def check_keyboard_input(self, event: pygame.event.Event) -> None:
         """Check for keyboard input.

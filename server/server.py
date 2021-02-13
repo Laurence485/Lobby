@@ -2,8 +2,10 @@ import pickle
 import socket
 
 from enums.base import Network_
+from logger import get_logger
 from game.utils import check_os_config, network_data
 
+log = get_logger(__name__)
 
 BUFFER_SIZE = Network_.BUFFER_SIZE.value
 
@@ -54,7 +56,7 @@ class Server:
         # Indicate that this player should be deleted locally.
         self.players[player_id]['x'] = None
         self.disconnected_player_ids.append(player_id)
-        print(
+        log.info(
             f'Connection dropped ({self.players[player_id]["username"]},'
             f' Player id: {player_id}).'
         )
@@ -64,11 +66,11 @@ class Server:
             try:
                 del self.players[id_]
             except KeyError:
-                print(
+                log.warning(
                     f'Could not delete player with id {id_} from server.'
                 )
             else:
-                print(f'Deleted player with id {id_} from server.')
+                log.info(f'Deleted player with id {id_} from server.')
             finally:
                 self.disconnected_player_ids.remove(id_)
 
@@ -78,4 +80,4 @@ class Server:
 
         Server.current_player_id = 0
 
-        print('All players reset.')
+        log.info('All players reset.')

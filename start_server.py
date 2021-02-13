@@ -1,8 +1,11 @@
 import socket
 
 from enums.base import Server_
+from logger import get_logger
 from server.server import Server
 import threading
+
+log = get_logger(__name__, file_log_level='INFO')
 
 MAX_CONNECTIONS = Server_.MAX_CONNECTIONS.value
 
@@ -14,12 +17,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.bind((server.host, server.port))
         sock.listen(MAX_CONNECTIONS)
 
-        print('Server started, waiting for connection...')
+        log.info('Server started, waiting for connection...')
 
         while True:
             conn, addr = sock.accept()
-            print(
-                'Connected by:', addr, f'Player id: {server.current_player_id}'
+            log.info(
+                f'Connected by: {addr}. Player id: {server.current_player_id}'
             )
 
             threading.Thread(
