@@ -1,7 +1,8 @@
 import pygame
 import time
 
-from game.typing import Sprite
+from enums.base import Base
+from game.typing import Event, Sprite
 from game.utils import get_config
 
 config = get_config()
@@ -9,6 +10,7 @@ config = get_config()
 WINDOW_WIDTH = config['WINDOW_WIDTH']
 WINDOW_HEIGHT = config['WINDOW_HEIGHT']
 CHAT_WINDOW_HEIGHT = config['CHAT_WINDOW_HEIGHT']
+EDGE_DISTANCE = Base.MAX_TEXT_DISTANCE_FROM_EDGE.value
 
 
 class ChatBox:
@@ -36,22 +38,29 @@ class TextInput(ChatBox):
         self.text_img = self.font.render(self.text, True, self.colour)
 
         self.rect = self.text_img.get_rect()
-        self.y_ = self.y + CHAT_WINDOW_HEIGHT - self.rect.height
+        self.y_ = self.y + self.height - self.rect.height
         self.rect.topleft = (self.x, self.y_)
         self.cursor = pygame.Rect(self.rect.topright, (3, self.rect.height))
 
-    def check_input(self, event: pygame.event.Event) -> None:
+    def check_input(self, event: Event) -> None:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_BACKSPACE:
                 if len(self.text) > 0:
                     self.text = self.text[:-1]
             else:
-                if not self.rect.width >= self.width:
-                    self.text += event.unicode
+                self._add_text(event)
 
-            self.text_img = self.font.render(self.text, True, self.colour)
-            self.rect.size = self.text_img.get_size()
-            self.cursor.topleft = self.rect.topright
+            self._set_new_text_input()
+
+    def _add_text(self, event: Event) -> None:
+        if not self.rect.width >= self.width - EDGE_DISTANCE:
+            self.text += event.unicode
+
+    def _set_new_text_input(self) -> None:
+        """Update the new text and cursor to be drawn."""
+        self.text_img = self.font.render(self.text, True, self.colour)
+        self.rect.size = self.text_img.get_size()
+        self.cursor.topleft = self.rect.topright
 
     def draw(self, window: Sprite) -> None:
         """Draw text onto screen and flash cursor every 0.5 seconds."""

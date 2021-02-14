@@ -4,6 +4,8 @@ from enum import Enum
 class Base(Enum):
     TIME_DIFF_MULTIPLYER = 0.01
     PLAYER_COLOURS = 6  # Total number of different player colours.
+    # Don't let text exceed chat box width minus this amount.
+    MAX_TEXT_DISTANCE_FROM_EDGE = 10
 
 
 class Player_(Enum):
