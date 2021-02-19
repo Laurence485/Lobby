@@ -10,7 +10,7 @@ config = get_config()
 WINDOW_WIDTH = config['WINDOW_WIDTH']
 WINDOW_HEIGHT = config['WINDOW_HEIGHT']
 CHAT_WINDOW_HEIGHT = config['CHAT_WINDOW_HEIGHT']
-EDGE_DISTANCE = Base.MAX_TEXT_DISTANCE_FROM_EDGE.value
+EDGE_DISTANCE = Base.TEXT_DISTANCE_FROM_EDGE.value
 
 
 class ChatBox:
@@ -95,8 +95,12 @@ class TextInput(ChatBox):
         self.draw(window)
 
     def draw(self, window: Sprite) -> None:
-        """Draw text onto screen and flash cursor every 0.5 seconds."""
+        """Draw text and cursor onto screen."""
         window.blit(self.text_img, self.rect)
+        self._draw_cursor()
+
+    def _draw_cursor(self, window: Sprite) -> None:
+        """Flash cursor every 0.5 seconds."""
         if time.time() % 1 > 0.5:
             pygame.draw.rect(window, self.colour, self.cursor)
 

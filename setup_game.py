@@ -44,8 +44,6 @@ def _start_game_loop(game_window: Sprite) -> None:
             game.check_keyboard_input(event)
             if game.is_typing:
                 game.chat_box.text_input.check_input(event)
-            # else:
-            #     game.chat_box.text_input.draw_entered_text(game_window)
             if event.type == pygame.QUIT:
                 game_is_running = False
 
