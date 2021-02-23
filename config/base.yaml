@@ -12,6 +12,3 @@ WATER_SPEED: 4 # The players speed when in water.
 
 BIKE_SOUND: 'sounds/bike.wav'
 MUSHROOM_SOUND: 'sounds/mushroom.wav'
-
-
-MAX_CONNECTIONS: 10
