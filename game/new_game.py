@@ -33,7 +33,7 @@ class NewGame:
         self.menu = False
         self.grid = False
         self.is_typing = False
-        self.chat_box = ChatBox()
+        self.chat_box = ChatBox(self.username)
         self.player = Player(
             xy=random_xy(Map.nodes),
             player_id=self.net.player_id,
