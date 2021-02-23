@@ -41,20 +41,30 @@ class TextInput(ChatBox):
         self.colour = TEXT_COLOUR
         self.text = ''
         self.font = pygame.font.SysFont(None, FONT_SIZE)
+        self._setup_imgs()
+        self._setup_rects()
+        self.previous_text = []
+        self.previous_text_height = 0
+
+    def _setup_imgs(self) -> None:
         self.text_img = self.font.render(self.text, True, self.colour)
         self.username_img = self.font.render(
             f'{self.username}: ', True, self.username_colour
         )
 
-        self.rect = self.text_img.get_rect()
+    def _setup_rects(self) -> None:
+        self.text_rect = self.text_img.get_rect()
         self.username_rect = self.username_img.get_rect()
-        self.y_ = self.y + self.height - self.rect.height
+        self.y_ = self.y + self.height - self.text_rect.height
 
-        self.rect.topleft = (self.x + self.username_img.get_width(), self.y_)
+        self.text_rect.topleft = (
+            self.x + self.username_img.get_width(), self.y_
+        )
         self.username_rect.topleft = (self.x, self.y_)
-        self.cursor = pygame.Rect(self.rect.topright, (3, self.rect.height))
-        self.previous_text = []
-        self.previous_text_height = 0
+
+        self.cursor = pygame.Rect(
+            self.text_rect.topright, (3, self.text_rect.height)
+        )
 
     def check_input(self, event: Event) -> None:
         if event.type == pygame.KEYDOWN:
@@ -67,7 +77,7 @@ class TextInput(ChatBox):
             self._set_new_text_input()
 
     def _add_text(self, event: Event) -> None:
-        if not self.rect.width >= (
+        if not self.text_rect.width >= (
             self.width - self.username_img.get_width() - EDGE_DISTANCE
         ):
             self.text += event.unicode
@@ -75,8 +85,8 @@ class TextInput(ChatBox):
     def _set_new_text_input(self) -> None:
         """Update the new text and cursor to be drawn."""
         self.text_img = self.font.render(self.text, True, self.colour)
-        self.rect.size = self.text_img.get_size()
-        self.cursor.topleft = self.rect.topright
+        self.text_rect.size = self.text_img.get_size()
+        self.cursor.topleft = self.text_rect.topright
 
     def store_entered_text(self, window: Sprite) -> None:
         """Store the entered text for display."""
@@ -91,16 +101,16 @@ class TextInput(ChatBox):
                 },
                 'text_img': self.text_img,
                 'rect': {
-                    'x': self.rect.x,
-                    'y': self.rect.y - self.rect.height,
-                    'width': self.rect.width,
-                    'height': self.rect.height
+                    'x': self.text_rect.x,
+                    'y': self.text_rect.y - self.text_rect.height,
+                    'width': self.text_rect.width,
+                    'height': self.text_rect.height
                     }
                 }
 
             if self.previous_text:
                 self._update_previous_text()
-                self.previous_text_height += self.rect.height
+                self.previous_text_height += self.text_rect.height
 
             self.previous_text.append(text)
             self._clear_text_input(window)
@@ -108,8 +118,8 @@ class TextInput(ChatBox):
     def _update_previous_text(self) -> None:
         """Move previous text up to allow room for new text."""
         for text in self.previous_text:
-            text['rect']['y'] -= self.rect.height
-            text['username_rect']['y'] -= self.rect.height
+            text['rect']['y'] -= self.text_rect.height
+            text['username_rect']['y'] -= self.text_rect.height
 
     def _clear_text_input(self, window: Sprite) -> None:
         self.text = ''
@@ -119,7 +129,7 @@ class TextInput(ChatBox):
     def draw(self, window: Sprite) -> None:
         """Draw text and cursor onto screen."""
         window.blit(self.username_img, self.username_rect)
-        window.blit(self.text_img, self.rect)
+        window.blit(self.text_img, self.text_rect)
         self._draw_cursor(window)
 
     def _draw_cursor(self, window: Sprite) -> None:
@@ -158,7 +168,7 @@ class TextInput(ChatBox):
     def _delete_oldest_message(self) -> None:
         """If height of text in text box is greater than the height
         of the text box itself then delete the oldest message."""
-        if self.previous_text_height >= self.height - self.rect.height:
+        if self.previous_text_height >= self.height - self.text_rect.height:
             oldest_text_height = self.previous_text[0]['rect']['height']
             self.previous_text_height -= oldest_text_height
             del self.previous_text[0]
