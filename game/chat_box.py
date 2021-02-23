@@ -93,33 +93,32 @@ class TextInput(ChatBox):
         if self.text_img.get_width():
             text = {
                 'username_img': self.username_img,
-                'username_rect': {
-                    'x': self.username_rect.x,
-                    'y': self.username_rect.y - self.username_rect.height,
-                    'width': self.username_rect.width,
-                    'height': self.username_rect.height
-                },
+                'username_rect': self._create_rect_dict('username_rect'),
                 'text_img': self.text_img,
-                'rect': {
-                    'x': self.text_rect.x,
-                    'y': self.text_rect.y - self.text_rect.height,
-                    'width': self.text_rect.width,
-                    'height': self.text_rect.height
-                    }
+                'rect': self._create_rect_dict('text_rect')
                 }
 
             if self.previous_text:
                 self._update_previous_text()
-                self.previous_text_height += self.text_rect.height
 
             self.previous_text.append(text)
             self._clear_text_input(window)
+
+    def _create_rect_dict(self, attribute: str) -> dict:
+        return {
+            'x': getattr(self, attribute).x,
+            'y': getattr(self, attribute).y - getattr(self, attribute).height,
+            'width': getattr(self, attribute).width,
+            'height': getattr(self, attribute).height
+        }
 
     def _update_previous_text(self) -> None:
         """Move previous text up to allow room for new text."""
         for text in self.previous_text:
             text['rect']['y'] -= self.text_rect.height
             text['username_rect']['y'] -= self.text_rect.height
+
+        self.previous_text_height += self.text_rect.height
 
     def _clear_text_input(self, window: Sprite) -> None:
         self.text = ''
@@ -144,26 +143,18 @@ class TextInput(ChatBox):
             username_rect = text['username_rect']
             text_img = text['text_img']
             text_rect = text['rect']
-            window.blit(
-                username_img,
-                (
-                    username_rect['x'],
-                    username_rect['y'],
-                    username_rect['width'],
-                    username_rect['height']
-                )
-            )
-            window.blit(
-                text_img,
-                (
-                    text_rect['x'],
-                    text_rect['y'],
-                    text_rect['width'],
-                    text_rect['height']
-                )
-            )
+            window.blit(username_img, self._get_rect_from_dict(username_rect))
+            window.blit(text_img, self._get_rect_from_dict(text_rect))
 
         self._delete_oldest_message()
+
+    def _get_rect_from_dict(self, rect: dict) -> tuple:
+        return (
+            rect['x'],
+            rect['y'],
+            rect['width'],
+            rect['height']
+        )
 
     def _delete_oldest_message(self) -> None:
         """If height of text in text box is greater than the height
