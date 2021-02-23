@@ -4,8 +4,6 @@ from enum import Enum
 class Base(Enum):
     TIME_DIFF_MULTIPLYER = 0.01
     PLAYER_COLOURS = 6  # Total number of different player colours.
-    # Don't let text exceed chat box width minus this amount.
-    TEXT_DISTANCE_FROM_EDGE = 10
 
 
 class Player_(Enum):
@@ -41,3 +39,12 @@ class Server_(Enum):
 class Window(Enum):
     WALL_WIDTH = 70  # Rock wall on the right of the screen.
     GRID_COLOUR = 125
+
+
+class Chat(Enum):
+    # Don't let text exceed chat box width minus this amount.
+    TEXT_DISTANCE_FROM_EDGE = 10
+    CHAT_BOX_COLOUR = (210, 210, 210, 210)
+    USERNAME_COLOUR = (50, 50, 50, 0)
+    TEXT_COLOUR = (0, 0, 0)
+    FONT_SIZE = 15

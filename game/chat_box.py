@@ -1,7 +1,7 @@
 import pygame
 import time
 
-from enums.base import Base
+from enums.base import Chat
 from game.typing import Event, Sprite
 from game.utils import get_config
 
@@ -10,7 +10,11 @@ config = get_config()
 WINDOW_WIDTH = config['WINDOW_WIDTH']
 WINDOW_HEIGHT = config['WINDOW_HEIGHT']
 CHAT_WINDOW_HEIGHT = config['CHAT_WINDOW_HEIGHT']
-EDGE_DISTANCE = Base.TEXT_DISTANCE_FROM_EDGE.value
+EDGE_DISTANCE = Chat.TEXT_DISTANCE_FROM_EDGE.value
+CHAT_BOX_COLOUR = Chat.CHAT_BOX_COLOUR.value
+USERNAME_COLOUR = Chat.USERNAME_COLOUR.value
+TEXT_COLOUR = Chat.TEXT_COLOUR.value
+FONT_SIZE = Chat.FONT_SIZE.value
 
 
 class ChatBox:
@@ -18,11 +22,11 @@ class ChatBox:
     y = WINDOW_HEIGHT
     width = WINDOW_WIDTH
     height = CHAT_WINDOW_HEIGHT
+    username_colour = USERNAME_COLOUR
 
     def __init__(self, username: str):
         setattr(ChatBox, 'username', username)
-        setattr(ChatBox, 'username_colour', (50, 50, 50, 0))
-        self.colour = (210, 210, 210, 210)
+        self.colour = CHAT_BOX_COLOUR
         self.box = pygame.Surface((self.width, self.height))
         self.box.fill(self.colour)
         self.text_input = TextInput()
@@ -34,9 +38,9 @@ class ChatBox:
 
 class TextInput(ChatBox):
     def __init__(self):
-        self.colour = (0, 0, 0)
+        self.colour = TEXT_COLOUR
         self.text = ''
-        self.font = pygame.font.SysFont(None, 15)
+        self.font = pygame.font.SysFont(None, FONT_SIZE)
         self.text_img = self.font.render(self.text, True, self.colour)
         self.username_img = self.font.render(
             f'{self.username}: ', True, self.username_colour
