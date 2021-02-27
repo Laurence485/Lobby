@@ -17,15 +17,17 @@ TEXT_COLOUR = Chat.TEXT_COLOUR.value
 FONT_SIZE = Chat.FONT_SIZE.value
 
 
-class ChatBox:
+class ChatMixin:
     x = 0
     y = WINDOW_HEIGHT
     width = WINDOW_WIDTH
     height = CHAT_WINDOW_HEIGHT
     username_colour = USERNAME_COLOUR
 
+
+class ChatBox(ChatMixin):
     def __init__(self, username: str):
-        setattr(ChatBox, 'username', username)
+        setattr(ChatMixin, 'username', username)
         self.colour = CHAT_BOX_COLOUR
         self.box = pygame.Surface((self.width, self.height))
         self.box.fill(self.colour)
@@ -36,7 +38,7 @@ class ChatBox:
         window.blit(self.box, (self.x, self. y))
 
 
-class TextInput(ChatBox):
+class TextInput(ChatMixin):
     def __init__(self):
         self.colour = TEXT_COLOUR
         self.text = ''

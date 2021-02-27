@@ -79,6 +79,8 @@ class Player:
         return self.base_attributes
 
     def _set_player_img_id(self) -> int:
+        """Set the image id (which will determine the players colour)
+        based on the players' id."""
         if self.id < Base.PLAYER_COLOURS.value:
             img_id = self.id
         else:
