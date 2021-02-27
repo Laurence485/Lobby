@@ -11,10 +11,10 @@ import pygame.mixer
 
 from game.errors import ConfigError
 from game.typing import Sprite
-from typing import Set
+from typing import Set, Union
 
 
-def check_os_config(env_var: str, attribute: str = None) -> str:
+def check_os_config(env_var: str, attribute: Union[str, int] = None) -> str:
     if attribute:
         return attribute
     try:
