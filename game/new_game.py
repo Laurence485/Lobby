@@ -4,6 +4,7 @@ from enums.base import Window
 from game.chat_box import ChatBox
 from game.map import Map
 from game.player import Player
+from game.redis import RedisClient
 from game.typing import Sprite
 from game.utils import get_config, random_xy
 from logger import get_logger
@@ -33,6 +34,7 @@ class NewGame:
         self.menu = False
         self.grid = False
         self.is_typing = False
+        self.redis = RedisClient()
         self.chat_box = ChatBox(self.username)
         self.player = Player(
             xy=random_xy(Map.nodes),
@@ -46,7 +48,6 @@ class NewGame:
         """Check for keyboard input.
 
         Press Enter to type.
-        Press Z for menu.
         Press X to show the grid.
         Press B to use the bike.
         """

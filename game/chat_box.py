@@ -2,6 +2,7 @@ import pygame
 import time
 
 from enums.base import Chat
+from game.redis import RedisClient
 from game.typing import Event, Sprite
 from game.utils import get_config
 
@@ -23,6 +24,7 @@ class ChatMixin:
     width = WINDOW_WIDTH
     height = CHAT_WINDOW_HEIGHT
     username_colour = USERNAME_COLOUR
+    redis = RedisClient()
 
 
 class ChatBox(ChatMixin):
@@ -93,11 +95,12 @@ class TextInput(ChatMixin):
     def store_entered_text(self, window: Sprite) -> None:
         """Store the entered text for display."""
         if self.text_img.get_width():
+            # self.redis.save_message()
             text = {
                 'username_img': self.username_img,
                 'username_rect': self._create_rect_dict('username_rect'),
                 'text_img': self.text_img,
-                'rect': self._create_rect_dict('text_rect')
+                'text_rect': self._create_rect_dict('text_rect')
                 }
 
             if self.previous_text:
@@ -117,7 +120,7 @@ class TextInput(ChatMixin):
     def _update_previous_text(self) -> None:
         """Move previous text up to allow room for new text."""
         for text in self.previous_text:
-            text['rect']['y'] -= self.text_rect.height
+            text['text_rect']['y'] -= self.text_rect.height
             text['username_rect']['y'] -= self.text_rect.height
 
         self.previous_text_height += self.text_rect.height
@@ -144,7 +147,7 @@ class TextInput(ChatMixin):
             username_img = text['username_img']
             username_rect = text['username_rect']
             text_img = text['text_img']
-            text_rect = text['rect']
+            text_rect = text['text_rect']
             window.blit(username_img, self._get_rect_from_dict(username_rect))
             window.blit(text_img, self._get_rect_from_dict(text_rect))
 
@@ -162,6 +165,6 @@ class TextInput(ChatMixin):
         """If height of text in text box is greater than the height
         of the text box itself then delete the oldest message."""
         if self.previous_text_height >= self.height - self.text_rect.height:
-            oldest_text_height = self.previous_text[0]['rect']['height']
+            oldest_text_height = self.previous_text[0]['text_rect']['height']
             self.previous_text_height -= oldest_text_height
             del self.previous_text[0]
