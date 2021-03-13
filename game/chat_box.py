@@ -23,38 +23,43 @@ class ChatMixin:
     y = WINDOW_HEIGHT
     width = WINDOW_WIDTH
     height = CHAT_WINDOW_HEIGHT
-    username_colour = USERNAME_COLOUR
     redis = RedisClient()
 
 
 class ChatBox(ChatMixin):
     def __init__(self, username: str):
-        setattr(ChatMixin, 'username', username)
         self.colour = CHAT_BOX_COLOUR
         self.box = pygame.Surface((self.width, self.height))
         self.box.fill(self.colour)
-        self.text_input = TextInput()
+        self.text_input = TextInput(username)
 
     def draw(self, window: Sprite) -> None:
         """Draw chat box at bottom of screen."""
         window.blit(self.box, (self.x, self. y))
 
+    def get_new_messages(self):
+        messages = self.redis.get_all_messages()
+        if messages:
+            sorted_messages = self.redis.sort_messages_by_expiry(messages)
+            print(sorted_messages)
+            import time; time.sleep(0.5)
+
 
 class TextInput(ChatMixin):
-    def __init__(self):
+    def __init__(self, username: str):
         self.colour = TEXT_COLOUR
+        self.username_colour = USERNAME_COLOUR
         self.text = ''
         self.font = pygame.font.SysFont(None, FONT_SIZE)
-        self._setup_imgs()
-        self._setup_rects()
         self.previous_text = []
         self.previous_text_height = 0
+        self.username = username
+        self._setup_imgs()
+        self._setup_rects()
 
     def _setup_imgs(self) -> None:
-        self.text_img = self.font.render(self.text, True, self.colour)
-        self.username_img = self.font.render(
-            f'{self.username}: ', True, self.username_colour
-        )
+        self.text_img = self._render_text(self.text)
+        self.username_img = self._render_text(self.username, True)
 
     def _setup_rects(self) -> None:
         self.text_rect = self.text_img.get_rect()
@@ -88,25 +93,43 @@ class TextInput(ChatMixin):
 
     def _set_new_text_input(self) -> None:
         """Update the new text and cursor to be drawn."""
-        self.text_img = self.font.render(self.text, True, self.colour)
+        self.text_img = self._render_text(self.text)
         self.text_rect.size = self.text_img.get_size()
         self.cursor.topleft = self.text_rect.topright
+
+    def _render_text(self, text: str, username: bool = False):
+        if username:
+            text += ': '
+            colour = self.username_colour
+        else:
+            colour = self.colour
+        return self.font.render(text, True, colour)
 
     def store_entered_text(self, window: Sprite) -> None:
         """Store the entered text for display."""
         if self.text_img.get_width():
-            # self.redis.save_message()
-            text = {
-                'username_img': self.username_img,
-                'username_rect': self._create_rect_dict('username_rect'),
-                'text_img': self.text_img,
-                'text_rect': self._create_rect_dict('text_rect')
-                }
+            username_rect = self._create_rect_dict('username_rect')
+            text_rect = self._create_rect_dict('text_rect')
+
+            payload = {
+                'username': self.username,
+                'text': self.text,
+                'username_rect': username_rect,
+                'text_rect': text_rect
+            }
+            self.redis.save_message(payload)
+
+            # text = {
+            #     'username_img': self.username_img,
+            #     'username_rect': username_rect,
+            #     'text_img': self.text_img,
+            #     'text_rect': text_rect
+            #     }
 
             if self.previous_text:
                 self._update_previous_text()
 
-            self.previous_text.append(text)
+            self.previous_text.append(payload)
             self._clear_text_input(window)
 
     def _create_rect_dict(self, attribute: str) -> dict:
@@ -132,8 +155,11 @@ class TextInput(ChatMixin):
 
     def draw(self, window: Sprite) -> None:
         """Draw text and cursor onto screen."""
-        window.blit(self.username_img, self.username_rect)
-        window.blit(self.text_img, self.text_rect)
+        window.blit(
+            self._render_text(self.username, username=True),
+            self.username_rect
+        )
+        window.blit(self._render_text(self.text), self.text_rect)
         self._draw_cursor(window)
 
     def _draw_cursor(self, window: Sprite) -> None:
@@ -144,9 +170,9 @@ class TextInput(ChatMixin):
     def draw_previous_text(self, window: Sprite) -> None:
         """Draw the previously entered text above the text input box."""
         for text in self.previous_text:
-            username_img = text['username_img']
             username_rect = text['username_rect']
-            text_img = text['text_img']
+            username_img = self._render_text(text['username'], username=True)
+            text_img = self._render_text(text['text'])
             text_rect = text['text_rect']
             window.blit(username_img, self._get_rect_from_dict(username_rect))
             window.blit(text_img, self._get_rect_from_dict(text_rect))
