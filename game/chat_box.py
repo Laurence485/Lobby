@@ -78,21 +78,21 @@ class TextInput(ChatMixin):
         """Check redis for any new messages and update the list of
         previous messages with any new ones found.
         """
-        messages = self.redis.get_all_messages()
+        messages = self.redis.get_all_messages(
+            cached_keys=self.previous_msgs_cache.keys()
+        )
         if messages:
             sorted_messages = self.redis.sort_messages_by_expiry(messages)
 
             for message in sorted_messages:
-                if message['id'] not in self.previous_msgs_cache:
+                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                self.previous_msgs_cache[message['id']] = timestamp
 
-                    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    self.previous_msgs_cache[message['id']] = timestamp
+                self.previous_msgs.append(json.loads(message['data']))
 
-                    self.previous_msgs.append(json.loads(message['data']))
-
-                    self.previous_msgs_height += (
-                        json.loads(message['data'])['text_rect']['height']
-                    )
+                self.previous_msgs_height += (
+                    json.loads(message['data'])['text_rect']['height']
+                )
 
     def delete_old_msg_ids(self) -> None:
         """Clear out old message ids which have been stored to prevent

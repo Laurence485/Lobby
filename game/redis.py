@@ -1,8 +1,9 @@
 import json
+import redis
+import typing
 
 from game.errors import DatabaseTimeoutError
 from logger import get_logger
-import redis
 from uuid import uuid4
 
 log = get_logger(__name__)
@@ -39,14 +40,20 @@ class RedisClient:
         log.debug(f'message saved!: {payload}')
         return message_id
 
-    def get_all_messages(self) -> list:
+    def get_all_messages(
+        self, cached_keys: typing.collections.KeysView = None
+    ) -> list:
+        if cached_keys:
+            keys = self.redis.keys() - cached_keys
+        else:
+            keys = self.redis.keys()
         return [
             {
                 'id': message_id,
                 'data': self.redis.hget(message_id, 'data'),
                 'expires_in': self.redis.ttl(message_id)
             }
-            for message_id in self.redis.keys()
+            for message_id in keys
         ]
 
     def sort_messages_by_expiry(self, messages: list) -> list:
