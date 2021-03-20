@@ -29,7 +29,7 @@ class RedisClient:
         self.redis.hmset(message_id, payload)
         self.redis.expire(message_id, MSG_LIFETIME_SECONDS)
 
-        log.info(f'message saved!: {payload}')
+        log.debug(f'message saved!: {payload}')
         return message_id
 
     def get_all_messages(self) -> list:

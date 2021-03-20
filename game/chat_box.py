@@ -1,3 +1,4 @@
+import json
 import pygame
 import time
 
@@ -24,6 +25,7 @@ class ChatMixin:
     width = WINDOW_WIDTH
     height = CHAT_WINDOW_HEIGHT
     redis = RedisClient()
+    previous_text = []
 
 
 class ChatBox(ChatMixin):
@@ -32,6 +34,8 @@ class ChatBox(ChatMixin):
         self.box = pygame.Surface((self.width, self.height))
         self.box.fill(self.colour)
         self.text_input = TextInput(username)
+        # self.previous_text = []
+        self.previous_text_ids = set()
 
     def draw(self, window: Sprite) -> None:
         """Draw chat box at bottom of screen."""
@@ -41,9 +45,20 @@ class ChatBox(ChatMixin):
         messages = self.redis.get_all_messages()
         if messages:
             sorted_messages = self.redis.sort_messages_by_expiry(messages)
-            print(sorted_messages)
-            import time; time.sleep(0.5)
 
+            for message in sorted_messages:
+                if message['id'] not in self.previous_text_ids:
+                    self.previous_text_ids.add(message['id'])
+                    self.previous_text.append(json.loads(message['data']))
+
+
+    def check_message_ids():
+        """Check message ids periodically to see if still active
+        in redis so we can clear self.previous_text_ids
+        IS THERE A WAY WE CAN AVOID SENDING REQS TO DB??
+        E.G. MAKE USE OF A TIMESTAMP
+        """
+        pass
 
 class TextInput(ChatMixin):
     def __init__(self, username: str):
@@ -51,7 +66,6 @@ class TextInput(ChatMixin):
         self.username_colour = USERNAME_COLOUR
         self.text = ''
         self.font = pygame.font.SysFont(None, FONT_SIZE)
-        self.previous_text = []
         self.previous_text_height = 0
         self.username = username
         self._setup_imgs()
@@ -111,25 +125,18 @@ class TextInput(ChatMixin):
             username_rect = self._create_rect_dict('username_rect')
             text_rect = self._create_rect_dict('text_rect')
 
-            payload = {
+            text = {
                 'username': self.username,
                 'text': self.text,
                 'username_rect': username_rect,
                 'text_rect': text_rect
             }
-            self.redis.save_message(payload)
-
-            # text = {
-            #     'username_img': self.username_img,
-            #     'username_rect': username_rect,
-            #     'text_img': self.text_img,
-            #     'text_rect': text_rect
-            #     }
+            self.redis.save_message(text)
 
             if self.previous_text:
                 self._update_previous_text()
 
-            self.previous_text.append(payload)
+            # self.previous_text.append(text)
             self._clear_text_input(window)
 
     def _create_rect_dict(self, attribute: str) -> dict:
