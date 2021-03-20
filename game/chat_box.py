@@ -54,8 +54,7 @@ class TextInput(ChatMixin):
         self.redis = RedisClient()
         self.previous_msgs = []
         self.previous_msgs_height = 0
-        self.previous_msgs_ids = set()
-        self.previous_msgs_timestamps = {}
+        self.previous_msgs_cache = {}
 
     def _setup_imgs(self) -> None:
         self.text_img = self._render_text(self.text)
@@ -76,16 +75,18 @@ class TextInput(ChatMixin):
         )
 
     def get_new_messages(self) -> None:
+        """Check redis for any new messages and update the list of
+        previous messages with any new ones found.
+        """
         messages = self.redis.get_all_messages()
         if messages:
             sorted_messages = self.redis.sort_messages_by_expiry(messages)
 
             for message in sorted_messages:
-                if message['id'] not in self.previous_msgs_ids:
-                    self.previous_msgs_ids.add(message['id'])
+                if message['id'] not in self.previous_msgs_cache:
 
                     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    self.previous_msgs_timestamps[message['id']] = timestamp
+                    self.previous_msgs_cache[message['id']] = timestamp
 
                     self.previous_msgs.append(json.loads(message['data']))
 
@@ -99,18 +100,17 @@ class TextInput(ChatMixin):
         lifetime has elapsed, and if so, remove from the previous
         messages set.
         """
-        if len(self.previous_msgs_ids) > 1000:
+        if len(self.previous_msgs_cache) > 1:
             log.debug('Clearing old message ids.')
 
-            for message_id in list(self.previous_msgs_ids):
-                timestamp = self.previous_msgs_timestamps[message_id]
+            for message_id in list(self.previous_msgs_cache.keys()):
+                timestamp = self.previous_msgs_cache[message_id]
                 timestamp_date = datetime.strptime(
                     timestamp, '%Y-%m-%d %H:%M:%S'
                 )
                 timediff = datetime.now() - timestamp_date
                 if timediff.seconds > 5:
-                    self.previous_msgs_ids.remove(message_id)
-                    del self.previous_msgs_timestamps[message_id]
+                    del self.previous_msgs_cache[message_id]
 
     def check_input(self, event: Event) -> None:
         if event.type == pygame.KEYDOWN:
@@ -223,7 +223,8 @@ class TextInput(ChatMixin):
 
     def _delete_oldest_message(self) -> None:
         """If height of text in text box is greater than the height
-        of the text box itself then delete the oldest message."""
+        of the text box itself then delete the oldest message.
+        """
         if self.previous_msgs_height >= self.height - self.text_rect.height:
             oldest_text_height = (
                 self.previous_msgs.pop(0)['text_rect']['height']
