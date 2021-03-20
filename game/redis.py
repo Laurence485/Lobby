@@ -1,7 +1,8 @@
 import json
 
+from game.errors import DatabaseTimeoutError
 from logger import get_logger
-from redis import StrictRedis
+import redis
 from uuid import uuid4
 
 log = get_logger(__name__)
@@ -10,13 +11,19 @@ MSG_LIFETIME_SECONDS = 5  # 300
 
 
 class RedisClient:
-
     def __init__(self):
-        self.redis = StrictRedis(
-            host='localhost', port=6379, decode_responses=True, charset='utf-8'
+        self.redis = redis.StrictRedis(
+            host='localhost',
+            port=6379,
+            decode_responses=True,
+            charset='utf-8',
+            socket_connect_timeout=30
         )
-
-        log.info('Connected to redis.')
+        try:
+            self.redis.ping()
+            log.info('Connected to redis.')
+        except redis.exceptions.TimeoutError as err:
+            raise DatabaseTimeoutError(err)
 
     def get_message(self, message_id: str) -> str:
         pass

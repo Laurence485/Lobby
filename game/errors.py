@@ -4,3 +4,7 @@ class ConfigError(Exception):
 
 class ServerError(Exception):
     pass
+
+
+class DatabaseTimeoutError(Exception):
+    pass

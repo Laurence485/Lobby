@@ -2,11 +2,14 @@ import json
 import pygame
 import time
 
+from datetime import datetime
 from enums.base import Chat
 from game.redis import RedisClient
 from game.typing import Event, Sprite
 from game.utils import get_config
+from logger import get_logger
 
+log = get_logger(__name__)
 config = get_config()
 
 WINDOW_WIDTH = config['WINDOW_WIDTH']
@@ -24,8 +27,6 @@ class ChatMixin:
     y = WINDOW_HEIGHT
     width = WINDOW_WIDTH
     height = CHAT_WINDOW_HEIGHT
-    redis = RedisClient()
-    previous_text = []
 
 
 class ChatBox(ChatMixin):
@@ -34,31 +35,11 @@ class ChatBox(ChatMixin):
         self.box = pygame.Surface((self.width, self.height))
         self.box.fill(self.colour)
         self.text_input = TextInput(username)
-        # self.previous_text = []
-        self.previous_text_ids = set()
 
     def draw(self, window: Sprite) -> None:
         """Draw chat box at bottom of screen."""
         window.blit(self.box, (self.x, self. y))
 
-    def get_new_messages(self):
-        messages = self.redis.get_all_messages()
-        if messages:
-            sorted_messages = self.redis.sort_messages_by_expiry(messages)
-
-            for message in sorted_messages:
-                if message['id'] not in self.previous_text_ids:
-                    self.previous_text_ids.add(message['id'])
-                    self.previous_text.append(json.loads(message['data']))
-
-
-    def check_message_ids():
-        """Check message ids periodically to see if still active
-        in redis so we can clear self.previous_text_ids
-        IS THERE A WAY WE CAN AVOID SENDING REQS TO DB??
-        E.G. MAKE USE OF A TIMESTAMP
-        """
-        pass
 
 class TextInput(ChatMixin):
     def __init__(self, username: str):
@@ -66,10 +47,15 @@ class TextInput(ChatMixin):
         self.username_colour = USERNAME_COLOUR
         self.text = ''
         self.font = pygame.font.SysFont(None, FONT_SIZE)
-        self.previous_text_height = 0
         self.username = username
         self._setup_imgs()
         self._setup_rects()
+
+        self.redis = RedisClient()
+        self.previous_msgs = []
+        self.previous_msgs_height = 0
+        self.previous_msgs_ids = set()
+        self.previous_msgs_timestamps = {}
 
     def _setup_imgs(self) -> None:
         self.text_img = self._render_text(self.text)
@@ -78,16 +64,53 @@ class TextInput(ChatMixin):
     def _setup_rects(self) -> None:
         self.text_rect = self.text_img.get_rect()
         self.username_rect = self.username_img.get_rect()
-        self.y_ = self.y + self.height - self.text_rect.height
+        self.y_text = self.y + self.height - self.text_rect.height
 
         self.text_rect.topleft = (
-            self.x + self.username_img.get_width(), self.y_
+            self.x + self.username_img.get_width(), self.y_text
         )
-        self.username_rect.topleft = (self.x, self.y_)
+        self.username_rect.topleft = (self.x, self.y_text)
 
         self.cursor = pygame.Rect(
             self.text_rect.topright, (3, self.text_rect.height)
         )
+
+    def get_new_messages(self) -> None:
+        messages = self.redis.get_all_messages()
+        if messages:
+            sorted_messages = self.redis.sort_messages_by_expiry(messages)
+
+            for message in sorted_messages:
+                if message['id'] not in self.previous_msgs_ids:
+                    self.previous_msgs_ids.add(message['id'])
+
+                    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    self.previous_msgs_timestamps[message['id']] = timestamp
+
+                    self.previous_msgs.append(json.loads(message['data']))
+
+                    self.previous_msgs_height += (
+                        json.loads(message['data'])['text_rect']['height']
+                    )
+
+    def delete_old_msg_ids(self) -> None:
+        """Clear out old message ids which have been stored to prevent
+        message duplication in the chat. Check whether the message
+        lifetime has elapsed, and if so, remove from the previous
+        messages set.
+        """
+        if len(self.previous_msgs_ids) > 1000:
+            log.debug('Clearing old message ids.')
+
+            for message_id in list(self.previous_msgs_ids):
+                timestamp = self.previous_msgs_timestamps[message_id]
+                timestamp_date = datetime.strptime(
+                    timestamp, '%Y-%m-%d %H:%M:%S'
+                )
+                timediff = datetime.now() - timestamp_date
+                if timediff.seconds > 5:
+                    self.previous_msgs_ids.remove(message_id)
+                    del self.previous_msgs_timestamps[message_id]
 
     def check_input(self, event: Event) -> None:
         if event.type == pygame.KEYDOWN:
@@ -119,8 +142,8 @@ class TextInput(ChatMixin):
             colour = self.colour
         return self.font.render(text, True, colour)
 
-    def store_entered_text(self, window: Sprite) -> None:
-        """Store the entered text for display."""
+    def save_message(self, window: Sprite) -> None:
+        """Save entered messages to redis."""
         if self.text_img.get_width():
             username_rect = self._create_rect_dict('username_rect')
             text_rect = self._create_rect_dict('text_rect')
@@ -133,27 +156,24 @@ class TextInput(ChatMixin):
             }
             self.redis.save_message(text)
 
-            if self.previous_text:
-                self._update_previous_text()
+            if self.previous_msgs:
+                self._update_previous_msgs()
 
-            # self.previous_text.append(text)
             self._clear_text_input(window)
 
     def _create_rect_dict(self, attribute: str) -> dict:
         return {
             'x': getattr(self, attribute).x,
-            'y': getattr(self, attribute).y - getattr(self, attribute).height,
+            'y': getattr(self, attribute).y,
             'width': getattr(self, attribute).width,
             'height': getattr(self, attribute).height
         }
 
-    def _update_previous_text(self) -> None:
+    def _update_previous_msgs(self) -> None:
         """Move previous text up to allow room for new text."""
-        for text in self.previous_text:
+        for text in self.previous_msgs:
             text['text_rect']['y'] -= self.text_rect.height
             text['username_rect']['y'] -= self.text_rect.height
-
-        self.previous_text_height += self.text_rect.height
 
     def _clear_text_input(self, window: Sprite) -> None:
         self.text = ''
@@ -174,13 +194,20 @@ class TextInput(ChatMixin):
         if time.time() % 1 > 0.5:
             pygame.draw.rect(window, self.colour, self.cursor)
 
-    def draw_previous_text(self, window: Sprite) -> None:
+    def draw_previous_msgs(self, window: Sprite) -> None:
         """Draw the previously entered text above the text input box."""
-        for text in self.previous_text:
-            username_rect = text['username_rect']
+        ypos = self.y_text
+        for text in reversed(self.previous_msgs):
             username_img = self._render_text(text['username'], username=True)
+            username_rect = text['username_rect']
+            username_rect['y'] = ypos - username_rect['height']
+
             text_img = self._render_text(text['text'])
             text_rect = text['text_rect']
+            text_rect['y'] = ypos - text_rect['height']
+
+            ypos -= text_rect['height']  # Move message up the chat box
+
             window.blit(username_img, self._get_rect_from_dict(username_rect))
             window.blit(text_img, self._get_rect_from_dict(text_rect))
 
@@ -197,7 +224,8 @@ class TextInput(ChatMixin):
     def _delete_oldest_message(self) -> None:
         """If height of text in text box is greater than the height
         of the text box itself then delete the oldest message."""
-        if self.previous_text_height >= self.height - self.text_rect.height:
-            oldest_text_height = self.previous_text[0]['text_rect']['height']
-            self.previous_text_height -= oldest_text_height
-            del self.previous_text[0]
+        if self.previous_msgs_height >= self.height - self.text_rect.height:
+            oldest_text_height = (
+                self.previous_msgs.pop(0)['text_rect']['height']
+            )
+            self.previous_msgs_height -= oldest_text_height
