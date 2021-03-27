@@ -2,7 +2,6 @@ import json
 import pygame
 import time
 
-from datetime import datetime
 from enums.base import Chat
 from game.redis import RedisClient
 from game.typing import Event, Sprite
@@ -54,7 +53,7 @@ class TextInput(ChatMixin):
         self.redis = RedisClient()
         self.previous_msgs = []
         self.previous_msgs_height = 0
-        self.previous_msgs_cache = {}
+        self.previous_msgs_cache = set()
 
     def _setup_imgs(self) -> None:
         self.text_img = self._render_text(self.text)
@@ -79,14 +78,13 @@ class TextInput(ChatMixin):
         previous messages with any new ones found.
         """
         messages = self.redis.get_all_messages(
-            cached_keys=self.previous_msgs_cache.keys()
+            cached_keys=self.previous_msgs_cache
         )
         if messages:
             sorted_messages = self.redis.sort_messages_by_expiry(messages)
 
             for message in sorted_messages:
-                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                self.previous_msgs_cache[message['id']] = timestamp
+                self.previous_msgs_cache.add(message['id'])
 
                 self.previous_msgs.append(json.loads(message['data']))
 
@@ -97,20 +95,15 @@ class TextInput(ChatMixin):
     def delete_old_msg_ids(self) -> None:
         """Clear out old message ids which have been stored to prevent
         message duplication in the chat. Check whether the message
-        lifetime has elapsed, and if so, remove from the previous
-        messages set.
+        is present in redis, and if not, remove it from the previous
+        messages cache as the message has expired.
         """
         if len(self.previous_msgs_cache) > 1:
             log.debug('Clearing old message ids.')
 
-            for message_id in list(self.previous_msgs_cache.keys()):
-                timestamp = self.previous_msgs_cache[message_id]
-                timestamp_date = datetime.strptime(
-                    timestamp, '%Y-%m-%d %H:%M:%S'
-                )
-                timediff = datetime.now() - timestamp_date
-                if timediff.seconds > 5:
-                    del self.previous_msgs_cache[message_id]
+            for message_id in list(self.previous_msgs_cache):
+                if not self.redis.get_message(message_id):
+                    self.previous_msgs_cache.remove(message_id)
 
     def check_input(self, event: Event) -> None:
         if event.type == pygame.KEYDOWN:

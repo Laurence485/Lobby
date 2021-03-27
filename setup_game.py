@@ -62,9 +62,9 @@ def _start_game_loop(game_window: Sprite) -> None:
 
         game.draw_game_objects(dt)
         game.chat_box.text_input.draw(game_window)
-        game.chat_box.text_input.draw_previous_msgs(game_window)
-        game.chat_box.text_input.get_new_messages()
-        game.chat_box.text_input.delete_old_msg_ids()
+        game.chat_box.text_input.draw_msgs(game_window)
+        # game.chat_box.text_input.get_new_messages()
+        # game.chat_box.text_input.delete_old_msg_ids()
         if not game.is_typing:
             game.chat_box.text_input.save_message(game_window)
 

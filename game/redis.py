@@ -1,6 +1,5 @@
 import json
 import redis
-import typing
 
 from game.errors import DatabaseTimeoutError
 from logger import get_logger
@@ -18,16 +17,17 @@ class RedisClient:
             port=6379,
             decode_responses=True,
             charset='utf-8',
-            socket_connect_timeout=30
+            socket_connect_timeout=15
         )
         try:
             self.redis.ping()
             log.info('Connected to redis.')
-        except redis.exceptions.TimeoutError as err:
-            raise DatabaseTimeoutError(err)
+        except redis.exceptions.TimeoutError:
+            raise DatabaseTimeoutError('Timeout connecting to the database.')
 
     def get_message(self, message_id: str) -> str:
-        pass
+        message = self.redis.hgetall(message_id)
+        return message
 
     def save_message(self, client_payload: dict) -> str:
         message_id = uuid4().hex
@@ -40,11 +40,9 @@ class RedisClient:
         log.debug(f'message saved!: {payload}')
         return message_id
 
-    def get_all_messages(
-        self, cached_keys: typing.collections.KeysView = None
-    ) -> list:
+    def get_all_messages(self, cached_keys: list = None) -> list:
         if cached_keys:
-            keys = self.redis.keys() - cached_keys
+            keys = set(self.redis.keys()) - cached_keys
         else:
             keys = self.redis.keys()
         return [
