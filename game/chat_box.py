@@ -40,6 +40,20 @@ class ChatBox(ChatMixin):
         window.blit(self.box, (self.x, self. y))
 
 
+class Messages:
+    def __init__(self):
+        self.list = []
+        self.height = 0
+        self.cache = set()
+
+    def __len__(self):
+        return len(self.list)
+
+    @property
+    def queue(self):
+        return reversed(self.list)
+
+
 class TextInput(ChatMixin):
     def __init__(self, username: str):
         self.colour = TEXT_COLOUR
@@ -49,11 +63,8 @@ class TextInput(ChatMixin):
         self.username = username
         self._setup_imgs()
         self._setup_rects()
-
         self.redis = RedisClient()
-        self.previous_msgs = []
-        self.previous_msgs_height = 0
-        self.previous_msgs_cache = set()
+        self.msgs = Messages()
 
     def _setup_imgs(self) -> None:
         self.text_img = self._render_text(self.text)
@@ -77,20 +88,15 @@ class TextInput(ChatMixin):
         """Check redis for any new messages and update the list of
         previous messages with any new ones found.
         """
-        messages = self.redis.get_all_messages(
-            cached_keys=self.previous_msgs_cache
-        )
+        messages = self.redis.get_all_messages(cache=self.msgs.cache)
         if messages:
             sorted_messages = self.redis.sort_messages_by_expiry(messages)
 
             for message in sorted_messages:
-                self.previous_msgs_cache.add(message['id'])
-
-                self.previous_msgs.append(json.loads(message['data']))
-
-                self.previous_msgs_height += (
-                    json.loads(message['data'])['text_rect']['height']
-                )
+                data = json.loads(message['data'])
+                self.msgs.cache.add(message['id'])
+                self.msgs.list.append(data)
+                self.msgs.height += data['text_rect']['height']
 
     def delete_old_msg_ids(self) -> None:
         """Clear out old message ids which have been stored to prevent
@@ -98,12 +104,12 @@ class TextInput(ChatMixin):
         is present in redis, and if not, remove it from the previous
         messages cache as the message has expired.
         """
-        if len(self.previous_msgs_cache) > 1:
+        if len(self.msgs.cache) > 1:
             log.debug('Clearing old message ids.')
 
-            for message_id in list(self.previous_msgs_cache):
+            for message_id in list(self.msgs.cache):
                 if not self.redis.get_message(message_id):
-                    self.previous_msgs_cache.remove(message_id)
+                    self.msgs.cache.remove(message_id)
 
     def check_input(self, event: Event) -> None:
         if event.type == pygame.KEYDOWN:
@@ -149,8 +155,8 @@ class TextInput(ChatMixin):
             }
             self.redis.save_message(text)
 
-            if self.previous_msgs:
-                self._update_previous_msgs()
+            if len(self.msgs):
+                self._update_messages()
 
             self._clear_text_input(window)
 
@@ -162,9 +168,9 @@ class TextInput(ChatMixin):
             'height': getattr(self, attribute).height
         }
 
-    def _update_previous_msgs(self) -> None:
-        """Move previous text up to allow room for new text."""
-        for text in self.previous_msgs:
+    def _update_messages(self) -> None:
+        """Move previous message up to allow room for new messages."""
+        for text in self.msgs.list:
             text['text_rect']['y'] -= self.text_rect.height
             text['username_rect']['y'] -= self.text_rect.height
 
@@ -187,10 +193,10 @@ class TextInput(ChatMixin):
         if time.time() % 1 > 0.5:
             pygame.draw.rect(window, self.colour, self.cursor)
 
-    def draw_previous_msgs(self, window: Sprite) -> None:
-        """Draw the previously entered text above the text input box."""
+    def draw_messages(self, window: Sprite) -> None:
+        """Draw previous messages above the text input box."""
         ypos = self.y_text
-        for text in reversed(self.previous_msgs):
+        for text in self.msgs.queue:
             username_img = self._render_text(text['username'], username=True)
             username_rect = text['username_rect']
             username_rect['y'] = ypos - username_rect['height']
@@ -218,8 +224,8 @@ class TextInput(ChatMixin):
         """If height of text in text box is greater than the height
         of the text box itself then delete the oldest message.
         """
-        if self.previous_msgs_height >= self.height - self.text_rect.height:
+        if self.msgs.height >= self.height - self.text_rect.height:
             oldest_text_height = (
-                self.previous_msgs.pop(0)['text_rect']['height']
+                self.msgs.list.pop(0)['text_rect']['height']
             )
-            self.previous_msgs_height -= oldest_text_height
+            self.msgs.height -= oldest_text_height

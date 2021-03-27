@@ -40,18 +40,14 @@ class RedisClient:
         log.debug(f'message saved!: {payload}')
         return message_id
 
-    def get_all_messages(self, cached_keys: list = None) -> list:
-        if cached_keys:
-            keys = set(self.redis.keys()) - cached_keys
-        else:
-            keys = self.redis.keys()
+    def get_all_messages(self, cache: set = None) -> list:
         return [
             {
                 'id': message_id,
                 'data': self.redis.hget(message_id, 'data'),
                 'expires_in': self.redis.ttl(message_id)
             }
-            for message_id in keys
+            for message_id in self.redis.keys() if message_id not in cache
         ]
 
     def sort_messages_by_expiry(self, messages: list) -> list:

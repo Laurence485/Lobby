@@ -8,7 +8,3 @@ class ServerError(Exception):
 
 class DatabaseTimeoutError(Exception):
     pass
-
-
-class RedisError(Exception):
-    pass
