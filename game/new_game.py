@@ -1,7 +1,7 @@
 import pygame
 
 from enums.base import Window
-from game.chat_box import ChatBox
+from game.chat_box import ChatBox, HoverMessages
 from game.map import Map
 from game.player import Player
 from game.typing import Sprite
@@ -18,12 +18,12 @@ GRID_SPACING = config['GRID_SPACING']
 BACKGROUND = config['BACKGROUND_IMG']
 GRID_COLOUR = Window.GRID_COLOUR.value
 
-# Dict to hold id:attributes for all the other players on the network.
-other_players = {}
-
 
 class NewGame:
     """Setup a new game and handle game loop methods."""
+
+    # Dict to hold id:attributes for all the other players on the network.
+    other_players = {}
 
     def __init__(self, game_window: Sprite, net: Network, username: str):
         self.background = pygame.image.load(BACKGROUND).convert()
@@ -34,6 +34,7 @@ class NewGame:
         self.grid = False
         self.is_typing = False
         self.chat_box = ChatBox(self.username)
+        self.hover_messages = HoverMessages(game_window)
         self.player = Player(
             xy=random_xy(Map.nodes),
             player_id=self.net.player_id,
@@ -63,7 +64,7 @@ class NewGame:
 
     def fetch_player_data(self) -> None:
         """get data from server."""
-        fetch_player_data(self.player, other_players, self.net)
+        fetch_player_data(self.player, self.other_players, self.net)
 
     def draw_game_objects(self, dt: float) -> None:
         """Draw objects onto the screen."""
@@ -74,8 +75,8 @@ class NewGame:
         self.chat_box.draw(self.window)
         self.player.draw(self.window, dt)
 
-        if other_players:
-            for player in other_players.values():
+        if self.other_players:
+            for player in self.other_players.values():
                 player.draw(self.window, dt)
 
     def _draw_grid(self) -> None:

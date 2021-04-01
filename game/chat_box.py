@@ -19,6 +19,7 @@ CHAT_BOX_COLOUR = Chat.CHAT_BOX_COLOUR.value
 USERNAME_COLOUR = Chat.USERNAME_COLOUR.value
 TEXT_COLOUR = Chat.TEXT_COLOUR.value
 FONT_SIZE = Chat.FONT_SIZE.value
+HOVER_MESSAGE_TIMEOUT = Chat.HOVER_MESSAGE_TIMEOUT.value
 
 
 class ChatMixin:
@@ -41,6 +42,7 @@ class ChatBox(ChatMixin):
 
 
 class Messages:
+    """Handles the list of messages to be drawn to the chat box."""
     def __init__(self):
         self.list = []
         self.height = 0
@@ -50,43 +52,84 @@ class Messages:
         return len(self.list)
 
     @property
-    def queue(self):
+    def queue(self) -> list:
         return reversed(self.list)
 
 
-class speechBubble:
+class HoverMessages:
+    """Handles the list of hover messages to be drawn over players
+    or removed from the screen.
+    """
+    def __init__(self, window: Sprite):
+        self.list = []
+        self.window = window
+
+    @property
+    def queue(self) -> list:
+        return reversed(self.list)
+
+    def draw(self, player, other_players: dict) -> None:
+        for data in self.queue:
+            if data['player_id'] in other_players:
+                this_player = other_players[data['player_id']]
+            else:
+                this_player = player
+            SpeechBubble(
+                data['text_img'],
+                this_player.x,
+                this_player.y,
+                data['width'],
+                data['height'],
+                self.window
+            )
+
+            if(self._message_expired(data['start_timeout'])):
+                self.list.remove(data)
+
+    def start_timeout(self) -> int:
+        return pygame.time.get_ticks()
+
+    def _message_expired(self, start_timeout: int) -> bool:
+        seconds = (pygame.time.get_ticks() - start_timeout) / 1000
+        if seconds > HOVER_MESSAGE_TIMEOUT:
+            return True
+
+
+class SpeechBubble:
+    """Handles the positioning and rendering of hover messages."""
     def __init__(
         self,
-        player_xy: tuple,
         text_img: Sprite,
-        text_rect: dict,
+        x: int,
+        y: int,
+        width: int,
+        height: int,
         window: Sprite
     ):
-        self.x, self.y = player_xy
         self.text_img = text_img
-        self.width = text_rect['width']
-        self.height = text_rect['height']
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
         self._centralise_and_position_text_over_player()
+        self._keep_text_on_screen()
         self._draw_bubble(window)
 
-    def _centralise_and_position_text_over_player(self):
+    def _centralise_and_position_text_over_player(self) -> None:
         # Centralise text over the middle of the player.
         self.x -= self.width // 2 - Player_.WIDTH.value // 2
         # The bottom of the text should be at the top of the player.
         self.y -= self.height
 
-        self._keep_text_on_screen()
-
-    def _keep_text_on_screen(self):
+    def _keep_text_on_screen(self) -> None:
         if self.x < 0:
             self.x = 0
         elif self.x > WINDOW_WIDTH - self.width:
             self.x = WINDOW_WIDTH - self.width
-
         if self.y < 0:
             self.y = 0
 
-    def _draw_bubble(self, window):
+    def _draw_bubble(self, window: Sprite) -> None:
         window.blit(self.text_img, (self.x, self.y, self.width, self.height))
 
 
@@ -120,9 +163,9 @@ class TextInput(ChatMixin):
             self.text_rect.topright, (3, self.text_rect.height)
         )
 
-    def get_new_messages(self) -> None:
+    def get_new_messages(self, hover_messages: HoverMessages) -> None:
         """Check redis for any new messages and update the list of
-        previous messages with any new ones found.
+        previous messages and hover-messages with any new ones found.
         """
         messages = self.redis.get_all_messages(cache=self.msgs.cache)
         if messages:
@@ -133,6 +176,16 @@ class TextInput(ChatMixin):
                 self.msgs.cache.add(message['id'])
                 self.msgs.list.append(data)
                 self.msgs.height += data['text_rect']['height']
+
+                hover_messages.list.append(
+                    {
+                        'text_img': self._render_text(data['text']),
+                        'player_id': data['player_id'],
+                        'width': data['text_rect']['width'],
+                        'height': data['text_rect']['height'],
+                        'start_timeout': hover_messages.start_timeout()
+                    }
+                )
 
     def delete_old_msg_ids(self) -> None:
         """Clear out old message ids which have been stored to prevent
@@ -178,7 +231,7 @@ class TextInput(ChatMixin):
 
         return self.font.render(text, True, colour)
 
-    def save_message(self, window: Sprite, player_xy: tuple) -> None:
+    def save_message(self, window: Sprite, player_id: int) -> None:
         """Save entered messages to redis."""
         if self.text_img.get_width():
             username_rect = self._create_rect_dict('username_rect')
@@ -189,7 +242,7 @@ class TextInput(ChatMixin):
                 'text': self.text,
                 'username_rect': username_rect,
                 'text_rect': text_rect,
-                'player_xy': player_xy
+                'player_id': player_id
             }
             self.redis.save_message(data)
 
@@ -247,12 +300,12 @@ class TextInput(ChatMixin):
 
             window.blit(username_img, self._get_rect_from_dict(username_rect))
             window.blit(text_img, self._get_rect_from_dict(text_rect))
-            speechBubble(
-                data['player_xy'],
-                text_img,
-                {'width': text_rect['width'], 'height': text_rect['height']},
-                window
-            )
+            # speechBubble(
+            #     data['player_xy'],
+            #     text_img,
+            #     {'width': text_rect['width'], 'height': text_rect['height']},
+            #     window
+            # )
 
         self._delete_oldest_message()
 

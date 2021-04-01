@@ -48,6 +48,7 @@ class Chat(Enum):
     USERNAME_COLOUR = (50, 50, 50, 0)
     TEXT_COLOUR = (0, 0, 0)
     FONT_SIZE = 15
+    HOVER_MESSAGE_TIMEOUT = 7
 
 
 class Redis(Enum):
