@@ -2,7 +2,8 @@ import json
 import pygame
 import time
 
-from enums.base import Chat, Player_
+from enums.base import Chat
+from game.messages import Messages, HoverMessages
 from game.redis import RedisClient
 from game.typing import Event, Sprite
 from game.utils import get_config
@@ -19,7 +20,6 @@ CHAT_BOX_COLOUR = Chat.CHAT_BOX_COLOUR.value
 USERNAME_COLOUR = Chat.USERNAME_COLOUR.value
 TEXT_COLOUR = Chat.TEXT_COLOUR.value
 FONT_SIZE = Chat.FONT_SIZE.value
-HOVER_MESSAGE_TIMEOUT = Chat.HOVER_MESSAGE_TIMEOUT.value
 
 
 class ChatMixin:
@@ -39,98 +39,6 @@ class ChatBox(ChatMixin):
     def draw(self, window: Sprite) -> None:
         """Draw chat box at bottom of screen."""
         window.blit(self.box, (self.x, self. y))
-
-
-class Messages:
-    """Handles the list of messages to be drawn to the chat box."""
-    def __init__(self):
-        self.list = []
-        self.height = 0
-        self.cache = set()
-
-    def __len__(self):
-        return len(self.list)
-
-    @property
-    def queue(self) -> list:
-        return reversed(self.list)
-
-
-class HoverMessages:
-    """Handles the list of hover messages to be drawn over players
-    or removed from the screen.
-    """
-    def __init__(self, window: Sprite):
-        self.list = []
-        self.window = window
-
-    @property
-    def queue(self) -> list:
-        return reversed(self.list)
-
-    def draw(self, player, other_players: dict) -> None:
-        for data in self.queue:
-            if data['player_id'] in other_players:
-                this_player = other_players[data['player_id']]
-            else:
-                this_player = player
-            SpeechBubble(
-                data['text_img'],
-                this_player.x,
-                this_player.y,
-                data['width'],
-                data['height'],
-                self.window
-            )
-
-            if(self._message_expired(data['start_timeout'])):
-                self.list.remove(data)
-
-    def start_timeout(self) -> int:
-        return pygame.time.get_ticks()
-
-    def _message_expired(self, start_timeout: int) -> bool:
-        seconds = (pygame.time.get_ticks() - start_timeout) / 1000
-        if seconds > HOVER_MESSAGE_TIMEOUT:
-            return True
-
-
-class SpeechBubble:
-    """Handles the positioning and rendering of hover messages."""
-    def __init__(
-        self,
-        text_img: Sprite,
-        x: int,
-        y: int,
-        width: int,
-        height: int,
-        window: Sprite
-    ):
-        self.text_img = text_img
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self._centralise_and_position_text_over_player()
-        self._keep_text_on_screen()
-        self._draw_bubble(window)
-
-    def _centralise_and_position_text_over_player(self) -> None:
-        # Centralise text over the middle of the player.
-        self.x -= self.width // 2 - Player_.WIDTH.value // 2
-        # The bottom of the text should be at the top of the player.
-        self.y -= self.height
-
-    def _keep_text_on_screen(self) -> None:
-        if self.x < 0:
-            self.x = 0
-        elif self.x > WINDOW_WIDTH - self.width:
-            self.x = WINDOW_WIDTH - self.width
-        if self.y < 0:
-            self.y = 0
-
-    def _draw_bubble(self, window: Sprite) -> None:
-        window.blit(self.text_img, (self.x, self.y, self.width, self.height))
 
 
 class TextInput(ChatMixin):

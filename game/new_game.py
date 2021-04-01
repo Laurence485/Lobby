@@ -1,8 +1,9 @@
 import pygame
 
 from enums.base import Window
-from game.chat_box import ChatBox, HoverMessages
+from game.chat_box import ChatBox
 from game.map import Map
+from game.messages import HoverMessages
 from game.player import Player
 from game.typing import Sprite
 from game.utils import get_config, random_xy
