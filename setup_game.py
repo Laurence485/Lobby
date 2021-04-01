@@ -29,10 +29,10 @@ def setup_pygame() -> None:
         (WINDOW_WIDTH, WINDOW_HEIGHT + CHAT_WINDOW_HEIGHT)
     )
 
-    _start_game_loop(game_window)
+    _game_loop(game_window)
 
 
-def _start_game_loop(game_window: Sprite) -> None:
+def _game_loop(game_window: Sprite) -> None:
     game_is_running = True
     clock = pygame.time.Clock()
 
@@ -47,33 +47,36 @@ def _start_game_loop(game_window: Sprite) -> None:
             if event.type == pygame.QUIT:
                 game_is_running = False
 
+        # Time diff to determine frame rate based on game clock.
         dt = clock.tick() * TIME_DIFF_MULTIPLYER
 
         game.fetch_player_data()
 
-        game.player.check_collisions(
-            Map.blocked_nodes, Map.reduced_speed_nodes
-        )
-
-        game.player.move(dt)
-        game.player.animation_loop()
-        game.player.animate(dt)
-        game.player.prevent_movement_beyond_screen(dt)
-
+        _player_methods(game, dt)
         game.draw_game_objects(dt)
-        game.chat_box.text_input.draw(game_window)
-        game.chat_box.text_input.draw_messages(game_window)
-        game.chat_box.text_input.get_new_messages(game.hover_messages)
-        game.chat_box.text_input.delete_old_msg_ids()
 
-        game.hover_messages.draw(
-            game.player, NewGame.other_players
-        )
+        _chat_box_methods(game, game_window)
+        game.hover_messages.draw(game.player, NewGame.other_players)
 
         if not game.is_typing:
             game.chat_box.text_input.save_message(game_window, game.player.id)
 
         pygame.display.update()
+
+
+def _player_methods(game: NewGame, dt: int) -> None:
+    game.player.check_collisions(Map.blocked_nodes, Map.reduced_speed_nodes)
+    game.player.move(dt)
+    game.player.animation_loop()
+    game.player.animate(dt)
+    game.player.prevent_movement_beyond_screen(dt)
+
+
+def _chat_box_methods(game: NewGame, game_window: Sprite) -> None:
+    game.chat_box.text_input.draw(game_window)
+    game.chat_box.text_input.draw_messages(game_window)
+    game.chat_box.text_input.get_new_messages(game.hover_messages)
+    game.chat_box.text_input.delete_old_msg_ids()
 
 
 def _get_username() -> str:
