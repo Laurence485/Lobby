@@ -114,6 +114,27 @@ def test_get_all_messages(mock_redis, mock_payload):
     ]
 
 
+def test_get_all_messages_with_cache(mock_redis, mock_payload):
+    payload_1 = mock_payload({'hello': 'world'})
+    payload_2 = mock_payload({'fee': 'fi fo fum'})
+    payload_3 = mock_payload({'greetings': 'traveller'})
+
+    redis = RedisClient()
+    redis.redis.hmset('message-1', payload_1)
+    redis.redis.hmset('message-2', payload_2)
+    redis.redis.hmset('message-3', payload_3)
+
+    messages = redis.get_all_messages(cache={b'message-1', b'message-2'})
+
+    assert messages == [
+        {
+            'id': b'message-3',
+            'data': b'{"greetings": "traveller"}',
+            'expires_in': -1
+        }
+    ]
+
+
 def test_sort_messages_by_expiry(mock_redis):
     redis = RedisClient()
     messages = [

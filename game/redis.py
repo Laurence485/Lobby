@@ -1,6 +1,7 @@
 import json
 import redis
 
+from enums.base import Redis
 from game.errors import DatabaseTimeoutError
 from game.utils import check_os_config
 from logger import get_logger
@@ -8,8 +9,8 @@ from uuid import uuid4
 
 log = get_logger(__name__)
 
-SOCKET_CONNECT_TIMEOUT = 15
-MSG_LIFETIME_SECONDS = 5  # 300
+SOCKET_CONNECT_TIMEOUT = Redis.SOCKET_CONNECT_TIMEOUT.value
+MSG_LIFETIME_SECONDS = Redis.MSG_LIFETIME_SECONDS.value
 
 
 class RedisClient:
