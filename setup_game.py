@@ -66,7 +66,9 @@ def _start_game_loop(game_window: Sprite) -> None:
         game.chat_box.text_input.get_new_messages()
         game.chat_box.text_input.delete_old_msg_ids()
         if not game.is_typing:
-            game.chat_box.text_input.save_message(game_window)
+            game.chat_box.text_input.save_message(
+                game_window, (game.player.x, game.player.y)
+            )
 
         pygame.display.update()
 

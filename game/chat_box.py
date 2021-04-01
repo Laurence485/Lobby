@@ -2,7 +2,7 @@ import json
 import pygame
 import time
 
-from enums.base import Chat
+from enums.base import Chat, Player_
 from game.redis import RedisClient
 from game.typing import Event, Sprite
 from game.utils import get_config
@@ -52,6 +52,42 @@ class Messages:
     @property
     def queue(self):
         return reversed(self.list)
+
+
+class speechBubble:
+    def __init__(
+        self,
+        player_xy: tuple,
+        text_img: Sprite,
+        text_rect: dict,
+        window: Sprite
+    ):
+        self.x, self.y = player_xy
+        self.text_img = text_img
+        self.width = text_rect['width']
+        self.height = text_rect['height']
+        self._centralise_and_position_text_over_player()
+        self._draw_bubble(window)
+
+    def _centralise_and_position_text_over_player(self):
+        # Centralise text over the middle of the player.
+        self.x -= self.width // 2 - Player_.WIDTH.value // 2
+        # The bottom of the text should be at the top of the player.
+        self.y -= self.height
+
+        self._keep_text_on_screen()
+
+    def _keep_text_on_screen(self):
+        if self.x < 0:
+            self.x = 0
+        elif self.x > WINDOW_WIDTH - self.width:
+            self.x = WINDOW_WIDTH - self.width
+
+        if self.y < 0:
+            self.y = 0
+
+    def _draw_bubble(self, window):
+        window.blit(self.text_img, (self.x, self.y, self.width, self.height))
 
 
 class TextInput(ChatMixin):
@@ -133,27 +169,29 @@ class TextInput(ChatMixin):
         self.text_rect.size = self.text_img.get_size()
         self.cursor.topleft = self.text_rect.topright
 
-    def _render_text(self, text: str, username: bool = False):
+    def _render_text(self, text: str, username: bool = False) -> Sprite:
         if username:
             text += ': '
             colour = self.username_colour
         else:
             colour = self.colour
+
         return self.font.render(text, True, colour)
 
-    def save_message(self, window: Sprite) -> None:
+    def save_message(self, window: Sprite, player_xy: tuple) -> None:
         """Save entered messages to redis."""
         if self.text_img.get_width():
             username_rect = self._create_rect_dict('username_rect')
             text_rect = self._create_rect_dict('text_rect')
 
-            text = {
+            data = {
                 'username': self.username,
                 'text': self.text,
                 'username_rect': username_rect,
-                'text_rect': text_rect
+                'text_rect': text_rect,
+                'player_xy': player_xy
             }
-            self.redis.save_message(text)
+            self.redis.save_message(data)
 
             if len(self.msgs):
                 self._update_messages()
@@ -170,9 +208,9 @@ class TextInput(ChatMixin):
 
     def _update_messages(self) -> None:
         """Move previous message up to allow room for new messages."""
-        for text in self.msgs.list:
-            text['text_rect']['y'] -= self.text_rect.height
-            text['username_rect']['y'] -= self.text_rect.height
+        for data in self.msgs.list:
+            data['text_rect']['y'] -= self.text_rect.height
+            data['username_rect']['y'] -= self.text_rect.height
 
     def _clear_text_input(self, window: Sprite) -> None:
         self.text = ''
@@ -196,19 +234,25 @@ class TextInput(ChatMixin):
     def draw_messages(self, window: Sprite) -> None:
         """Draw previous messages above the text input box."""
         ypos = self.y_text
-        for text in self.msgs.queue:
-            username_img = self._render_text(text['username'], username=True)
-            username_rect = text['username_rect']
+        for data in self.msgs.queue:
+            username_img = self._render_text(data['username'], username=True)
+            username_rect = data['username_rect']
             username_rect['y'] = ypos - username_rect['height']
 
-            text_img = self._render_text(text['text'])
-            text_rect = text['text_rect']
+            text_img = self._render_text(data['text'])
+            text_rect = data['text_rect']
             text_rect['y'] = ypos - text_rect['height']
 
             ypos -= text_rect['height']  # Move message up the chat box
 
             window.blit(username_img, self._get_rect_from_dict(username_rect))
             window.blit(text_img, self._get_rect_from_dict(text_rect))
+            speechBubble(
+                data['player_xy'],
+                text_img,
+                {'width': text_rect['width'], 'height': text_rect['height']},
+                window
+            )
 
         self._delete_oldest_message()
 
