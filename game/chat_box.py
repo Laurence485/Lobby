@@ -17,6 +17,7 @@ WINDOW_HEIGHT = config['WINDOW_HEIGHT']
 CHAT_WINDOW_HEIGHT = config['CHAT_WINDOW_HEIGHT']
 EDGE_DISTANCE = Chat.TEXT_DISTANCE_FROM_EDGE.value
 CHAT_BOX_COLOUR = Chat.CHAT_BOX_COLOUR.value
+HOVER_MESSAGE_COLOUR = Chat.HOVER_MESSAGE_COLOUR.value
 USERNAME_COLOUR = Chat.USERNAME_COLOUR.value
 TEXT_COLOUR = Chat.TEXT_COLOUR.value
 FONT_SIZE = Chat.FONT_SIZE.value
@@ -85,14 +86,14 @@ class TextInput(ChatMixin):
                 self.msgs.list.append(data)
                 self.msgs.height += data['text_rect']['height']
 
-                hover_messages.list.append(
-                    {
-                        'text_img': self._render_text(data['text']),
-                        'player_id': data['player_id'],
-                        'width': data['text_rect']['width'],
-                        'height': data['text_rect']['height'],
-                        'start_timeout': hover_messages.start_timeout()
-                    }
+                player_id = data['player_id']
+                hover_messages.overwrite_message(player_id)
+
+                rendered_text = self._render_text(
+                    data['text'], colour=HOVER_MESSAGE_COLOUR
+                )
+                hover_messages.add_message(
+                    player_id, rendered_text, data['text_rect']
                 )
 
     def delete_old_msg_ids(self) -> None:
@@ -130,12 +131,15 @@ class TextInput(ChatMixin):
         self.text_rect.size = self.text_img.get_size()
         self.cursor.topleft = self.text_rect.topright
 
-    def _render_text(self, text: str, username: bool = False) -> Sprite:
+    def _render_text(
+        self,
+        text: str,
+        username: bool = False,
+        colour: tuple = TEXT_COLOUR
+    ) -> Sprite:
         if username:
             text += ': '
             colour = self.username_colour
-        else:
-            colour = self.colour
 
         return self.font.render(text, True, colour)
 

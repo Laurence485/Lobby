@@ -1,4 +1,6 @@
-from enums.base import Player_
+import pygame
+
+from enums.base import Chat, Player_
 from game.typing import Sprite
 from game.utils import get_config
 
@@ -6,6 +8,7 @@ from game.utils import get_config
 config = get_config()
 WINDOW_WIDTH = config['WINDOW_WIDTH']
 WINDOW_HEIGHT = config['WINDOW_HEIGHT']
+HOVER_MESSAGE_BG_COLOUR = Chat.HOVER_MESSAGE_BG_COLOUR.value
 
 
 class SpeechBubble:
@@ -45,4 +48,12 @@ class SpeechBubble:
             self.y = 0
 
     def _draw_bubble(self, window: Sprite) -> None:
+        background = self._create_text_background()
         window.blit(self.text_img, (self.x, self.y, self.width, self.height))
+        window.blit(background, (self.x, self.y, self.width, self.height))
+
+    def _create_text_background(self) -> Sprite:
+        surface = pygame.Surface(self.text_img.get_size())
+        surface.fill(HOVER_MESSAGE_BG_COLOUR)
+        surface.blit(self.text_img, (0, 0))
+        return surface

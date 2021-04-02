@@ -45,6 +45,8 @@ class Chat(Enum):
     # Don't let text exceed chat box width minus this amount.
     TEXT_DISTANCE_FROM_EDGE = 10
     CHAT_BOX_COLOUR = (210, 210, 210, 210)
+    HOVER_MESSAGE_COLOUR = (0, 0, 0)
+    HOVER_MESSAGE_BG_COLOUR = (210, 210, 210)
     USERNAME_COLOUR = (50, 50, 50, 0)
     TEXT_COLOUR = (0, 0, 0)
     FONT_SIZE = 15
