@@ -81,20 +81,37 @@ class TextInput(ChatMixin):
             sorted_messages = self.redis.sort_messages_by_expiry(messages)
 
             for message in sorted_messages:
-                data = json.loads(message['data'])
-                self.msgs.cache.add(message['id'])
-                self.msgs.list.append(data)
-                self.msgs.height += data['text_rect']['height']
+                self.add_new_message(message)
 
+                data = json.loads(message['data'])
                 player_id = data['player_id']
+                text_width = data['text_rect']['width']
+
                 hover_messages.overwrite_message(player_id)
 
-                rendered_text = self._render_text(
-                    data['text'], colour=HOVER_MESSAGE_COLOUR
-                )
-                hover_messages.add_message(
-                    player_id, rendered_text, data['text_rect']
-                )
+                if hover_messages.should_wrap_text(text_width):
+                    divided_text = hover_messages.divide_text(
+                        data['text'], text_width
+                    )
+                    texts = hover_messages.create_texts_for_wrapping(
+                        divided_text, self._render_text
+                    )
+
+                    hover_messages.add_wrapped_message(player_id, texts)
+                else:
+                    rendered_text = self._render_text(
+                        data['text'], colour=HOVER_MESSAGE_COLOUR
+                    )
+
+                    hover_messages.add_message(
+                        player_id, rendered_text, data['text_rect']
+                    )
+
+    def add_new_message(self, message: dict) -> None:
+        data = json.loads(message['data'])
+        self.msgs.cache.add(message['id'])
+        self.msgs.list.append(data)
+        self.msgs.height += data['text_rect']['height']
 
     def delete_old_msg_ids(self) -> None:
         """Clear out old message ids which have been stored to prevent
@@ -212,12 +229,6 @@ class TextInput(ChatMixin):
 
             window.blit(username_img, self._get_rect_from_dict(username_rect))
             window.blit(text_img, self._get_rect_from_dict(text_rect))
-            # speechBubble(
-            #     data['player_xy'],
-            #     text_img,
-            #     {'width': text_rect['width'], 'height': text_rect['height']},
-            #     window
-            # )
 
         self._delete_oldest_message()
 
