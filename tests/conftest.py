@@ -13,9 +13,11 @@ def mock_os_config(monkeypatch):
 
 @pytest.fixture
 def mock_player():
-    def _mock_player(player_id=0, username='TestUser', x=0, y=0):
+    def _mock_player(
+        player_id=0, username='TestUser', x=0, y=0, _current_step=0
+    ):
         class Player:
-            def __init__(self, player_id):
+            def __init__(self):
                 self.id = player_id
                 self.username = username
                 self.x = x
@@ -25,7 +27,7 @@ def mock_player():
                 self.up = False
                 self.down = True
                 self.standing = True
-                self._current_step = 0
+                self._current_step = _current_step
                 self.walk_count = 0
                 self.in_slow_area = False
                 self.bike = False
@@ -43,7 +45,7 @@ def mock_player():
                     'id': self.id,
                     'username': self.username
                 }
-        return Player(player_id)
+        return Player()
     return _mock_player
 
 

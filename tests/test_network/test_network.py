@@ -1,5 +1,5 @@
 import pickle
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 
@@ -57,10 +57,24 @@ def mock_no_data_from_server(mock_os_config):
 
 
 @pytest.fixture
+def mock_update_player():
+    with patch('network.network._update_player') as mock_update_player:
+        mock_update_player.return_value = 'mocked update player'
+        yield mock_update_player
+
+
+@pytest.fixture
 def mock_create_player(mock_player):
-    with patch('network.network.Player') as mock_create_player:
-        mock_create_player.return_value = mock_player()
+    with patch('network.network._create_player') as mock_create_player:
+        mock_create_player.return_value = 'mocked create player'
         yield mock_create_player
+
+
+@pytest.fixture
+def mock_new_player(mock_player):
+    with patch('network.network.Player') as mock_new_player_player:
+        mock_new_player_player.return_value = mock_player()
+        yield mock_new_player_player
 
 
 def test_init(mock_os_config):
@@ -86,15 +100,17 @@ def test_init_server_down(mock_os_config):
     err.match('Could not connect to server.')
 
 
-def test_fetch_player_data(
-    mock_player, mock_other_players, mock_recv_player_data
+def test_fetch_player_data_calls_update_player(
+    mock_player, mock_other_players, mock_recv_player_data, mock_update_player
 ):
     fetch_player_data(
         mock_player(), mock_other_players, mock_recv_player_data()
     )
 
+    assert mock_update_player.call_count == len(mock_other_players)
 
-def test_fetch_player_data_cannot_recieve_data(
+
+def test_fetch_player_data_cannot_receive_data(
     mock_player, mock_other_players, mock_no_data_from_server
 ):
     with pytest.raises(ServerError) as err:
@@ -109,7 +125,8 @@ def test_fetch_player_data_ignore_local_user_player_data(
     mock_player,
     mock_player_attributes,
     mock_other_players,
-    mock_recv_player_data
+    mock_recv_player_data,
+    mock_update_player
 ):
     fetch_player_data(
         mock_player(),
@@ -117,12 +134,15 @@ def test_fetch_player_data_ignore_local_user_player_data(
         mock_recv_player_data(mock_player_attributes())
     )
 
+    assert mock_update_player.call_count == 0
+
 
 def test_fetch_player_data_only_one_player_online(
     mock_player,
     mock_player_attributes,
     mock_other_players,
-    mock_recv_player_data
+    mock_recv_player_data,
+    mock_update_player
 ):
     fetch_player_data(
         mock_player(),
@@ -134,12 +154,15 @@ def test_fetch_player_data_only_one_player_online(
         )
     )
 
+    assert mock_update_player.call_count == 0
+
 
 def test_fetch_player_data_player_disconnected(
     mock_player,
     mock_player_attributes,
     mock_other_players,
-    mock_recv_player_data
+    mock_recv_player_data,
+    mock_update_player
 ):
     fetch_player_data(
         mock_player(),
@@ -151,6 +174,8 @@ def test_fetch_player_data_player_disconnected(
         )
     )
 
+    assert mock_update_player.call_count == 0
+
 
 def test_delete_player(
     mock_player,
@@ -158,8 +183,11 @@ def test_delete_player(
     mock_other_players,
 ):
 
-    mock_player_data = mock_player_attributes(player_id=1)[1]
+    player_id = 1
+    mock_player_data = mock_player_attributes(player_id=1)[player_id]
     _delete_player(mock_other_players, mock_player_data)
+
+    assert player_id not in mock_other_players
 
 
 def test_delete_player_invalid_player_key(
@@ -168,7 +196,8 @@ def test_delete_player_invalid_player_key(
     mock_other_players,
 ):
 
-    mock_player_data = mock_player_attributes(player_id=10)[10]
+    player_id = 10
+    mock_player_data = mock_player_attributes(player_id=player_id)[player_id]
     _delete_player(mock_other_players, mock_player_data)
 
 
@@ -179,28 +208,41 @@ def test_update_player(
 ):
     new_x = 123
     new_y = 456
+    _current_step = 4
     mock_player_data = mock_player_attributes(
-        player_id=1, x=new_x, y=new_y
+        player_id=1, x=new_x, y=new_y, _current_step=_current_step
     )[1]
     _update_player(mock_other_players, mock_player_data)
 
-    assert mock_other_players[mock_player_data['id']].x == new_x
-    assert mock_other_players[mock_player_data['id']].y == new_y
+    updated_player = mock_other_players[mock_player_data['id']]
+    assert updated_player.x == new_x
+    assert updated_player.y == new_y
+    assert updated_player.walk_count == _current_step
 
 
-def test_update_player_create_new_player(
+def test_update_player_calls_create_new_player(
     mock_player,
     mock_player_attributes,
     mock_other_players,
     mock_create_player,
 ):
     mock_player_data = mock_player_attributes(player_id=10)[10]
-
     _update_player(mock_other_players, mock_player_data)
+
+    assert mock_create_player.call_count == 1
 
 
 def test_create_player(
-    mock_other_players, mock_player_attributes, mock_create_player
+    mock_other_players, mock_player_attributes, mock_new_player
 ):
-    mock_player_data = mock_player_attributes(player_id=10)[10]
+    player_id = 99
+    mock_player_data = mock_player_attributes(
+        x=50, y=50, player_id=player_id, username='My Created Player'
+    )[99]
     _create_player(mock_other_players, mock_player_data)
+
+    assert mock_new_player.call_count == 1
+    assert mock_new_player.call_args_list == [
+        call((50, 50), 99, 'My Created Player')
+    ]
+    assert player_id in mock_other_players
