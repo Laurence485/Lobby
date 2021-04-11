@@ -1,3 +1,4 @@
+import json
 import pygame
 
 from enums.base import Chat
@@ -27,6 +28,12 @@ class Messages:
     @property
     def queue(self) -> list:
         return reversed(self.list)
+
+    def add_new_message(self, message: dict) -> None:
+        data = json.loads(message['data'])
+        self.cache.add(message['id'])
+        self.list.append(data)
+        self.height += data['text_rect']['height']
 
 
 class HoverMessages:
@@ -156,14 +163,14 @@ class HoverMessages:
                 player_id, player, other_players
             )
             if data.get('wrapped'):
-                data = data['wrapped']
-                for i in range(len(data['text_imgs'])):
+                data_w = data['wrapped']
+                for i in range(len(data_w['text_imgs'])):
                     SpeechBubble(
-                        data['text_imgs'][i],
+                        data_w['text_imgs'][i],
                         this_player.x,
-                        this_player.y + data['relative_ypos'][i],
-                        data['widths'][i],
-                        data['heights'][i],
+                        this_player.y + data_w['relative_ypos'][i],
+                        data_w['widths'][i],
+                        data_w['heights'][i],
                         self.window
                     )
             else:

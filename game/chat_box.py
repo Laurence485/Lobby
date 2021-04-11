@@ -81,7 +81,7 @@ class TextInput(ChatMixin):
             sorted_messages = self.redis.sort_messages_by_expiry(messages)
 
             for message in sorted_messages:
-                self.add_new_message(message)
+                self.msgs.add_new_message(message)
 
                 data = json.loads(message['data'])
                 player_id = data['player_id']
@@ -106,12 +106,6 @@ class TextInput(ChatMixin):
                     hover_messages.add_message(
                         player_id, rendered_text, data['text_rect']
                     )
-
-    def add_new_message(self, message: dict) -> None:
-        data = json.loads(message['data'])
-        self.msgs.cache.add(message['id'])
-        self.msgs.list.append(data)
-        self.msgs.height += data['text_rect']['height']
 
     def delete_old_msg_ids(self) -> None:
         """Clear out old message ids which have been stored to prevent
