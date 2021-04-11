@@ -17,6 +17,8 @@ def test_check_os_config_env_vars(monkeypatch):
 
 
 def test_check_os_config_missing_host(monkeypatch):
+    monkeypatch.delenv('HOST', raising=False)
+
     with pytest.raises(ConfigError) as err:
         check_os_config('HOST')
 
@@ -24,6 +26,8 @@ def test_check_os_config_missing_host(monkeypatch):
 
 
 def test_check_os_config_missing_port(monkeypatch):
+    monkeypatch.delenv('PORT', raising=False)
+
     with pytest.raises(ConfigError) as err:
         check_os_config('PORT')
 

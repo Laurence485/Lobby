@@ -2,7 +2,7 @@ import pytest
 
 from game.chat_box import TextInput
 from game.messages import HoverMessages
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 
 @pytest.fixture
@@ -10,6 +10,11 @@ def mock_pygame():
     with patch('game.chat_box.pygame') as pygame:
         pygame.return_value = 'mocked pygame'
         yield pygame
+
+
+@pytest.fixture
+def hover_messages():
+    return HoverMessages(window=Mock(return_value='mocked game window'))
 
 
 @pytest.fixture
@@ -32,14 +37,12 @@ def create_mock_text_input_with_redis_data(mock_pygame):
 
 
 @pytest.fixture
-def create_mock_text_input_with_redis_get_message(mock_pygame):
-    def _create_mock_text_input_with_get_message():
+def create_mock_text_input_with_redis_get_message_not_found(mock_pygame):
+    def _create_mock_text_input_with_redis_get_message_not_found():
         with patch('game.chat_box.RedisClient') as redis:
-            redis.return_value.get_message.return_value = (
-                None
-                )
+            redis.return_value.get_message.return_value = None
             return TextInput('test user')
-    return _create_mock_text_input_with_get_message
+    return _create_mock_text_input_with_redis_get_message_not_found
 
 
 @pytest.fixture
@@ -70,24 +73,24 @@ def mock_messages_window_width():
 def test_get_new_messages_does_not_wrap_text(
     create_mock_text_input_with_redis_data,
     mock_pygame,
-    mock_messages_window_width
+    mock_messages_window_width,
+    hover_messages
 ):
-    hover_messages = HoverMessages('mock window')
     width = 54
     player_id = 0
-    mock_textInput = create_mock_text_input_with_redis_data(width, player_id)
+    textInput = create_mock_text_input_with_redis_data(width, player_id)
 
-    mock_textInput.get_new_messages(hover_messages)
+    textInput.get_new_messages(hover_messages)
 
-    assert 'f92d896ac90b4fed8dcc3c986ca0c1f0' in mock_textInput.msgs.cache
-    assert {
-                "username": "testUser",
-                "text": "hello world",
-                "username_rect": {"x": 0, "y": 470, "width": 47, "height": 10},
-                "text_rect": {"x": 47, "y": 470, "width": width, "height": 10},
-                "player_id": player_id
-            } == mock_textInput.msgs.list[-1]
-    assert mock_textInput.msgs.height == 10
+    assert 'f92d896ac90b4fed8dcc3c986ca0c1f0' in textInput.msgs.cache
+    assert textInput.msgs.list[-1] == {
+        "username": "testUser",
+        "text": "hello world",
+        "username_rect": {"x": 0, "y": 470, "width": 47, "height": 10},
+        "text_rect": {"x": 47, "y": 470, "width": width, "height": 10},
+        "player_id": player_id
+    }
+    assert textInput.msgs.height == 10
 
     assert player_id in hover_messages.dict
     assert 'height' in hover_messages.dict[player_id]
@@ -101,25 +104,24 @@ def test_get_new_messages_wraps_text(
     create_mock_text_input_with_redis_data,
     mock_pygame,
     mock_messages_window_width,
-    text_width
+    text_width,
+    hover_messages
 ):
-
-    hover_messages = HoverMessages('mock window')
     width = text_width
     player_id = 0
-    mock_textInput = create_mock_text_input_with_redis_data(width, player_id)
+    textInput = create_mock_text_input_with_redis_data(width, player_id)
 
-    mock_textInput.get_new_messages(hover_messages)
+    textInput.get_new_messages(hover_messages)
 
-    assert 'f92d896ac90b4fed8dcc3c986ca0c1f0' in mock_textInput.msgs.cache
-    assert {
-                "username": "testUser",
-                "text": "hello world",
-                "username_rect": {"x": 0, "y": 470, "width": 47, "height": 10},
-                "text_rect": {"x": 47, "y": 470, "width": width, "height": 10},
-                "player_id": player_id
-            } == mock_textInput.msgs.list[-1]
-    assert mock_textInput.msgs.height == 10
+    assert 'f92d896ac90b4fed8dcc3c986ca0c1f0' in textInput.msgs.cache
+    assert textInput.msgs.list[-1] == {
+        "username": "testUser",
+        "text": "hello world",
+        "username_rect": {"x": 0, "y": 470, "width": 47, "height": 10},
+        "text_rect": {"x": 47, "y": 470, "width": width, "height": 10},
+        "player_id": player_id
+    }
+    assert textInput.msgs.height == 10
 
     assert player_id in hover_messages.dict
     assert 'wrapped' in hover_messages.dict[player_id]
@@ -136,27 +138,28 @@ def test_get_new_messages_wraps_text(
 
 
 def test_delete_old_msg_ids_no_cache(
-    create_mock_text_input_with_redis_get_message
+    create_mock_text_input_with_redis_get_message_not_found
 ):
-    mock_textInput = create_mock_text_input_with_redis_get_message()
-    mock_textInput.delete_old_msg_ids()
+    textInput = create_mock_text_input_with_redis_get_message_not_found()
+    textInput.delete_old_msg_ids()
+
+    assert not textInput.msgs.cache
 
 
 def test_delete_old_msg_ids_with_cache(
-    mock_msgs_cache, create_mock_text_input_with_redis_get_message
+    mock_msgs_cache, create_mock_text_input_with_redis_get_message_not_found
 ):
-    mock_textInput = create_mock_text_input_with_redis_get_message()
-    mock_textInput.delete_old_msg_ids()
+    textInput = create_mock_text_input_with_redis_get_message_not_found()
+    textInput.delete_old_msg_ids()
 
-    assert not mock_msgs_cache.return_value.cache
+    assert not textInput.msgs.cache
 
 
 def test_delete_old_msg_ids_with_only_one_id_in_cache(
-    mock_msgs_cache_one_id, create_mock_text_input_with_redis_get_message
+    mock_msgs_cache_one_id,
+    create_mock_text_input_with_redis_get_message_not_found
 ):
-    mock_textInput = create_mock_text_input_with_redis_get_message()
-    mock_textInput.delete_old_msg_ids()
+    textInput = create_mock_text_input_with_redis_get_message_not_found()
+    textInput.delete_old_msg_ids()
 
-    assert mock_msgs_cache_one_id.return_value.cache == {
-        'f92d896ac90b4fed8dcc3c986ca0c1f0'
-    }
+    assert textInput.msgs.cache == {'f92d896ac90b4fed8dcc3c986ca0c1f0'}
