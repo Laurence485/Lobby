@@ -1,19 +1,10 @@
 import json
 import pytest
 
-from fakeredis import FakeStrictRedis
 from game.errors import DatabaseTimeoutError
 from game.redis import RedisClient
 from time import sleep
 from unittest.mock import patch, Mock
-
-
-@pytest.fixture
-def mock_redis():
-    with patch('redis.StrictRedis') as redis:
-        redis.return_value = FakeStrictRedis()
-        yield redis
-        redis.return_value.flushall()
 
 
 @pytest.fixture
@@ -46,7 +37,7 @@ def mock_payload():
     return _mock_payload
 
 
-def test_connect_to_redis(mock_redis):
+def test_connect_to_redis(mock_strict_redis):
     redis_client = RedisClient()
     assert redis_client.redis.ping()
 
@@ -57,7 +48,7 @@ def test_timeout_connect_to_redis(mock_timeout_error):
     err.match('Timeout connecting to the database.')
 
 
-def test_get_message(mock_redis):
+def test_get_message(mock_strict_redis):
     redis = RedisClient()
 
     redis.redis.hset('message-1', 'test', 'My test message!')
@@ -67,7 +58,7 @@ def test_get_message(mock_redis):
 
 
 @pytest.mark.slow
-def test_save_message(mock_redis, mock_message_lifetime, uuid4):
+def test_save_message(mock_strict_redis, mock_message_lifetime, uuid4):
     uuid4.return_value.hex = 'myrandomhex123'
     redis = RedisClient()
 
@@ -83,7 +74,7 @@ def test_save_message(mock_redis, mock_message_lifetime, uuid4):
     assert not expired_message
 
 
-def test_get_all_messages(mock_redis, mock_payload):
+def test_get_all_messages(mock_strict_redis, mock_payload):
     payload_1 = mock_payload({'hello': 'world'})
     payload_2 = mock_payload({'fee': 'fi fo fum'})
     payload_3 = mock_payload({'greetings': 'traveller'})
@@ -114,7 +105,7 @@ def test_get_all_messages(mock_redis, mock_payload):
     ]
 
 
-def test_get_all_messages_with_cache(mock_redis, mock_payload):
+def test_get_all_messages_with_cache(mock_strict_redis, mock_payload):
     payload_1 = mock_payload({'hello': 'world'})
     payload_2 = mock_payload({'fee': 'fi fo fum'})
     payload_3 = mock_payload({'greetings': 'traveller'})
@@ -135,7 +126,7 @@ def test_get_all_messages_with_cache(mock_redis, mock_payload):
     ]
 
 
-def test_sort_messages_by_expiry(mock_redis):
+def test_sort_messages_by_expiry(mock_strict_redis):
     redis = RedisClient()
     messages = [
         {

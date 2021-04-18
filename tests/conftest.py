@@ -1,5 +1,8 @@
 import pytest
 
+from fakeredis import FakeStrictRedis
+from unittest.mock import patch
+
 
 @pytest.fixture
 def mock_os_config(monkeypatch):
@@ -59,3 +62,11 @@ def mock_other_players_attributes(mock_player):
         5: mock_player(player_id=5).attributes
     }
     return players
+
+
+@pytest.fixture
+def mock_strict_redis():
+    with patch('redis.StrictRedis') as redis:
+        redis.return_value = FakeStrictRedis()
+        yield redis
+        redis.return_value.flushall()
