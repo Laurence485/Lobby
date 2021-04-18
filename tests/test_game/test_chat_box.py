@@ -97,12 +97,62 @@ def mock_edge_distance():
 
 
 @pytest.fixture
+def mock_chat_box_height():
+    with patch('game.chat_box.CHAT_WINDOW_HEIGHT', 80) as chat_window_height:
+        yield chat_window_height
+
+
+@pytest.fixture
 def mock_create_rect_dict():
     with patch('game.chat_box.TextInput._create_rect_dict') as rect_dict:
-        rect_dict.return_value = {
-            'height': 1, 'width': 1, 'x': 1, 'y': 1
-        }
+        rect_dict.return_value = {'height': 1, 'width': 1, 'x': 1, 'y': 1}
         yield rect_dict
+
+
+@pytest.fixture
+def mock_msgs_list():
+    with patch('game.chat_box.Messages') as messages:
+        messages.return_value.__len__ = messages.return_value.list
+        messages.return_value.list = [{
+            'text_rect': {
+                'x': 0,
+                'y': 10,
+                'height': 8,
+                'width': 10
+            },
+            'username_rect': {
+                'x': 0,
+                'y': 10,
+                'height': 10,
+                'width': 10
+            },
+            'username': 'test',
+            'text': 'test text'
+        },
+            {
+            'text_rect': {
+                'x': 0,
+                'y': 20,
+                'height': 12,
+                'width': 10
+            },
+            'username_rect': {
+                'x': 0,
+                'y': 20,
+                'height': 10,
+                'width': 10
+            },
+            'username': 'test2',
+            'text': 'test text'
+        }]
+        messages.return_value.queue = reversed(messages.return_value.list)
+        yield messages
+
+
+@pytest.fixture
+def mock_update_messages():
+    with patch('game.chat_box.TextInput._update_messages') as update_messages:
+        yield update_messages
 
 
 class TestTextInput:
@@ -298,30 +348,141 @@ class TestTextInput:
             {b'data': expected_data_in_redis}
         )
 
-    def tesdfsdf_save_message(
-        self, mock_pygame, mock_strict_redis, mock_create_rect_dict
+    def test_save_message(
+        self,
+        mock_pygame,
+        mock_strict_redis,
+        mock_create_rect_dict,
+        mock_msgs_list,
+        mock_update_messages
     ):
         text_input = TextInput('test user')
+        text_input.text = 'test'
         text_input.text_img.get_width.return_value = 100
         text_input.text_img.get_size.return_value = 100
+        text_input.text_rect.height = 0
 
         text_input.save_message(window=Mock(), player_id=0)
-        breakpoint()
 
-    def test_create_rect_dict(self):
-        pass
+        redis = text_input.redis.redis
+        expected_data_in_redis = (
+            b'{"username": "test user", "text": "test", '
+            b'"username_rect": {"height": 1, '
+            b'"width": 1, "x": 1, "y": 1}, "text_rect": {"height": 1, '
+            b'"width": 1, "x": 1, "y": 1}, "player_id": 0}'
+        )
+        assert redis.keys()
+        assert redis.hgetall(redis.keys()[0]) == (
+            {b'data': expected_data_in_redis}
+        )
 
-    def test_update_messages(self):
-        pass
+        assert mock_update_messages.call_count == 1
 
-    def test_clear_text_input(self):
-        pass
+    def test_update_messages(self, mock_pygame, mock_redis, mock_msgs_list):
+        text_input = TextInput('test user')
+        text_input.text_rect.height = 10
+        text_input._update_messages()
 
-    def test_draw_messages(self):
-        pass
+        assert text_input.msgs.list[0]['text_rect']['y'] == 0
+        assert text_input.msgs.list[0]['username_rect']['y'] == 0
+        assert text_input.msgs.list[1]['text_rect']['y'] == 10
+        assert text_input.msgs.list[1]['username_rect']['y'] == 10
 
-    def test_get_rect_from_dict(self):
-        pass
+    def test_clear_text_input(self, mock_pygame, mock_redis):
+        text_input = TextInput('test user')
+        text_input.text = 'test text'
+        text_input._clear_text_input(window=Mock())
 
-    def test_delete_oldest_message(self):
-        pass
+        assert text_input.text == ''
+
+    def test_draw_messages_updates_y_positions_of_messages(
+        self, mock_pygame, mock_redis, mock_msgs_list, mock_chat_box_height
+    ):
+        text_input = TextInput('test user')
+        text_input.y_text = 100
+        text_input.msgs.height = 30
+        text_input.text_rect.height = 20
+
+        text_input.draw_messages(window=Mock())
+        assert text_input.msgs.list == [
+            {
+                'text': 'test text',
+                'text_rect': {'height': 8, 'width': 10, 'x': 0, 'y': 80},
+                'username': 'test',
+                'username_rect': {'height': 10, 'width': 10, 'x': 0, 'y': 78}
+            },
+            {
+                'text': 'test text',
+                'text_rect': {'height': 12, 'width': 10, 'x': 0, 'y': 88},
+                'username': 'test2',
+                'username_rect': {'height': 10, 'width': 10, 'x': 0, 'y': 90}
+            }
+        ]
+
+    def test_delete_oldest_message_height_of_text_is_more_than_chat_box(
+        self, mock_pygame, mock_redis, mock_msgs_list, mock_chat_box_height
+    ):
+        text_input = TextInput('test user')
+        text_input.msgs.height = 100
+        text_input.text_rect.height = 20
+        text_input._delete_oldest_message()
+
+        assert text_input.msgs.height == 92
+        assert text_input.msgs.list == [{
+            'text_rect': {
+                'x': 0,
+                'y': 20,
+                'height': 12,
+                'width': 10
+            },
+            'username_rect': {
+                'x': 0,
+                'y': 20,
+                'height': 10,
+                'width': 10
+            },
+            'username': 'test2',
+            'text': 'test text'
+        }]
+
+    def test_delete_oldest_message_height_of_text_is_less_than_chat_box(
+        self, mock_pygame, mock_redis, mock_msgs_list, mock_chat_box_height
+    ):
+        text_input = TextInput('test user')
+        text_input.msgs.height = 30
+        text_input.text_rect.height = 20
+        text_input._delete_oldest_message()
+
+        assert text_input.msgs.height == 30
+        assert text_input.msgs.list == [{
+            'text_rect': {
+                'x': 0,
+                'y': 10,
+                'height': 8,
+                'width': 10
+            },
+            'username_rect': {
+                'x': 0,
+                'y': 10,
+                'height': 10,
+                'width': 10
+            },
+            'username': 'test',
+            'text': 'test text'
+        },
+            {
+            'text_rect': {
+                'x': 0,
+                'y': 20,
+                'height': 12,
+                'width': 10
+            },
+            'username_rect': {
+                'x': 0,
+                'y': 20,
+                'height': 10,
+                'width': 10
+            },
+            'username': 'test2',
+            'text': 'test text'
+        }]
