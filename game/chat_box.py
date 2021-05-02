@@ -88,7 +88,6 @@ class TextInput(ChatMixin):
                 text_width = data['text_rect']['width']
 
                 hover_messages.overwrite_message(player_id)
-
                 if hover_messages.should_wrap_text(text_width):
                     divided_text = hover_messages.divide_text(
                         data['text'], text_width

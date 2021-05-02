@@ -129,7 +129,11 @@ class HoverMessages:
             text, True, HOVER_MESSAGE_COLOUR
         )
 
-    def _get_rendered_text_dimensions(self, rendered_text: Sprite) -> tuple[int]:
+    def _get_rendered_text_dimensions(
+        self,
+        rendered_text: Sprite
+    ) -> tuple[int]:
+
         return rendered_text.get_width(), rendered_text.get_height()
 
     def add_message(

@@ -76,3 +76,9 @@ def mock_strict_redis():
 def mock_messages_window_width():
     with patch('game.messages.WINDOW_WIDTH', 400) as window_width:
         yield window_width
+
+
+@pytest.fixture
+def mock_pygame_messages():
+    with patch('game.messages.pygame') as pygame:
+        yield pygame

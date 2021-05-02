@@ -184,7 +184,8 @@ class TestTextInput:
         create_mock_text_input_with_redis_data,
         mock_messages_window_width,
         text_width,
-        hover_messages
+        hover_messages,
+        mock_pygame_messages
     ):
         width = text_width
         player_id = 0

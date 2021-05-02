@@ -6,12 +6,6 @@ from unittest.mock import call, Mock, patch
 
 
 @pytest.fixture
-def mock_pygame():
-    with patch('game.messages.pygame') as pygame:
-        yield pygame
-
-
-@pytest.fixture
 def mock_get_rendered_text_dimensions():
     with patch(
         'game.messages.HoverMessages._get_rendered_text_dimensions'
@@ -218,7 +212,7 @@ class TestHoverMessages:
         assert texts[2]['text_img'] == 'hello world tes-'
         assert texts[2]['text_rect']['relative_ypos'] == -20
 
-    def test_add_messages(self, mock_pygame, mock_start_timeout):
+    def test_add_messages(self, mock_pygame_messages, mock_start_timeout):
         hover_messages = HoverMessages(window=Mock())
         text_rect = {'width': 10, 'height': 10}
         mock_text_img = 'test text img'
@@ -257,7 +251,7 @@ class TestHoverMessages:
                 }
         }
 
-    def test_add_wrapped_message(self, mock_pygame):
+    def test_add_wrapped_message(self, mock_pygame_messages):
         hover_messages = HoverMessages(window=Mock())
         texts = [
             {
@@ -300,7 +294,7 @@ class TestHoverMessages:
     def test_draw_wrapped_message(
         self,
         mock_draw_wrapped_speech_bubble,
-        mock_pygame,
+        mock_pygame_messages,
         mock_get_this_player,
         mock_message_expired
     ):
