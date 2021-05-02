@@ -85,12 +85,6 @@ def mock_msgs_cache_one_id():
 
 
 @pytest.fixture
-def mock_messages_window_width():
-    with patch('game.messages.WINDOW_WIDTH', 400) as window_width:
-        yield window_width
-
-
-@pytest.fixture
 def mock_edge_distance():
     with patch('game.chat_box.EDGE_DISTANCE', 0) as edge_distance:
         yield edge_distance

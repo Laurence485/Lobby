@@ -70,3 +70,9 @@ def mock_strict_redis():
         redis.return_value = FakeStrictRedis()
         yield redis
         redis.return_value.flushall()
+
+
+@pytest.fixture
+def mock_messages_window_width():
+    with patch('game.messages.WINDOW_WIDTH', 400) as window_width:
+        yield window_width

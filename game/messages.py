@@ -6,7 +6,6 @@ from game.player import Player
 from game.speech_bubble import SpeechBubble
 from game.typing import Sprite
 from game.utils import get_config
-from typing import Callable
 
 config = get_config()
 WINDOW_WIDTH = config['WINDOW_WIDTH']
@@ -63,27 +62,37 @@ class HoverMessages:
         if text_width > WINDOW_WIDTH // 2:
             parts = 3
 
-        if parts == 2:
-            midpoint = len(text) // 2
-
-            part_1 = text[:midpoint]
-            part_2 = text[midpoint:]
-            new_part_1 = self._ammend_mid_word_divide(part_1, part_2)
-
-            divided_text = [new_part_1, part_2]
-        else:
-            third = len(text) // 3
-            two_thirds = int(len(text) * (2/3))
-
-            part_1 = text[:third]
-            part_2 = text[third:two_thirds]
-            part_3 = text[two_thirds:]
+        if parts == 3:
+            part_1, part_2, part_3 = self._divide_text_into_3_parts(text)
             new_part_1 = self._ammend_mid_word_divide(part_1, part_2)
             new_part_2 = self._ammend_mid_word_divide(part_2, part_3)
 
             divided_text = [new_part_1, new_part_2, part_3]
+        else:
+            part_1, part_2 = self._divide_text_into_2_parts(text)
+            new_part_1 = self._ammend_mid_word_divide(part_1, part_2)
+
+            divided_text = [new_part_1, part_2]
 
         return divided_text
+
+    def _divide_text_into_2_parts(self, text: str) -> tuple[str]:
+        midpoint = len(text) // 2
+
+        part_1 = text[:midpoint]
+        part_2 = text[midpoint:]
+
+        return part_1, part_2
+
+    def _divide_text_into_3_parts(self, text: str) -> tuple[str]:
+        third = len(text) // 3
+        two_thirds = int(len(text) * (2/3))
+
+        part_1 = text[:third]
+        part_2 = text[third:two_thirds]
+        part_3 = text[two_thirds:]
+
+        return part_1, part_2, part_3
 
     def _ammend_mid_word_divide(
         self,
@@ -94,33 +103,34 @@ class HoverMessages:
         to indicate that the last word of the sentence flows onto the
         next line.
         """
-        if sentence[-1:] != " " and next_sentence[0] != " ":
+        if sentence[-1] != " " and next_sentence[0] != " ":
             sentence += "-"
         return sentence
 
-    def create_texts_for_wrapping(
-        self,
-        divided_text: list[str],
-        render_text: Callable
-    ) -> list[dict]:
-
+    def create_texts_for_wrapping(self, divided_text: list[str]) -> list[dict]:
+        """Create texts to be wrapped over multiple lines."""
         texts = []
         relative_ypos = 0
         for text in reversed(divided_text):
-            rendered_text = render_text(
-                text, colour=HOVER_MESSAGE_COLOUR
-            )
-            width = rendered_text.get_width()
-            height = rendered_text.get_height()
+            rendered_text = self._render_text(text)
+            width, height = self._get_rendered_text_dimensions(rendered_text)
             text_rect = {
                 'width': width,
                 'height': height,
                 'relative_ypos': relative_ypos
             }
             relative_ypos -= height
-            texts.append({'text': rendered_text, 'text_rect': text_rect})
+            texts.append({'text_img': rendered_text, 'text_rect': text_rect})
 
         return texts
+
+    def _render_text(self, text: str) -> Sprite:
+        return pygame.font.SysFont(None, FONT_SIZE).render(
+            text, True, HOVER_MESSAGE_COLOUR
+        )
+
+    def _get_rendered_text_dimensions(self, rendered_text: Sprite) -> tuple[int]:
+        return rendered_text.get_width(), rendered_text.get_height()
 
     def add_message(
         self,
@@ -152,7 +162,7 @@ class HoverMessages:
         )
         for text in texts:
             key = self.dict[player_id]['wrapped']
-            key['text_imgs'].append(text['text'])
+            key['text_imgs'].append(text['text_img'])
             key['widths'].append(text['text_rect']['width'])
             key['heights'].append(text['text_rect']['height'])
             key['relative_ypos'].append(text['text_rect']['relative_ypos'])
@@ -163,31 +173,45 @@ class HoverMessages:
                 player_id, player, other_players
             )
             if data.get('wrapped'):
-                data_w = data['wrapped']
-                for i in range(len(data_w['text_imgs'])):
-                    SpeechBubble(
-                        data_w['text_imgs'][i],
-                        this_player.x,
-                        this_player.y + data_w['relative_ypos'][i],
-                        data_w['widths'][i],
-                        data_w['heights'][i],
-                        self.window
+                num_messages = len(data['wrapped']['text_imgs'])
+                for msg_index in range(num_messages):
+                    self._draw_wrapped_speech_bubble(
+                        data['wrapped'], msg_index, this_player
                     )
             else:
-                SpeechBubble(
-                    data['text_img'],
-                    this_player.x,
-                    this_player.y,
-                    data['width'],
-                    data['height'],
-                    self.window
-                )
+                self._draw_speech_bubble()
 
             if(self._message_expired(data['start_timeout'])):
                 self.expired_messages.add(player_id)
 
         if self.expired_messages:
             self._delete_expired_messages()
+
+    def _draw_wrapped_speech_bubble(
+        self,
+        data: dict,
+        msg_index: int,
+        this_player: Player
+    ) -> None:
+
+        SpeechBubble(
+            text_img=data['text_imgs'][msg_index],
+            x=this_player.x,
+            y=this_player.y + data['relative_ypos'][msg_index],
+            width=data['widths'][msg_index],
+            height=data['heights'][msg_index],
+            window=self.window
+            )
+
+    def _draw_speech_bubble(self, data: dict, this_player: Player) -> None:
+        SpeechBubble(
+            text_img=data['text_img'],
+            x=this_player.x,
+            y=this_player.y,
+            width=data['width'],
+            height=data['height'],
+            window=self.window
+        )
 
     def _get_this_player(
         self,

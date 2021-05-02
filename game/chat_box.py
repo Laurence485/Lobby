@@ -94,7 +94,7 @@ class TextInput(ChatMixin):
                         data['text'], text_width
                     )
                     texts = hover_messages.create_texts_for_wrapping(
-                        divided_text, self._render_text
+                        divided_text
                     )
 
                     hover_messages.add_wrapped_message(player_id, texts)
