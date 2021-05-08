@@ -22,7 +22,7 @@ def config() -> dict:
         },
         'grass': {
             'img': load_map_img('grass_patch', 'jpg'),
-            'quantity': 3
+            'quantity': 4
         },
         'mart': {
             'img': load_map_img('mart'),
@@ -46,6 +46,6 @@ def config() -> dict:
         },
         'tree': {
             'img': load_map_img('tree'),
-            'quantity': 5
+            'quantity': 10
         }
     }

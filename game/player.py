@@ -233,6 +233,9 @@ class Player:
             img = player_imgs[img_to_draw]
         except TypeError:
             img = player_imgs
+        except IndexError:
+            # TODO: rare error.
+            img = player_imgs[0]
 
         if self.in_slow_area:
             self._draw_player_top_half_only(win, img)

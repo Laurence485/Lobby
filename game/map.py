@@ -107,9 +107,8 @@ class Map:
     def _save(self) -> None:
         """Save map to .pkl in the maps/ directory."""
         cache_path = f'maps/{self.map_name}.pkl'
-
-        del self.all_obj_attributes['width']
-        del self.all_obj_attributes['height']
+        # del self.all_obj_attributes['width']
+        # del self.all_obj_attributes['height']
 
         map_ = {
             'nodes': self.nodes,

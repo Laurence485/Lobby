@@ -1,5 +1,7 @@
 import pygame
+import sys
 
+from argparse import ArgumentParser, Namespace
 from enums.base import Base
 from game.map import Map
 from game.new_game import NewGame
@@ -22,14 +24,37 @@ if GRID_SPACING != 10:
     raise NotImplementedError('Do not adjust the grid spacing.')
 
 
-def setup_pygame() -> None:
+def parse_args(args) -> Namespace:
+    parser = ArgumentParser(description='Generate a new map.')
+    parser.add_argument(
+        '-m',
+        '--map',
+        type=str,
+        default=None,
+        help='The name of the map to generate.',
+    )
+    parser.add_argument(
+        '-s',
+        '--seed',
+        type=str,
+        default=None,
+        help='The random seed to use for map generation.',
+    )
+    args = parser.parse_args()
+    return args
+
+
+def setup_pygame(**kwargs) -> None:
     pygame.init()
     pygame.display.set_caption('Lobby')
     game_window = pygame.display.set_mode(
         (WINDOW_WIDTH, WINDOW_HEIGHT + CHAT_WINDOW_HEIGHT)
     )
 
-    _game_loop(game_window)
+    if kwargs:
+        Map(**kwargs)
+    else:
+        _game_loop(game_window)
 
 
 def _game_loop(game_window: Sprite) -> None:
@@ -37,7 +62,6 @@ def _game_loop(game_window: Sprite) -> None:
     clock = pygame.time.Clock()
 
     Map.load(GAME_MAP)
-    # Map(341)
     game = NewGame(game_window, _setup_network(), _get_username())
     while game_is_running:
         for event in pygame.event.get():
@@ -96,4 +120,8 @@ def _setup_network() -> Network:
 
 
 if __name__ == '__main__':
-    setup_pygame()
+    args = parse_args(sys.argv[1:])
+    if args.map:
+        setup_pygame(seed_=args.seed, map_name=args.map)
+    else:
+        setup_pygame()

@@ -44,7 +44,7 @@ def mock_config():
 
 def test_invalid_grid_spacing(mock_config):
     with pytest.raises(NotImplementedError) as err:
-        import setup_game  # noqa
+        import main  # noqa
 
     err.match('Do not adjust the grid spacing.')
 
