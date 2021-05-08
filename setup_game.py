@@ -57,6 +57,7 @@ def _game_loop(game_window: Sprite) -> None:
 
         _chat_box_methods(game, game_window)
         game.hover_messages.draw(game.player, NewGame.other_players)
+        game.hover_messages.delete_expired_messages()
 
         if not game.is_typing:
             game.chat_box.text_input.save_message(game_window, game.player.id)

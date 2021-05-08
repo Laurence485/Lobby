@@ -142,7 +142,9 @@ class HoverMessages:
         text_img: Sprite,
         text_rect: dict,
     ) -> None:
-
+        """Update the message dict with the players' most recent message
+        attributes for drawing.
+        """
         self.dict[player_id] = (
             {
                 'text_img': text_img,
@@ -153,6 +155,9 @@ class HoverMessages:
         )
 
     def add_wrapped_message(self, player_id: int, texts: list[dict]) -> None:
+        """Update the message dict with the players' most recent wrapped
+        message attributes for drawing.
+        """
         self.dict[player_id] = (
             {
                 'wrapped': {
@@ -172,6 +177,9 @@ class HoverMessages:
             key['relative_ypos'].append(text['text_rect']['relative_ypos'])
 
     def draw(self, player: Player, other_players: dict[int, Player]) -> None:
+        """Setup drawing of wrapped or unwrapped messages onto the
+        screen.
+        """
         for player_id, data in self.dict.items():
             this_player = self._get_this_player(
                 player_id, player, other_players
@@ -183,13 +191,10 @@ class HoverMessages:
                         data['wrapped'], msg_index, this_player
                     )
             else:
-                self._draw_speech_bubble()
+                self._draw_speech_bubble(data, this_player)
 
             if(self._message_expired(data['start_timeout'])):
                 self.expired_messages.add(player_id)
-
-        if self.expired_messages:
-            self._delete_expired_messages()
 
     def _draw_wrapped_speech_bubble(
         self,
@@ -237,7 +242,8 @@ class HoverMessages:
         if seconds > HOVER_MESSAGE_TIMEOUT:
             return True
 
-    def _delete_expired_messages(self) -> None:
-        for expired in self.expired_messages:
-            del self.dict[expired]
-        self.expired_messages.clear()
+    def delete_expired_messages(self) -> None:
+        if self.expired_messages:
+            for expired in self.expired_messages:
+                del self.dict[expired]
+            self.expired_messages.clear()
