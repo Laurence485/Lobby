@@ -4,7 +4,7 @@ CHAT_WINDOW_HEIGHT: 80
 GRID_SPACING: &grid_spacing 10
 
 BACKGROUND_IMG: 'sprites/background.jpg'
-MAP: 'myfirstmap'
+MAP: 'lobby'
 
 PLAYER_VELOCITY: *grid_spacing
 GRASS_SPEED: 6 # The players speed when in grass.
