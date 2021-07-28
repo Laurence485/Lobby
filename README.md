@@ -39,6 +39,8 @@ Start the game - ```python main.py```
 
 Press Enter to type.
 
+Use Arrow Keys to move.
+
 Press X to show the grid.
 
 Press B to use the bike.
