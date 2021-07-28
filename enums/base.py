@@ -4,6 +4,7 @@ from enum import Enum
 class Base(Enum):
     TIME_DIFF_MULTIPLYER = 0.01
     PLAYER_COLOURS = 6  # Total number of different player colours.
+    HOTEL_DOOR_POSITIONS = {(210, 220), (220, 220), (270, 220), (280, 220)}
 
 
 class Player_(Enum):
@@ -39,6 +40,7 @@ class Server_(Enum):
 class Window(Enum):
     WALL_WIDTH = 70  # Rock wall on the right of the screen.
     GRID_COLOUR = 125
+    INDOOR_BG_COLOUR = (0, 0, 0, 255)
 
 
 class Chat(Enum):

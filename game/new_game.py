@@ -18,6 +18,7 @@ WINDOW_HEIGHT = config['WINDOW_HEIGHT']
 GRID_SPACING = config['GRID_SPACING']
 BACKGROUND = config['BACKGROUND_IMG']
 GRID_COLOUR = Window.GRID_COLOUR.value
+INDOOR_BG_COLOUR = Window.INDOOR_BG_COLOUR.value
 
 
 class NewGame:
@@ -69,10 +70,14 @@ class NewGame:
 
     def draw_game_objects(self, dt: float) -> None:
         """Draw objects onto the screen."""
-        self.window.blit(self.background, (0, 0))
+        if self.player.is_indoors:
+            self.draw_indoor_background()
+        else:
+            self.window.blit(self.background, (0, 0))
+            Map.draw(self.window)
 
-        self._draw_grid()
-        Map.draw(self.window)
+        if self.grid:
+            self._draw_grid()
         self.chat_box.draw(self.window)
         self.player.draw(self.window, dt)
 
@@ -80,15 +85,19 @@ class NewGame:
             for player in self.other_players.values():
                 player.draw(self.window, dt)
 
+    def draw_indoor_background(self) -> None:
+        self.indoor_background = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+        self.indoor_background.fill(INDOOR_BG_COLOUR)
+        self.window.blit(self.indoor_background, (0, 0))
+
     def _draw_grid(self) -> None:
-        if self.grid:
-            for x in range(0, WINDOW_WIDTH, GRID_SPACING):
-                for y in range(0, WINDOW_HEIGHT, GRID_SPACING):
-                    pygame.draw.rect(
-                        self.window,
-                        (
-                            GRID_COLOUR, GRID_COLOUR, GRID_COLOUR
-                        ),
-                        (x, y, GRID_SPACING, GRID_SPACING),
-                        1
-                    )
+        for x in range(0, WINDOW_WIDTH, GRID_SPACING):
+            for y in range(0, WINDOW_HEIGHT, GRID_SPACING):
+                pygame.draw.rect(
+                    self.window,
+                    (
+                        GRID_COLOUR, GRID_COLOUR, GRID_COLOUR
+                    ),
+                    (x, y, GRID_SPACING, GRID_SPACING),
+                    1
+                )

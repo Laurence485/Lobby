@@ -3,3 +3,5 @@ TO DO.txt
 logs/*
 .env
 config/*
+.DS_Store
+.coverage

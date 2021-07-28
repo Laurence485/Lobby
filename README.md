@@ -2,18 +2,11 @@
 
 Description:
 
-Pokéwars is a realtime online multiplayer game made using sprites from Pokemon Leaf Green and Fire Red. 
-
-This project was made using python3.7, pygame and the sockets module to handle incoming connections.
-
-The player must navigate randomly generated maps, gathering weapons and power-ups from long grass and deep pools, and destroy enemy players.
-
-The game supports 7 native maps, each using a range of difference sprites and terrains from Pokémon. 
-
-The Map class in  map_generation.py has generate_map(),save() and load() functions, which can be used to generate and save new maps by passing in a list of sprites. 
-
-The game maps used can be changed by editing maps[] in config.py. Any newly generated maps should be added here.
-
+Detail about how to generate map pythom main.py --map test --seed 341
+detail about how default maps assume 400x400 grid
+detail about running configured redis docker container w makefile
+detail about running server
+detail about running game (source .env and then run main.py)
 
 # Further Game Details
 

@@ -32,6 +32,8 @@ PLAYER_VEL = config['PLAYER_VELOCITY']
 BIKE_SOUND = config['BIKE_SOUND']
 MUSHROOM_SOUND = config['MUSHROOM_SOUND']
 
+DOOR_POS = Base.HOTEL_DOOR_POSITIONS.value
+
 
 class Player:
     """Create a new player object."""
@@ -53,6 +55,7 @@ class Player:
         self.hitbox = (self.x, self.y, self.width, self.height)
         self.hit_wall = False
         self.in_slow_area = False  # Slow the player's movement in grass/water.
+        self.is_indoors = False
         self.left = False
         self.right = False
         self.up = False
@@ -282,6 +285,13 @@ class Player:
         self.in_slow_area = (
             True if player_pos in reduced_speed_nodes else False
         )
+        if player_pos in DOOR_POS:
+            # Enter/exit door
+            # TODO
+            if self.up:
+                self.is_indoors = True
+            elif self.down:
+                self.is_indoors = False
 
         self._assign_player_speed(reduced_speed_nodes, player_pos)
 
